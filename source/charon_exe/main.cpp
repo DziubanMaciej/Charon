@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
     ProcessorConfig config{};
     bool success = reader.read(config, std::string{testJson});
 
-    BlockingQueue<FileAction> actions{};
+    BlockingQueue<FileEvent> actions{};
     auto watcher1 = DirectoryWatcher::create(argv[1], actions);
     auto watcher2 = DirectoryWatcher::create(argv[1], actions);
 
@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
 
     std::cout << "Actions:\n";
     while (true) {
-        FileAction action{};
+        FileEvent action{};
         if (!actions.blockingPop(action)) {
             std::cout << "  ERROR: could not pop\n";
         } else {

@@ -1,14 +1,13 @@
 #include "charon/util/error.h"
 #include "charon/watcher/windows/directory_watcher_windows.h"
 
-std::unique_ptr<DirectoryWatcher> DirectoryWatcher::create(const std::filesystem::path &directoryPath, BlockingQueue<FileAction> &outputQueue) {
+std::unique_ptr<DirectoryWatcher> DirectoryWatcher::create(const std::filesystem::path &directoryPath, BlockingQueue<FileEvent> &outputQueue) {
     return std::unique_ptr<DirectoryWatcher>(new DirectoryWatcherWindows(directoryPath, outputQueue));
 }
 
 DirectoryWatcherWindows::~DirectoryWatcherWindows() {
     stop();
 }
-
 
 bool DirectoryWatcherWindows::isWorking() const {
     return directoryHandle != INVALID_HANDLE_VALUE && watcherThread != nullptr;
@@ -79,7 +78,7 @@ void DirectoryWatcherWindows::watcherThreadProcedure(DirectoryWatcherWindows &wa
         // Process returned changes
         auto currentEntry = reinterpret_cast<const FILE_NOTIFY_INFORMATION *>(buffer.get());
         while (true) {
-            watcher.outputQueue.push(watcher.createFileAction(*currentEntry));
+            watcher.outputQueue.push(watcher.createFileEvent(*currentEntry));
 
             if (currentEntry->NextEntryOffset == 0) {
                 break;
@@ -89,28 +88,28 @@ void DirectoryWatcherWindows::watcherThreadProcedure(DirectoryWatcherWindows &wa
     }
 }
 
-FileAction DirectoryWatcherWindows::createFileAction(const FILE_NOTIFY_INFORMATION &notifyInfo) const {
-    FileAction::Type type{};
+FileEvent DirectoryWatcherWindows::createFileEvent(const FILE_NOTIFY_INFORMATION &notifyInfo) const {
+    FileEvent::Type type{};
     switch (notifyInfo.Action) {
     case FILE_ACTION_ADDED:
-        type = FileAction::Type::Add;
+        type = FileEvent::Type::Add;
         break;
     case FILE_ACTION_REMOVED:
-        type = FileAction::Type::Remove;
+        type = FileEvent::Type::Remove;
         break;
     case FILE_ACTION_MODIFIED:
-        type = FileAction::Type::Modify;
+        type = FileEvent::Type::Modify;
         break;
     case FILE_ACTION_RENAMED_OLD_NAME:
-        type = FileAction::Type::RenameOld;
+        type = FileEvent::Type::RenameOld;
         break;
     case FILE_ACTION_RENAMED_NEW_NAME:
-        type = FileAction::Type::RenameNew;
+        type = FileEvent::Type::RenameNew;
         break;
     default:
         UNREACHABLE_CODE;
     }
 
     const std::wstring path{notifyInfo.FileName, notifyInfo.FileNameLength / sizeof(WCHAR)};
-    return FileAction{this->directoryPath, type, path};
+    return FileEvent{this->directoryPath, type, path};
 }

@@ -2,7 +2,7 @@
 
 #include <filesystem>
 
-struct FileAction {
+struct FileEvent {
     enum class Type {
         Add,
         Remove,

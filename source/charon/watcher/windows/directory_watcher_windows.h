@@ -16,7 +16,7 @@ public:
 private:
     static HANDLE openHandle(const std::filesystem::path &directoryPath);
     static void watcherThreadProcedure(DirectoryWatcherWindows &watcher);
-    FileAction createFileAction(const FILE_NOTIFY_INFORMATION &notifyInfo) const;
+    FileEvent createFileEvent(const FILE_NOTIFY_INFORMATION &notifyInfo) const;
 
     HANDLE directoryHandle = INVALID_HANDLE_VALUE;
     std::unique_ptr<std::thread> watcherThread = nullptr;

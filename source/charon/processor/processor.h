@@ -9,15 +9,15 @@ class ProcessorAction;
 
 class Processor {
 public:
-    Processor(ProcessorConfig &config, BlockingQueue<FileAction> &eventQueue);
+    Processor(ProcessorConfig &config, BlockingQueue<FileEvent> &eventQueue);
 
     void run();
 
 private:
-    void processEvent(const FileAction &event) const;
-    ProcessorActionMatcher *findActionMatcher(const FileAction &action) const;
-    void executeProcessorAction(const FileAction &event, const ProcessorAction &action) const;
+    void processEvent(const FileEvent &event) const;
+    ProcessorActionMatcher *findActionMatcher(const FileEvent &event) const;
+    void executeProcessorAction(const FileEvent &event, const ProcessorAction &action) const;
 
     ProcessorConfig &config;
-    BlockingQueue<FileAction> &eventQueue;
+    BlockingQueue<FileEvent> &eventQueue;
 };

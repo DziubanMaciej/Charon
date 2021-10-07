@@ -3,22 +3,22 @@
 #include "charon/processor/processor_config.h"
 #include "charon/util/error.h"
 
-Processor::Processor(ProcessorConfig &config, BlockingQueue<FileAction> &eventQueue)
+Processor::Processor(ProcessorConfig &config, BlockingQueue<FileEvent> &eventQueue)
     : config(config),
       eventQueue(eventQueue) {}
 
 void Processor::run() {
     while (true) {
-        FileAction action{};
-        if (!eventQueue.blockingPop(action)) {
+        FileEvent event{};
+        if (!eventQueue.blockingPop(event)) {
             break;
         }
-        processEvent(action);
+        processEvent(event);
     }
 }
 
-void Processor::processEvent(const FileAction &event) const {
-    if (event.type != FileAction::Type::Add) {
+void Processor::processEvent(const FileEvent &event) const {
+    if (event.type != FileEvent::Type::Add) {
         return;
     }
 
@@ -33,16 +33,16 @@ void Processor::processEvent(const FileAction &event) const {
     }
 }
 
-ProcessorActionMatcher *Processor::findActionMatcher(const FileAction &action) const {
+ProcessorActionMatcher *Processor::findActionMatcher(const FileEvent &event) const {
     for (ProcessorActionMatcher &matcher : this->config.matchers) {
         // Filter by watched folder
-        if (action.watchedRootPath != matcher.watchedFolder) {
+        if (event.watchedRootPath != matcher.watchedFolder) {
             continue;
         }
 
         // Filter by file extension
         if (!matcher.watchedExtensions.empty()) {
-            const auto extension = action.path.extension();
+            const auto extension = event.path.extension();
             const auto it = std::find(matcher.watchedExtensions.begin(), matcher.watchedExtensions.end(), extension);
             if (it == matcher.watchedExtensions.end()) {
                 continue;
@@ -57,7 +57,7 @@ ProcessorActionMatcher *Processor::findActionMatcher(const FileAction &action) c
     return nullptr;
 }
 
-void Processor::executeProcessorAction(const FileAction &event, const ProcessorAction &action) const {
+void Processor::executeProcessorAction(const FileEvent &event, const ProcessorAction &action) const {
     switch (action.type) {
     case ProcessorAction::Type::Copy: {
         const auto data = std::get<ProcessorAction::MoveOrCopy>(action.data);
