@@ -1,0 +1,10 @@
+file(GLOB_RECURSE SOURCE_FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/*.h
+)
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_FILES})
+
+set(TARGET_NAME FolderWatcherUnitTests)
+add_executable(${TARGET_NAME} ${SOURCE_FILES})
+target_link_libraries(${TARGET_NAME} PRIVATE FolderWatcherLib)
+target_link_libraries(${TARGET_NAME} PRIVATE gtest)
