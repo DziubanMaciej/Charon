@@ -21,7 +21,7 @@ std::filesystem::path PathResolver::resolvePath(const std::filesystem::path &dir
     // If no counter is present, then we're done
     const size_t digits = std::count(newName.begin(), newName.end(), '#');
     if (digits == 0) {
-        return result;
+        return dir / result;
     }
 
     // If we have a counter, try to find lowest available one
@@ -34,7 +34,7 @@ std::filesystem::path PathResolver::resolvePath(const std::filesystem::path &dir
 
         const bool available = !std::filesystem::exists(dir / resultWithCounter);
         if (available) {
-            return resultWithCounter;
+            return dir / resultWithCounter;
         }
     }
 

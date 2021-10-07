@@ -9,6 +9,7 @@ struct FileEvent {
         Modify,
         RenameOld,
         RenameNew,
+        Interrupt,
     };
     std::filesystem::path watchedRootPath = {};
     Type type = Type::Add;

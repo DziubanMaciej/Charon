@@ -25,4 +25,9 @@ struct TestFilesHelper {
         std::filesystem::create_directories(fullPath);
         return fullPath;
     }
+
+    static bool fileExists(const std::filesystem::path &path) {
+        const auto fullPath = getTestFilePath(path);
+        return std::filesystem::exists(fullPath);
+    }
 };

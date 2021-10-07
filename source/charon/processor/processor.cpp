@@ -13,6 +13,9 @@ void Processor::run() {
         if (!eventQueue.blockingPop(event)) {
             break;
         }
+        if (event.type == FileEvent::Type::Interrupt) {
+            break;
+        }
         processEvent(event);
     }
 }
@@ -61,14 +64,14 @@ void Processor::executeProcessorAction(const FileEvent &event, const ProcessorAc
     switch (action.type) {
     case ProcessorAction::Type::Copy: {
         const auto data = std::get<ProcessorAction::MoveOrCopy>(action.data);
-        std::filesystem::copy(event.path,
-                              PathResolver::resolvePath(data.destinationDir, event.path, data.destinationName, std::filesystem::path{}));
+        const auto dstPath = PathResolver::resolvePath(data.destinationDir, event.path, data.destinationName, std::filesystem::path{});
+        std::filesystem::copy(event.path, dstPath);
         break;
     }
     case ProcessorAction::Type::Move: {
         const auto data = std::get<ProcessorAction::MoveOrCopy>(action.data);
-        std::filesystem::rename(event.path,
-                                PathResolver::resolvePath(data.destinationDir, event.path, data.destinationName, std::filesystem::path{}));
+        const auto dstPath = PathResolver::resolvePath(data.destinationDir, event.path, data.destinationName, std::filesystem::path{});
+        std::filesystem::rename(event.path, dstPath);
         break;
     }
     case ProcessorAction::Type::Remove:
