@@ -25,11 +25,20 @@ public:
     }
 
     bool blockingPop(T &result) {
+        const auto infiniteTimeout = std::chrono::duration<double>(std::numeric_limits<double>::infinity());
+        return blockingPop(result, infiniteTimeout);
+    }
+
+    template <class Rep, class Period>
+    bool blockingPop(T &result, const std::chrono::duration<Rep, Period> &timeout) {
         auto lock = this->lock();
 
         // Wait for push notification
         while (empty() && !blockingPopInterrupted) {
-            conditionVariable.wait(lock);
+            const auto waitResult = conditionVariable.wait_for(lock, timeout);
+            if (waitResult == std::cv_status::timeout) {
+                return false;
+            }
         }
         if (blockingPopInterrupted) {
             blockingPopInterrupted = false;

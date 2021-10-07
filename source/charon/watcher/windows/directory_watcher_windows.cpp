@@ -34,7 +34,11 @@ bool DirectoryWatcherWindows::start() {
         return false;
     }
 
-    this->watcherThread = std::make_unique<std::thread>(watcherThreadProcedure, std::reference_wrapper{*this});
+    std::atomic_bool startedNotification = false;
+    this->watcherThread = std::make_unique<std::thread>(watcherThreadProcedure, std::reference_wrapper{*this}, std::reference_wrapper{startedNotification});
+    while (!startedNotification.load())
+        ;
+
     return true;
 }
 
@@ -52,9 +56,11 @@ bool DirectoryWatcherWindows::stop() {
     return true;
 }
 
-void DirectoryWatcherWindows::watcherThreadProcedure(DirectoryWatcherWindows &watcher) {
+void DirectoryWatcherWindows::watcherThreadProcedure(DirectoryWatcherWindows &watcher, std::atomic_bool &startedNotification) {
     constexpr size_t bufferSize = 4096;
     auto buffer = std::make_unique<std::byte[]>(bufferSize);
+
+    startedNotification.store(true);
 
     while (true) {
         // Wait for directory notifications synchronously
@@ -111,5 +117,5 @@ FileEvent DirectoryWatcherWindows::createFileEvent(const FILE_NOTIFY_INFORMATION
     }
 
     const std::wstring path{notifyInfo.FileName, notifyInfo.FileNameLength / sizeof(WCHAR)};
-    return FileEvent{this->directoryPath, type, path};
+    return FileEvent{this->directoryPath, type, this->directoryPath / path};
 }
