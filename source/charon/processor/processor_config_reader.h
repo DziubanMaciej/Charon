@@ -1,6 +1,6 @@
 #pragma once
 
-#include "folder_watcher/processor/processor_config.h"
+#include "charon/processor/processor_config.h"
 
 #include <nlohmann/json.hpp>
 

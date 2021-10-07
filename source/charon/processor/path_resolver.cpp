@@ -1,5 +1,5 @@
-#include "folder_watcher/processor/path_resolver.h"
-#include "folder_watcher/util/error.h"
+#include "charon/processor/path_resolver.h"
+#include "charon/util/error.h"
 
 #include <sstream>
 

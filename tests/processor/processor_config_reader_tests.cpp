@@ -1,4 +1,4 @@
-#include "folder_watcher/processor/processor_config_reader.h"
+#include "charon/processor/processor_config_reader.h"
 
 #include <gtest/gtest.h>
 

@@ -1,7 +1,7 @@
-#include "folder_watcher/processor/path_resolver.h"
-#include "folder_watcher/processor/processor.h"
-#include "folder_watcher/processor/processor_config.h"
-#include "folder_watcher/util/error.h"
+#include "charon/processor/path_resolver.h"
+#include "charon/processor/processor.h"
+#include "charon/processor/processor_config.h"
+#include "charon/util/error.h"
 
 Processor::Processor(ProcessorConfig &config, BlockingQueue<FileAction> &eventQueue)
     : config(config),

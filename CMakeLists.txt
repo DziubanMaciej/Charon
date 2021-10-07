@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 3.16.0)
 
-project(FolderWatcher)
+project(Charon)
 
 add_subdirectory(third_party)
-add_subdirectory(folder_watcher)
-add_subdirectory(folder_watcher_exe)
+add_subdirectory(source)
 add_subdirectory(tests)

@@ -4,6 +4,6 @@ file(GLOB_RECURSE SOURCE_FILES
 )
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_FILES})
 
-set(TARGET_NAME FolderWatcher)
+set(TARGET_NAME Charon)
 add_executable(${TARGET_NAME} ${SOURCE_FILES})
-target_link_libraries(${TARGET_NAME} PUBLIC FolderWatcherLib)
+target_link_libraries(${TARGET_NAME} PUBLIC CharonLib)

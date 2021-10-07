@@ -1,7 +1,7 @@
 #include "processor_config_reader.h"
 
-#include "folder_watcher/processor/processor_config.h"
-#include "folder_watcher/util/error.h"
+#include "charon/processor/processor_config.h"
+#include "charon/util/error.h"
 
 #include <fstream>
 #include <sstream>

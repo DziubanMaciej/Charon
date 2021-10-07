@@ -1,7 +1,7 @@
 #pragma once
 
-#include "folder_watcher/threading/blocking_queue.h"
-#include "folder_watcher/watcher/file_action.h"
+#include "charon/threading/blocking_queue.h"
+#include "charon/watcher/file_action.h"
 
 class ProcessorConfig;
 class ProcessorConfigEntry;

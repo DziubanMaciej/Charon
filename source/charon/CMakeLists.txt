@@ -4,9 +4,7 @@ file(GLOB_RECURSE SOURCE_FILES
 )
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_FILES})
 
-message("AAA ${SOURCE_FILES}")
-
-set(TARGET_NAME FolderWatcherLib)
+set(TARGET_NAME CharonLib)
 add_library(${TARGET_NAME} STATIC ${SOURCE_FILES})
 target_include_directories(${TARGET_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
 target_link_libraries(${TARGET_NAME} PUBLIC nlohmann_json::nlohmann_json)

@@ -1,5 +1,5 @@
-#include "folder_watcher/processor/processor_config_reader.h"
-#include "folder_watcher/watcher/directory_watcher.h"
+#include "charon/processor/processor_config_reader.h"
+#include "charon/watcher/directory_watcher.h"
 
 #include <iostream>
 
