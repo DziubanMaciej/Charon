@@ -22,7 +22,7 @@ void Processor::processEvent(const FileAction &event) const {
         return;
     }
 
-    ProcessorConfigEntry *matcher = findActionMatcher(event);
+    ProcessorActionMatcher *matcher = findActionMatcher(event);
     if (matcher == nullptr) {
         // TODO log info about unmatched file
         return;
@@ -33,8 +33,8 @@ void Processor::processEvent(const FileAction &event) const {
     }
 }
 
-ProcessorConfigEntry *Processor::findActionMatcher(const FileAction &action) const {
-    for (ProcessorConfigEntry &matcher : this->config.entries) {
+ProcessorActionMatcher *Processor::findActionMatcher(const FileAction &action) const {
+    for (ProcessorActionMatcher &matcher : this->config.matchers) {
         // Filter by watched folder
         if (action.watchedRootPath != matcher.watchedFolder) {
             continue;

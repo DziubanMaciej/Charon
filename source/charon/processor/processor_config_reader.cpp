@@ -34,10 +34,10 @@ bool ProcessConfigReader::parseProcessorConfig(ProcessorConfig &outConfig, const
         return false;
     }
 
-    for (const nlohmann::json &entryNode : node) {
-        ProcessorConfigEntry entry{};
-        if (parseProcessorConfigEntry(entry, entryNode)) {
-            outConfig.entries.push_back(entry);
+    for (const nlohmann::json &matcherNode : node) {
+        ProcessorActionMatcher matcher{};
+        if (parseProcessorActionMatcher(matcher, matcherNode)) {
+            outConfig.matchers.push_back(matcher);
         } else {
             return false;
         }
@@ -46,43 +46,43 @@ bool ProcessConfigReader::parseProcessorConfig(ProcessorConfig &outConfig, const
     return true;
 }
 
-bool ProcessConfigReader::parseProcessorConfigEntry(ProcessorConfigEntry &outConfigEntry, const nlohmann::json &node) {
+bool ProcessConfigReader::parseProcessorActionMatcher(ProcessorActionMatcher &outActionMatcher, const nlohmann::json &node) {
     if (!node.is_object()) {
-        outErrors.push_back("Config entry node must be an object");
+        outErrors.push_back("Action matcher node must be an object");
         return false;
     }
 
     if (auto it = node.find("watchedFolder"); it != node.end()) {
-        outConfigEntry.watchedFolder = it->get<std::string>();
+        outActionMatcher.watchedFolder = it->get<std::string>();
     } else {
-        outErrors.push_back("Config entry node must contain \"watchedFolder\" field.");
+        outErrors.push_back("Action matcher node must contain \"watchedFolder\" field.");
         return false;
     }
 
     if (auto it = node.find("extensions"); it != node.end()) {
         if (!it->is_array()) {
-            outErrors.push_back("Config entry \"extensions\" member must be an array.");
+            outErrors.push_back("Action matcher \"extensions\" member must be an array.");
             return false;
         }
-        outConfigEntry.watchedExtensions = it->get<std::vector<std::string>>();
+        outActionMatcher.watchedExtensions = it->get<std::vector<std::string>>();
     }
 
     if (auto it = node.find("actions"); it != node.end()) {
         if (!it->is_array()) {
-            outErrors.push_back("Config entry \"actions\" member must be an array.");
+            outErrors.push_back("Action matcher \"actions\" member must be an array.");
             return false;
         }
 
         for (const nlohmann::json &actionNode : *it) {
             ProcessorAction action{};
             if (parseProcessorAction(action, actionNode)) {
-                outConfigEntry.actions.push_back(action);
+                outActionMatcher.actions.push_back(action);
             } else {
                 return false;
             }
         }
     } else {
-        outErrors.push_back("Config entry node must contain \"actions\" field.");
+        outErrors.push_back("Action matcher node must contain \"actions\" field.");
         return false;
     }
 

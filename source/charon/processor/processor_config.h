@@ -23,7 +23,7 @@ struct ProcessorAction {
     std::variant<MoveOrCopy, Remove> data{};
 };
 
-struct ProcessorConfigEntry {
+struct ProcessorActionMatcher {
     std::filesystem::path watchedFolder;
     std::vector<std::string> watchedExtensions;
     std::vector<ProcessorAction> actions;
@@ -31,5 +31,5 @@ struct ProcessorConfigEntry {
 
 struct ProcessorConfig {
     size_t version;
-    std::vector<ProcessorConfigEntry> entries;
+    std::vector<ProcessorActionMatcher> matchers;
 };

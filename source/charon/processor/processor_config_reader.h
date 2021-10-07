@@ -13,7 +13,7 @@ public:
 
 private:
     bool parseProcessorConfig(ProcessorConfig &outConfig, const nlohmann::json &node);
-    bool parseProcessorConfigEntry(ProcessorConfigEntry &outConfigEntry, const nlohmann::json &node);
+    bool parseProcessorActionMatcher(ProcessorActionMatcher &outActionMatcher, const nlohmann::json &node);
     bool parseProcessorAction(ProcessorAction &outAction, const nlohmann::json &node);
 
     static std::string readFile(const std::filesystem::path &jsonFile);

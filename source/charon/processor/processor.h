@@ -4,7 +4,7 @@
 #include "charon/watcher/file_action.h"
 
 class ProcessorConfig;
-class ProcessorConfigEntry;
+class ProcessorActionMatcher;
 class ProcessorAction;
 
 class Processor {
@@ -15,7 +15,7 @@ public:
 
 private:
     void processEvent(const FileAction &event) const;
-    ProcessorConfigEntry *findActionMatcher(const FileAction &action) const;
+    ProcessorActionMatcher *findActionMatcher(const FileAction &action) const;
     void executeProcessorAction(const FileAction &event, const ProcessorAction &action) const;
 
     ProcessorConfig &config;

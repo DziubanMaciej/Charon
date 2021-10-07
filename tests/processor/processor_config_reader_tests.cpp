@@ -27,7 +27,7 @@ TEST(ProcessorConfigReaderBasicTest, givenEmptyArrayWhenReadingThenReturnEmptyCo
     std::string json = "[]";
     ASSERT_TRUE(reader.read(config, json));
     EXPECT_EMPTY(reader.getErrors());
-    EXPECT_EMPTY(config.entries);
+    EXPECT_EMPTY(config.matchers);
 }
 
 TEST(ProcessorConfigReaderBadTypeTest, givenRootNodeIsNotAnArrayWhenReadingThenReturnError) {
@@ -47,7 +47,7 @@ TEST(ProcessorConfigReaderBadTypeTest, givenRootNodeIsNotAnArrayWhenReadingThenR
     EXPECT_ONE_PROCESSOR_ERROR("Root node must be an array");
 }
 
-TEST(ProcessorConfigReaderBadTypeTest, givenConfigEntryIsNotAnObjectWhenReadingThenReturnError) {
+TEST(ProcessorConfigReaderBadTypeTest, givenActionMatcherIsNotAnObjectWhenReadingThenReturnError) {
     ProcessConfigReader reader{};
     ProcessorConfig config{};
     std::string json = R"(
@@ -56,7 +56,7 @@ TEST(ProcessorConfigReaderBadTypeTest, givenConfigEntryIsNotAnObjectWhenReadingT
         ]
     )";
     EXPECT_FALSE(reader.read(config, json));
-    EXPECT_ONE_PROCESSOR_ERROR("Config entry node must be an object");
+    EXPECT_ONE_PROCESSOR_ERROR("Action matcher node must be an object");
 }
 
 TEST(ProcessorConfigReaderBadTypeTest, givenExtensionsMemberIsNotAnArrayWhenReadingThenReturnError) {
@@ -72,7 +72,7 @@ TEST(ProcessorConfigReaderBadTypeTest, givenExtensionsMemberIsNotAnArrayWhenRead
         ]
     )";
     EXPECT_FALSE(reader.read(config, json));
-    EXPECT_ONE_PROCESSOR_ERROR("Config entry \"extensions\" member must be an array.");
+    EXPECT_ONE_PROCESSOR_ERROR("Action matcher \"extensions\" member must be an array.");
 }
 
 TEST(ProcessorConfigReaderBadTypeTest, givenActionsMemberIsNotAnArrayWhenReadingThenReturnError) {
@@ -88,7 +88,7 @@ TEST(ProcessorConfigReaderBadTypeTest, givenActionsMemberIsNotAnArrayWhenReading
         ]
     )";
     EXPECT_FALSE(reader.read(config, json));
-    EXPECT_ONE_PROCESSOR_ERROR("Config entry \"actions\" member must be an array.");
+    EXPECT_ONE_PROCESSOR_ERROR("Action matcher \"actions\" member must be an array.");
 }
 
 TEST(ProcessorConfigReaderMissingFieldTest, givenNoWatchedFoldersFieldWhenReadingThenReturnError) {
@@ -103,7 +103,7 @@ TEST(ProcessorConfigReaderMissingFieldTest, givenNoWatchedFoldersFieldWhenReadin
         ]
     )";
     EXPECT_FALSE(reader.read(config, json));
-    EXPECT_ONE_PROCESSOR_ERROR("Config entry node must contain \"watchedFolder\" field.");
+    EXPECT_ONE_PROCESSOR_ERROR("Action matcher node must contain \"watchedFolder\" field.");
 }
 
 TEST(ProcessorConfigReaderMissingFieldTest, givenNoExtensionsFieldWhenReadingThenReturnSuccessAndEmptyExtensionsFilter) {
@@ -119,8 +119,8 @@ TEST(ProcessorConfigReaderMissingFieldTest, givenNoExtensionsFieldWhenReadingThe
     )";
     ASSERT_TRUE(reader.read(config, json));
     EXPECT_EMPTY(reader.getErrors());
-    EXPECT_EQ(1u, config.entries.size());
-    EXPECT_EMPTY(config.entries[0].watchedExtensions);
+    EXPECT_EQ(1u, config.matchers.size());
+    EXPECT_EMPTY(config.matchers[0].watchedExtensions);
 }
 
 TEST(ProcessorConfigReaderMissingFieldTest, givenNoActionsFieldWhenReadingThenReturnError) {
@@ -135,7 +135,7 @@ TEST(ProcessorConfigReaderMissingFieldTest, givenNoActionsFieldWhenReadingThenRe
         ]
     )";
     EXPECT_FALSE(reader.read(config, json));
-    EXPECT_ONE_PROCESSOR_ERROR("Config entry node must contain \"actions\" field.");
+    EXPECT_ONE_PROCESSOR_ERROR("Action matcher node must contain \"actions\" field.");
 }
 
 TEST(ProcessorConfigReaderMissingFieldTest, givenNoOverrideExistingFieldWhenReadingThenReturnSuccessAndSetValueToFalse) {
@@ -158,7 +158,7 @@ TEST(ProcessorConfigReaderMissingFieldTest, givenNoOverrideExistingFieldWhenRead
     )";
     ASSERT_TRUE(reader.read(config, json));
     EXPECT_EMPTY(reader.getErrors());
-    EXPECT_FALSE(std::get<ProcessorAction::MoveOrCopy>(config.entries[0].actions[0].data).overwriteExisting);
+    EXPECT_FALSE(std::get<ProcessorAction::MoveOrCopy>(config.matchers[0].actions[0].data).overwriteExisting);
 }
 
 TEST(ProcessConfigReaderPositiveTest, givenComplexConfigWhenReadingThenParseCorrectly) {
@@ -198,15 +198,15 @@ TEST(ProcessConfigReaderPositiveTest, givenComplexConfigWhenReadingThenParseCorr
 
     ASSERT_TRUE(reader.read(config, json));
     EXPECT_EMPTY(reader.getErrors());
-    EXPECT_EQ(2u, config.entries.size());
+    EXPECT_EQ(2u, config.matchers.size());
 
     {
-        const auto &entry = config.entries[0];
-        EXPECT_EQ("D:/Desktop/Test1", entry.watchedFolder);
-        EXPECT_EQ((std::vector<std::string>{"png", "jpg", "gif"}), entry.watchedExtensions);
-        EXPECT_EQ(2u, entry.actions.size());
+        const auto &matcher = config.matchers[0];
+        EXPECT_EQ("D:/Desktop/Test1", matcher.watchedFolder);
+        EXPECT_EQ((std::vector<std::string>{"png", "jpg", "gif"}), matcher.watchedExtensions);
+        EXPECT_EQ(2u, matcher.actions.size());
         {
-            const auto &action = entry.actions[0];
+            const auto &action = matcher.actions[0];
             const auto actionData = std::get<ProcessorAction::MoveOrCopy>(action.data);
             EXPECT_EQ(ProcessorAction::Type::Copy, action.type);
             EXPECT_EQ("D:/Desktop/Dst1", actionData.destinationDir);
@@ -214,7 +214,7 @@ TEST(ProcessConfigReaderPositiveTest, givenComplexConfigWhenReadingThenParseCorr
             EXPECT_FALSE(actionData.overwriteExisting);
         }
         {
-            const auto &action = entry.actions[1];
+            const auto &action = matcher.actions[1];
             const auto actionData = std::get<ProcessorAction::MoveOrCopy>(action.data);
             EXPECT_EQ(ProcessorAction::Type::Move, action.type);
             EXPECT_EQ("D:/Desktop/Dst2", actionData.destinationDir);
@@ -224,12 +224,12 @@ TEST(ProcessConfigReaderPositiveTest, givenComplexConfigWhenReadingThenParseCorr
     }
 
     {
-        const auto &entry = config.entries[1];
-        EXPECT_EQ("D:/Desktop/Test2", entry.watchedFolder);
-        EXPECT_EQ((std::vector<std::string>{"mp4"}), entry.watchedExtensions);
-        EXPECT_EQ(1u, entry.actions.size());
+        const auto &matcher = config.matchers[1];
+        EXPECT_EQ("D:/Desktop/Test2", matcher.watchedFolder);
+        EXPECT_EQ((std::vector<std::string>{"mp4"}), matcher.watchedExtensions);
+        EXPECT_EQ(1u, matcher.actions.size());
         {
-            const auto &action = entry.actions[0];
+            const auto &action = matcher.actions[0];
             EXPECT_TRUE(std::holds_alternative<ProcessorAction::Remove>(action.data));
             EXPECT_EQ(ProcessorAction::Type::Remove, action.type);
         }
