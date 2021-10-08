@@ -35,9 +35,10 @@ std::filesystem::path PathResolver::resolvePath(const std::filesystem::path &dir
         const std::string counterString = counterToString(index, digits);
         std::copy_n(counterString.data(), digits, counterStart);
 
-        const bool available = !std::filesystem::exists(dir / resultWithCounter);
+        const std::filesystem::path finalizedResultWithCounter = finalizePath(dir, resultWithCounter, extension);
+        const bool available = !std::filesystem::exists(finalizedResultWithCounter);
         if (available) {
-            return finalizePath(dir, resultWithCounter, extension);
+            return finalizedResultWithCounter;
         }
     }
 

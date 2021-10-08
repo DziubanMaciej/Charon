@@ -24,6 +24,11 @@ struct ProcessorTest : ::testing::Test {
         return ProcessorAction{ProcessorAction::Type::Move, data};
     }
 
+    ProcessorAction createRemoveAction() {
+        ProcessorAction::Remove data{};
+        return ProcessorAction{ProcessorAction::Type::Remove, data};
+    }
+
     ProcessorConfig createProcessorConfigWithOneMatcher() {
         ProcessorActionMatcher matcher{};
         matcher.watchedFolder = srcPath;
@@ -70,6 +75,19 @@ TEST_F(ProcessorTest, givenFileCopyActionTriggeredWhenProcessorIsRunningThenCopy
 
     EXPECT_TRUE(TestFilesHelper::fileExists(srcPath / "a"));
     EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "niceFile"));
+}
+
+TEST_F(ProcessorTest, givenFileRemoveActionTriggeredWhenProcessorIsRunningThenRemoveFile) {
+    ProcessorConfig config = createProcessorConfigWithOneMatcher();
+    config.matchers[0].actions = {createRemoveAction()};
+    Processor processor{config, eventQueue};
+
+    pushFileCreationEventAndCreateFile(srcPath / "a");
+    pushInterruptEvent();
+    processor.run();
+
+    EXPECT_FALSE(TestFilesHelper::fileExists(srcPath / "a"));
+    EXPECT_FALSE(TestFilesHelper::fileExists(dstPath / "a"));
 }
 
 TEST_F(ProcessorTest, givenFileWithExtensionWhenCopyingFileThenPreserveExtension) {
@@ -130,9 +148,88 @@ TEST_F(ProcessorTest, givenFileCopyActionTriggeredAndCounterIsUsedWhenProcessorI
     Processor processor{config, eventQueue};
 
     pushFileCreationEventAndCreateFile(srcPath / "a");
+    pushFileCreationEventAndCreateFile(srcPath / "b");
     pushInterruptEvent();
     processor.run();
 
     EXPECT_TRUE(TestFilesHelper::fileExists(srcPath / "a"));
     EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_000"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_001"));
+    EXPECT_FALSE(TestFilesHelper::fileExists(dstPath / "file_002"));
+}
+
+TEST_F(ProcessorTest, givenFilesWithMatchingExtensionsTriggeredAndCounterIsUsedWhenProcessorIsRunningThenCopyFile) {
+    ProcessorConfig config = createProcessorConfigWithOneMatcher();
+    config.matchers[0].actions = {createCopyAction("file_###")};
+    Processor processor{config, eventQueue};
+
+    pushFileCreationEventAndCreateFile(srcPath / "a.pdf");
+    pushFileCreationEventAndCreateFile(srcPath / "b.pdf");
+    pushInterruptEvent();
+    processor.run();
+
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_000.pdf"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_001.pdf"));
+    EXPECT_FALSE(TestFilesHelper::fileExists(dstPath / "file_002"));
+}
+
+TEST_F(ProcessorTest, givenFilesWithDifferentExtensionsTriggeredAndCounterIsUsedWhenProcessorIsRunningThenCopyFile) {
+    ProcessorConfig config = createProcessorConfigWithOneMatcher();
+    config.matchers[0].actions = {createCopyAction("file_###")};
+    Processor processor{config, eventQueue};
+
+    pushFileCreationEventAndCreateFile(srcPath / "a.pdf");
+    pushFileCreationEventAndCreateFile(srcPath / "b.gif");
+    pushInterruptEvent();
+    processor.run();
+
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_000.pdf"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_000.gif"));
+    EXPECT_FALSE(TestFilesHelper::fileExists(dstPath / "file_001.pdf"));
+    EXPECT_FALSE(TestFilesHelper::fileExists(dstPath / "file_001.gif"));
+}
+
+TEST_F(ProcessorTest, givenMultipleFileCopyActionsTriggeredAndCounterIsUsedWhenProcessorIsRunningThenCopyFile) {
+    ProcessorConfig config = createProcessorConfigWithOneMatcher();
+    config.matchers[0].actions = {createCopyAction("file_###")};
+    Processor processor{config, eventQueue};
+
+    for (int i = 0; i < 16; i++) {
+        auto srcFileName = std::string{"srcFile"} + std::to_string(i);
+        pushFileCreationEventAndCreateFile(srcPath / srcFileName);
+    }
+    pushInterruptEvent();
+    processor.run();
+
+    for (int i = 0; i < 16; i++) {
+        auto srcFileName = std::string{"srcFile"} + std::to_string(i);
+        EXPECT_TRUE(TestFilesHelper::fileExists(srcPath / srcFileName));
+
+        std::ostringstream stream{};
+        stream << std::setw(3) << std::setfill('0') << i;
+        auto dstFileName = std::string{"file_"} + stream.str();
+
+        EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / dstFileName));
+    }
+}
+
+TEST_F(ProcessorTest, givenMultipleActionsTriggeredAndCounterIsUsedWhenProcessorIsRunningThenCopyFile) {
+    ProcessorConfig config = createProcessorConfigWithOneMatcher();
+    config.matchers[0].actions = {
+        createCopyAction("abc_#"),
+        createCopyAction("abc_#"),
+        createCopyAction("def"),
+        createMoveAction("ghi_${extension}"),
+    };
+    Processor processor{config, eventQueue};
+
+    pushFileCreationEventAndCreateFile(srcPath / "a.png");
+    pushInterruptEvent();
+    processor.run();
+
+    EXPECT_FALSE(TestFilesHelper::fileExists(srcPath / "a.png"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "abc_0.png"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "abc_1.png"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "def.png"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "ghi_png.png"));
 }
