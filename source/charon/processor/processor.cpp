@@ -1,4 +1,4 @@
-#include "charon/processor/path_resolver.h"
+
 #include "charon/processor/processor.h"
 #include "charon/processor/processor_config.h"
 #include "charon/util/error.h"
@@ -6,7 +6,8 @@
 #include "charon/util/logger.h"
 
 Processor::Processor(ProcessorConfig &config, BlockingQueue<FileEvent> &eventQueue, Filesystem &filesystem, Logger *logger)
-    : config(config),
+    : pathResolver(filesystem),
+      config(config),
       eventQueue(eventQueue),
       filesystem(filesystem),
       logger(logger) {}
@@ -50,7 +51,7 @@ ProcessorActionMatcher *Processor::findActionMatcher(const FileEvent &event) con
 
         // Filter by file extension
         if (!matcher.watchedExtensions.empty()) {
-            const auto extension = event.path.extension();
+            const auto extension = pathResolver.removeLeadingDot(event.path.extension());
             const auto it = std::find(matcher.watchedExtensions.begin(), matcher.watchedExtensions.end(), extension);
             if (it == matcher.watchedExtensions.end()) {
                 continue;
@@ -69,7 +70,7 @@ void Processor::executeProcessorAction(const FileEvent &event, const ProcessorAc
     switch (action.type) {
     case ProcessorAction::Type::Copy: {
         const auto data = std::get<ProcessorAction::MoveOrCopy>(action.data);
-        const auto dstPath = PathResolver::resolvePath(data.destinationDir, event.path, data.destinationName, actionMatcherState.lastResolvedPath);
+        const auto dstPath = pathResolver.resolvePath(data.destinationDir, event.path, data.destinationName, actionMatcherState.lastResolvedPath);
         filesystem.copy(event.path, dstPath);
         actionMatcherState.lastResolvedPath = dstPath;
         log(logger, LogLevel::Info) << "Processor copying file " << event.path << " to " << dstPath;
@@ -77,7 +78,7 @@ void Processor::executeProcessorAction(const FileEvent &event, const ProcessorAc
     }
     case ProcessorAction::Type::Move: {
         const auto data = std::get<ProcessorAction::MoveOrCopy>(action.data);
-        const auto dstPath = PathResolver::resolvePath(data.destinationDir, event.path, data.destinationName, actionMatcherState.lastResolvedPath);
+        const auto dstPath = pathResolver.resolvePath(data.destinationDir, event.path, data.destinationName, actionMatcherState.lastResolvedPath);
         filesystem.move(event.path, dstPath);
         actionMatcherState.lastResolvedPath = dstPath;
         log(logger, LogLevel::Info) << "Processor moving file " << event.path << " to " << dstPath;

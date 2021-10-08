@@ -12,6 +12,7 @@ enum class LogLevel {
 };
 
 struct Logger {
+    virtual ~Logger() {}
     virtual void log(const std::string &message) = 0;
     std::mutex mutex;
 };

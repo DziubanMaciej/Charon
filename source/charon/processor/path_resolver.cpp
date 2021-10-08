@@ -1,7 +1,11 @@
 #include "charon/processor/path_resolver.h"
 #include "charon/util/error.h"
+#include "charon/util/filesystem.h"
 
 #include <sstream>
+
+PathResolver::PathResolver(Filesystem &filesystem)
+    : filesystem(filesystem) {}
 
 bool PathResolver::validateNameForResolve(const std::string &name) {
     return false;
@@ -10,14 +14,14 @@ bool PathResolver::validateNameForResolve(const std::string &name) {
 std::filesystem::path PathResolver::resolvePath(const std::filesystem::path &dir,
                                                 const std::filesystem::path &oldName,
                                                 const std::string &newName,
-                                                const std::filesystem::path &lastResolvedPath) {
+                                                const std::filesystem::path &lastResolvedPath) const {
     std::string result = newName;
 
     // Get extension
     const std::filesystem::path extension = oldName.extension();
 
     // Perform variable substitutions
-    replace(result, "${name}", oldName.filename().string());
+    replace(result, "${name}", oldName.stem().string());
     replace(result, "${previousName}", lastResolvedPath.stem().string());
     replace(result, "${extension}", removeLeadingDot(extension));
 
@@ -36,7 +40,7 @@ std::filesystem::path PathResolver::resolvePath(const std::filesystem::path &dir
         std::copy_n(counterString.data(), digits, counterStart);
 
         const std::filesystem::path finalizedResultWithCounter = finalizePath(dir, resultWithCounter, extension);
-        const bool available = !std::filesystem::exists(finalizedResultWithCounter);
+        const bool available = !filesystem.exists(finalizedResultWithCounter);
         if (available) {
             return finalizedResultWithCounter;
         }

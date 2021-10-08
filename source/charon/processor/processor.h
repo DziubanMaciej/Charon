@@ -1,5 +1,6 @@
 #pragma once
 
+#include "charon/processor/path_resolver.h"
 #include "charon/threading/blocking_queue.h"
 #include "charon/watcher/file_action.h"
 
@@ -25,6 +26,7 @@ private:
     ProcessorActionMatcher *findActionMatcher(const FileEvent &event) const;
     void executeProcessorAction(const FileEvent &event, const ProcessorAction &action, ActionMatcherState &actionMatcherState) const;
 
+    PathResolver pathResolver;
     ProcessorConfig &config;
     BlockingQueue<FileEvent> &eventQueue;
     Filesystem &filesystem;
