@@ -1,5 +1,7 @@
 #pragma once
 
+#include "charon/util/error.h"
+
 #include <filesystem>
 #include <fstream>
 
@@ -10,6 +12,14 @@ struct TestFilesHelper {
     }
 
     static std::filesystem::path getTestFilePath(const std::filesystem::path &path) {
+        if (path.is_absolute()) {
+            for (std::filesystem::path currentPath = path; !currentPath.empty(); currentPath = currentPath.parent_path()) {
+                if (currentPath == TEST_DIRECTORY_PATH) {
+                    return path;
+                }
+            }
+            FATAL_ERROR("Path not in test directory path");
+        }
         return std::filesystem::path{TEST_DIRECTORY_PATH} / path;
     }
 
