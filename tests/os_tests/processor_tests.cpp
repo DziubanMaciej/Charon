@@ -54,7 +54,7 @@ struct ProcessorTest : ::testing::Test {
 
     std::filesystem::path srcPath{};
     std::filesystem::path dstPath{};
-    BlockingQueue<FileEvent> eventQueue{};
+    FileEventQueue eventQueue{};
     NullLogger nullLogger{};
     FilesystemImpl filesystem{};
 };

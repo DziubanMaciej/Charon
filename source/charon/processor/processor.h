@@ -1,8 +1,7 @@
 #pragma once
 
 #include "charon/processor/path_resolver.h"
-#include "charon/threading/blocking_queue.h"
-#include "charon/watcher/file_action.h"
+#include "charon/watcher/file_event.h"
 
 struct Filesystem;
 struct Logger;
@@ -12,7 +11,7 @@ class ProcessorAction;
 
 class Processor {
 public:
-    Processor(ProcessorConfig &config, BlockingQueue<FileEvent> &eventQueue, Filesystem &filesystem, Logger *logger);
+    Processor(ProcessorConfig &config, FileEventQueue &eventQueue, Filesystem &filesystem, Logger *logger);
 
     void run();
 
@@ -28,7 +27,7 @@ private:
 
     PathResolver pathResolver;
     ProcessorConfig &config;
-    BlockingQueue<FileEvent> &eventQueue;
+    FileEventQueue &eventQueue;
     Filesystem &filesystem;
     Logger *logger;
 };

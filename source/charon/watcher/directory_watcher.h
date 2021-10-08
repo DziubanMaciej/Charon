@@ -1,16 +1,15 @@
 #pragma once
 
-#include "charon/threading/blocking_queue.h"
-#include "charon/watcher/file_action.h"
+#include "charon/watcher/file_event.h"
 
 #include <thread>
 
 class DirectoryWatcher {
 public:
-    DirectoryWatcher(const std::filesystem::path &directoryPath, BlockingQueue<FileEvent> &outputQueue);
+    DirectoryWatcher(const std::filesystem::path &directoryPath, FileEventQueue &outputQueue);
     virtual ~DirectoryWatcher() {}
 
-    static std::unique_ptr<DirectoryWatcher> create(const std::filesystem::path &directoryPath, BlockingQueue<FileEvent> &outputQueue);
+    static std::unique_ptr<DirectoryWatcher> create(const std::filesystem::path &directoryPath, FileEventQueue &outputQueue);
 
     virtual bool start() = 0;
     virtual bool stop() = 0;
@@ -18,5 +17,5 @@ public:
 
 protected:
     const std::filesystem::path directoryPath;
-    BlockingQueue<FileEvent> &outputQueue;
+    FileEventQueue &outputQueue;
 };

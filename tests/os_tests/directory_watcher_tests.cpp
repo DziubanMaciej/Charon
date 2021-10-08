@@ -17,7 +17,7 @@ struct DirectoryWatcherTest : ::testing::Test {
 
     const static inline auto popTimeoutDuration = 5ms;
     std::filesystem::path watchedDir{};
-    BlockingQueue<FileEvent> eventQueue{};
+    FileEventQueue eventQueue{};
     std::unique_ptr<DirectoryWatcher> watcher{};
 };
 

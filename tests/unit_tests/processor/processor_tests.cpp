@@ -66,7 +66,7 @@ struct ProcessorTest : ::testing::Test {
     std::filesystem::path dummyPath1{};
     std::filesystem::path dummyPath2{};
     std::filesystem::path dummyPath3{};
-    BlockingQueue<FileEvent> eventQueue{};
+    FileEventQueue eventQueue{};
     NullLogger nullLogger{};
 };
 

@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
     ProcessorConfig config{};
     bool success = reader.read(config, std::string{testJson});
 
-    BlockingQueue<FileEvent> actions{};
+    FileEventQueue actions{};
     auto watcher1 = DirectoryWatcher::create(argv[1], actions);
     auto watcher2 = DirectoryWatcher::create(argv[1], actions);
 

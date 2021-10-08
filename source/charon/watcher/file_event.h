@@ -1,5 +1,7 @@
 #pragma once
 
+#include "charon/util/blocking_queue.h"
+
 #include <filesystem>
 
 struct FileEvent {
@@ -15,3 +17,5 @@ struct FileEvent {
     Type type = Type::Add;
     std::filesystem::path path = {};
 };
+
+using FileEventQueue = BlockingQueue<FileEvent>;

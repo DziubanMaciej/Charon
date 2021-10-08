@@ -5,7 +5,7 @@
 #include "charon/util/filesystem.h"
 #include "charon/util/logger.h"
 
-Processor::Processor(ProcessorConfig &config, BlockingQueue<FileEvent> &eventQueue, Filesystem &filesystem, Logger *logger)
+Processor::Processor(ProcessorConfig &config, FileEventQueue &eventQueue, Filesystem &filesystem, Logger *logger)
     : pathResolver(filesystem),
       config(config),
       eventQueue(eventQueue),
