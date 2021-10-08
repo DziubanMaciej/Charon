@@ -13,15 +13,18 @@ std::filesystem::path PathResolver::resolvePath(const std::filesystem::path &dir
                                                 std::filesystem::path &previousName) {
     std::string result = newName;
 
+    // Get extension
+    const std::filesystem::path extension = oldName.extension();
+
     // Perform variable substitutions
     replace(result, "${name}", oldName.filename().string());
     replace(result, "${previousName}", previousName.string());
-    replace(result, "${extension}", oldName.extension().string());
+    replace(result, "${extension}", removeLeadingDot(extension));
 
     // If no counter is present, then we're done
     const size_t digits = std::count(newName.begin(), newName.end(), '#');
     if (digits == 0) {
-        return dir / result;
+        return finalizePath(dir, result, extension);
     }
 
     // If we have a counter, try to find lowest available one
@@ -34,11 +37,12 @@ std::filesystem::path PathResolver::resolvePath(const std::filesystem::path &dir
 
         const bool available = !std::filesystem::exists(dir / resultWithCounter);
         if (available) {
-            return dir / resultWithCounter;
+            return finalizePath(dir, resultWithCounter, extension);
         }
     }
 
-    UNREACHABLE_CODE; // TODO this is an error
+    // We haven't find an available counter
+    UNREACHABLE_CODE; // TODO handle this
 }
 
 void PathResolver::replace(std::string &subject, const std::string &search, const std::string &replace) {
@@ -59,6 +63,20 @@ size_t PathResolver::getMaxIndex(size_t digits) {
 
 std::string PathResolver::counterToString(size_t index, size_t digits) {
     std::ostringstream stream{};
-    stream << std::setw(digits) << index;
+    stream << std::setfill('0') << std::setw(digits) << index;
     return stream.str();
+}
+
+std::string PathResolver::removeLeadingDot(const std::filesystem::path &path) {
+    if (path.empty()) {
+        return {};
+    } else {
+        return path.string().substr(1);
+    }
+}
+
+std::filesystem::path PathResolver::finalizePath(const std::filesystem::path &destinationDir,
+                                                 const std::filesystem::path &newName,
+                                                 const std::filesystem::path &extension) {
+    return (destinationDir / newName).replace_extension(extension);
 }

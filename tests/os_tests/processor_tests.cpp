@@ -71,6 +71,36 @@ TEST_F(ProcessorTest, givenFileCopyActionTriggeredWhenProcessorIsRunningThenCopy
     EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "niceFile"));
 }
 
+TEST_F(ProcessorTest, givenFileWithExtensionWhenCopyingFileThenPreserveExtension) {
+    ProcessorConfig config = createProcessorConfigWithOneMatcher();
+    config.matchers[0].actions = {createCopyAction("niceFile")};
+    Processor processor{config, eventQueue};
+
+    std::thread processorThread{[&]() { processor.run(); }};
+    TestFilesHelper::createFile(srcPath / "a.jpg");
+    eventQueue.push(FileEvent{srcPath, FileEvent::Type::Add, srcPath / "a.jpg"});
+    eventQueue.push(createInterruptEvent());
+    processorThread.join();
+
+    EXPECT_TRUE(TestFilesHelper::fileExists(srcPath / "a.jpg"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "niceFile.jpg"));
+}
+
+TEST_F(ProcessorTest, givenFileWithMultipleExtensionsWhenCopyingFileThenPreserveOnlyLastExtension) {
+    ProcessorConfig config = createProcessorConfigWithOneMatcher();
+    config.matchers[0].actions = {createCopyAction("niceFile")};
+    Processor processor{config, eventQueue};
+
+    std::thread processorThread{[&]() { processor.run(); }};
+    TestFilesHelper::createFile(srcPath / "a.gif.pdf.jpg");
+    eventQueue.push(FileEvent{srcPath, FileEvent::Type::Add, srcPath / "a.gif.pdf.jpg"});
+    eventQueue.push(createInterruptEvent());
+    processorThread.join();
+
+    EXPECT_TRUE(TestFilesHelper::fileExists(srcPath / "a.gif.pdf.jpg"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "niceFile.jpg"));
+}
+
 TEST_F(ProcessorTest, givenFileCopyActionTriggeredAndNameVariableUsedWhenProcessorIsRunningThenCopyFile) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
     config.matchers[0].actions = {createCopyAction("a_${name}_c")};
@@ -84,4 +114,34 @@ TEST_F(ProcessorTest, givenFileCopyActionTriggeredAndNameVariableUsedWhenProcess
 
     EXPECT_TRUE(TestFilesHelper::fileExists(srcPath / "b"));
     EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "a_b_c"));
+}
+
+TEST_F(ProcessorTest, givenFileCopyActionTriggeredAndExtensionVariableUsedWhenProcessorIsRunningThenCopyFile) {
+    ProcessorConfig config = createProcessorConfigWithOneMatcher();
+    config.matchers[0].actions = {createCopyAction("a_${extension}_c")};
+    Processor processor{config, eventQueue};
+
+    TestFilesHelper::createFile(srcPath / "b.jpg");
+    eventQueue.push(FileEvent{srcPath, FileEvent::Type::Add, srcPath / "b.jpg"});
+    eventQueue.push(createInterruptEvent());
+
+    processor.run();
+
+    EXPECT_TRUE(TestFilesHelper::fileExists(srcPath / "b.jpg"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "a_jpg_c.jpg"));
+}
+
+TEST_F(ProcessorTest, givenFileCopyActionTriggeredAndCounterIsUsedWhenProcessorIsRunningThenCopyFile) {
+    ProcessorConfig config = createProcessorConfigWithOneMatcher();
+    config.matchers[0].actions = {createCopyAction("file_###")};
+    Processor processor{config, eventQueue};
+
+    std::thread processorThread{[&]() { processor.run(); }};
+    TestFilesHelper::createFile(srcPath / "a");
+    eventQueue.push(FileEvent{srcPath, FileEvent::Type::Add, srcPath / "a"});
+    eventQueue.push(createInterruptEvent());
+    processorThread.join();
+
+    EXPECT_TRUE(TestFilesHelper::fileExists(srcPath / "a"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_000"));
 }
