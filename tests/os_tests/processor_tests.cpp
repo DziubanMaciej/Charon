@@ -11,8 +11,12 @@ struct ProcessorTest : ::testing::Test {
     }
 
     ProcessorAction createCopyAction(const std::string &destinationName) {
+        return createCopyAction(destinationName, this->dstPath);
+    }
+
+    ProcessorAction createCopyAction(const std::string &destinationName, const std::filesystem::path &destinationDir) {
         ProcessorAction::MoveOrCopy data{};
-        data.destinationDir = dstPath;
+        data.destinationDir = destinationDir;
         data.destinationName = destinationName;
         return ProcessorAction{ProcessorAction::Type::Copy, data};
     }
@@ -140,6 +144,46 @@ TEST_F(ProcessorTest, givenFileCopyActionTriggeredAndExtensionVariableUsedWhenPr
 
     EXPECT_TRUE(TestFilesHelper::fileExists(srcPath / "b.jpg"));
     EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "a_jpg_c.jpg"));
+}
+
+TEST_F(ProcessorTest, givenFileCopyActionTriggeredAndPreviousNameVariableUsedWhenProcessorIsRunningThenCopyFile) {
+    ProcessorConfig config = createProcessorConfigWithOneMatcher();
+
+    auto dstPath2 = TestFilesHelper::createDirectory("dst2");
+
+    config.matchers[0].actions = {
+        createCopyAction("###"),
+        createCopyAction("${previousName}", dstPath2),
+        createCopyAction("a_${previousName}_b"),
+        createCopyAction("a_${previousName}_b"),
+    };
+    Processor processor{config, eventQueue};
+
+    pushFileCreationEventAndCreateFile(srcPath / "a.png");
+    pushFileCreationEventAndCreateFile(srcPath / "b.png");
+    pushFileCreationEventAndCreateFile(srcPath / "c.png");
+    pushInterruptEvent();
+    processor.run();
+
+    EXPECT_TRUE(TestFilesHelper::fileExists(srcPath / "a.png"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(srcPath / "b.png"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(srcPath / "c.png"));
+
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "000.png"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "001.png"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "002.png"));
+
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath2 / "000.png"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath2 / "001.png"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath2 / "002.png"));
+
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "a_000_b.png"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "a_001_b.png"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "a_002_b.png"));
+
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "a_a_000_b_b.png"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "a_a_001_b_b.png"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "a_a_002_b_b.png"));
 }
 
 TEST_F(ProcessorTest, givenFileCopyActionTriggeredAndCounterIsUsedWhenProcessorIsRunningThenCopyFile) {

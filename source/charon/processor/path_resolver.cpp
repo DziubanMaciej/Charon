@@ -10,7 +10,7 @@ bool PathResolver::validateNameForResolve(const std::string &name) {
 std::filesystem::path PathResolver::resolvePath(const std::filesystem::path &dir,
                                                 const std::filesystem::path &oldName,
                                                 const std::string &newName,
-                                                std::filesystem::path &previousName) {
+                                                const std::filesystem::path &lastResolvedPath) {
     std::string result = newName;
 
     // Get extension
@@ -18,7 +18,7 @@ std::filesystem::path PathResolver::resolvePath(const std::filesystem::path &dir
 
     // Perform variable substitutions
     replace(result, "${name}", oldName.filename().string());
-    replace(result, "${previousName}", previousName.string());
+    replace(result, "${previousName}", lastResolvedPath.stem().string());
     replace(result, "${extension}", removeLeadingDot(extension));
 
     // If no counter is present, then we're done

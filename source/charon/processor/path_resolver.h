@@ -10,7 +10,7 @@ public:
     static std::filesystem::path resolvePath(const std::filesystem::path &dir,
                                              const std::filesystem::path &oldName,
                                              const std::string &newName,
-                                             std::filesystem::path &previousName);
+                                             const std::filesystem::path &lastResolvedPath);
 
 private:
     static void replace(std::string &subject, const std::string &search, const std::string &replace);

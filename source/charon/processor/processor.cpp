@@ -31,8 +31,9 @@ void Processor::processEvent(const FileEvent &event) const {
         return;
     }
 
+    ActionMatcherState actionMatcherState{};
     for (const ProcessorAction &action : matcher->actions) {
-        executeProcessorAction(event, action);
+        executeProcessorAction(event, action, actionMatcherState);
     }
 }
 
@@ -60,22 +61,25 @@ ProcessorActionMatcher *Processor::findActionMatcher(const FileEvent &event) con
     return nullptr;
 }
 
-void Processor::executeProcessorAction(const FileEvent &event, const ProcessorAction &action) const {
+void Processor::executeProcessorAction(const FileEvent &event, const ProcessorAction &action, ActionMatcherState &actionMatcherState) const {
     switch (action.type) {
     case ProcessorAction::Type::Copy: {
         const auto data = std::get<ProcessorAction::MoveOrCopy>(action.data);
-        const auto dstPath = PathResolver::resolvePath(data.destinationDir, event.path, data.destinationName, std::filesystem::path{});
+        const auto dstPath = PathResolver::resolvePath(data.destinationDir, event.path, data.destinationName, actionMatcherState.lastResolvedPath);
         std::filesystem::copy(event.path, dstPath);
+        actionMatcherState.lastResolvedPath = dstPath;
         break;
     }
     case ProcessorAction::Type::Move: {
         const auto data = std::get<ProcessorAction::MoveOrCopy>(action.data);
-        const auto dstPath = PathResolver::resolvePath(data.destinationDir, event.path, data.destinationName, std::filesystem::path{});
+        const auto dstPath = PathResolver::resolvePath(data.destinationDir, event.path, data.destinationName, actionMatcherState.lastResolvedPath);
         std::filesystem::rename(event.path, dstPath);
+        actionMatcherState.lastResolvedPath = dstPath;
         break;
     }
     case ProcessorAction::Type::Remove:
         std::filesystem::remove(event.path);
+        actionMatcherState.lastResolvedPath = std::filesystem::path{};
         break;
     default:
         UNREACHABLE_CODE
