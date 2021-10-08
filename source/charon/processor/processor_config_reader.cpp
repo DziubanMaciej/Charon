@@ -95,6 +95,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM(ProcessorAction::Type,
                                  {ProcessorAction::Type::Copy, "copy"},
                                  {ProcessorAction::Type::Move, "move"},
                                  {ProcessorAction::Type::Remove, "remove"},
+                                 {ProcessorAction::Type::Print, "print"},
                              })
 
 bool ProcessConfigReader::parseProcessorAction(ProcessorAction &outAction, const nlohmann::json &node) {
@@ -141,6 +142,9 @@ bool ProcessConfigReader::parseProcessorAction(ProcessorAction &outAction, const
     }
     case ProcessorAction::Type::Remove:
         outAction.data = ProcessorAction::Remove{};
+        break;
+    case ProcessorAction::Type::Print:
+        outAction.data = ProcessorAction::Print{};
         break;
     default:
         UNREACHABLE_CODE;

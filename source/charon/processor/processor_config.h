@@ -10,6 +10,7 @@ struct ProcessorAction {
         Copy,
         Move,
         Remove,
+        Print,
     };
 
     struct MoveOrCopy {
@@ -18,9 +19,10 @@ struct ProcessorAction {
         bool overwriteExisting;
     };
     struct Remove {};
+    struct Print {};
 
     Type type = Type::Invalid;
-    std::variant<MoveOrCopy, Remove> data{};
+    std::variant<MoveOrCopy, Remove, Print> data{};
 };
 
 struct ProcessorActionMatcher {

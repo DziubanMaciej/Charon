@@ -161,6 +161,107 @@ TEST(ProcessorConfigReaderMissingFieldTest, givenNoOverrideExistingFieldWhenRead
     EXPECT_FALSE(std::get<ProcessorAction::MoveOrCopy>(config.matchers[0].actions[0].data).overwriteExisting);
 }
 
+TEST(ProcessConfigReaderPositiveTest, givenCopyActionWhenReadingThenParseCorrectly) {
+    ProcessConfigReader reader{};
+    ProcessorConfig config{};
+    std::string json = R"(
+        [
+            {
+                "watchedFolder": "D:/Desktop/Test",
+                "extensions": [ "png", "jpg", "gif" ],
+                "actions": [
+                    {
+                        "type": "copy",
+                        "destinationDir": "D:/Desktop/Dst1",
+                        "destinationName": "#.${ext}",
+                        "overwriteExisting": true
+                    }
+                ]
+            }
+        ]
+    )";
+    ASSERT_TRUE(reader.read(config, json));
+    EXPECT_EMPTY(reader.getErrors());
+    EXPECT_EQ(ProcessorAction::Type::Copy, config.matchers[0].actions[0].type);
+    auto data = std::get<ProcessorAction::MoveOrCopy>(config.matchers[0].actions[0].data);
+    EXPECT_EQ("D:/Desktop/Dst1", data.destinationDir);
+    EXPECT_EQ("#.${ext}", data.destinationName);
+    EXPECT_TRUE(data.overwriteExisting);
+}
+
+
+TEST(ProcessConfigReaderPositiveTest, givenMoveActionWhenReadingThenParseCorrectly) {
+    ProcessConfigReader reader{};
+    ProcessorConfig config{};
+    std::string json = R"(
+        [
+            {
+                "watchedFolder": "D:/Desktop/Test",
+                "extensions": [ "png", "jpg", "gif" ],
+                "actions": [
+                    {
+                        "type": "move",
+                        "destinationDir": "D:/Desktop/Dst1",
+                        "destinationName": "#.${ext}",
+                        "overwriteExisting": true
+                    }
+                ]
+            }
+        ]
+    )";
+    ASSERT_TRUE(reader.read(config, json));
+    EXPECT_EMPTY(reader.getErrors());
+    EXPECT_EQ(ProcessorAction::Type::Move, config.matchers[0].actions[0].type);
+    auto data = std::get<ProcessorAction::MoveOrCopy>(config.matchers[0].actions[0].data);
+    EXPECT_EQ("D:/Desktop/Dst1", data.destinationDir);
+    EXPECT_EQ("#.${ext}", data.destinationName);
+    EXPECT_TRUE(data.overwriteExisting);
+}
+
+TEST(ProcessConfigReaderPositiveTest, givenRemoveActionWhenReadingThenParseCorrectly) {
+    ProcessConfigReader reader{};
+    ProcessorConfig config{};
+    std::string json = R"(
+        [
+            {
+                "watchedFolder": "D:/Desktop/Test",
+                "extensions": [ "png", "jpg", "gif" ],
+                "actions": [
+                    {
+                        "type": "remove"
+                    }
+                ]
+            }
+        ]
+    )";
+    ASSERT_TRUE(reader.read(config, json));
+    EXPECT_EMPTY(reader.getErrors());
+    EXPECT_EQ(ProcessorAction::Type::Remove, config.matchers[0].actions[0].type);
+    EXPECT_TRUE(std::holds_alternative<ProcessorAction::Remove>(config.matchers[0].actions[0].data));
+}
+
+TEST(ProcessConfigReaderPositiveTest, givenPrintActionWhenReadingThenParseCorrectly) {
+    ProcessConfigReader reader{};
+    ProcessorConfig config{};
+    std::string json = R"(
+        [
+            {
+                "watchedFolder": "D:/Desktop/Test",
+                "extensions": [ "png", "jpg", "gif" ],
+                "actions": [
+                    {
+                        "type": "print"
+                    }
+                ]
+            }
+        ]
+    )";
+    ASSERT_TRUE(reader.read(config, json));
+    EXPECT_EMPTY(reader.getErrors());
+    EXPECT_EQ(ProcessorAction::Type::Print, config.matchers[0].actions[0].type);
+    EXPECT_TRUE(std::holds_alternative<ProcessorAction::Print>(config.matchers[0].actions[0].data));
+}
+
 TEST(ProcessConfigReaderPositiveTest, givenComplexConfigWhenReadingThenParseCorrectly) {
     ProcessConfigReader reader{};
     ProcessorConfig config{};

@@ -26,10 +26,6 @@ void Processor::run() {
 }
 
 void Processor::processEvent(const FileEvent &event) const {
-    if (event.type != FileEvent::Type::Add) {
-        return;
-    }
-
     ProcessorActionMatcher *matcher = findActionMatcher(event);
     if (matcher == nullptr) {
         log(logger, LogLevel::Info) << "Processor could not match file " << event.path << " to any action matcher";
@@ -89,7 +85,32 @@ void Processor::executeProcessorAction(const FileEvent &event, const ProcessorAc
         actionMatcherState.lastResolvedPath = std::filesystem::path{};
         log(logger, LogLevel::Info) << "Processor removing file " << event.path;
         break;
+    case ProcessorAction::Type::Print:
+        logFileEvent(event);
+        break;
     default:
         UNREACHABLE_CODE
+    }
+}
+
+void Processor::logFileEvent(const FileEvent &event) const {
+    switch (event.type) {
+    case FileEvent::Type::Add:
+        log(logger, LogLevel::Info) << "File " << event.path << " has been created";
+        break;
+    case FileEvent::Type::Remove:
+        log(logger, LogLevel::Info) << "File " << event.path << " has been removed";
+        break;
+    case FileEvent::Type::Modify:
+        log(logger, LogLevel::Info) << "File " << event.path << " has been modified";
+        break;
+    case FileEvent::Type::RenameOld:
+        log(logger, LogLevel::Info) << "A file has been moved from path " << event.path;
+        break;
+    case FileEvent::Type::RenameNew:
+        log(logger, LogLevel::Info) << "A file has been moved to " << event.path;
+        break;
+    case FileEvent::Type::Interrupt:
+        break;
     }
 }

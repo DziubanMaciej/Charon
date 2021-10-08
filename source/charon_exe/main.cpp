@@ -1,4 +1,8 @@
+#include "charon/processor/processor.h"
 #include "charon/processor/processor_config_reader.h"
+#include "charon/util/error.h"
+#include "charon/util/filesystem_impl.h"
+#include "charon/util/logger.h"
 #include "charon/watcher/directory_watcher.h"
 
 #include <iostream>
@@ -8,17 +12,10 @@ int main(int argc, char **argv) {
 [
     {
         "watchedFolder": "D:/Desktop/Test/Src",
-        "extensions": [ "png", "jpg", "gif" ],
+        "extensions": [  ],
         "actions": [
             {
-                "type": "copy",
-                "destinationDir": "D:/Desktop/Dst1",
-                "destinationName": "###.$ext"
-            },
-            {
-                "type": "move",
-                "destinationDir": "D:/Desktop/Dst2",
-                "destinationName": "###.$ext"
+                "type": "print"
             }
         ]
     }
@@ -26,28 +23,24 @@ int main(int argc, char **argv) {
 )";
     ProcessConfigReader reader{};
     ProcessorConfig config{};
-    bool success = reader.read(config, std::string{testJson});
-
-    FileEventQueue actions{};
-    auto watcher1 = DirectoryWatcher::create(argv[1], actions);
-    auto watcher2 = DirectoryWatcher::create(argv[1], actions);
-
-    bool a = watcher1->isWorking();
-    bool b = watcher2->isWorking();
-
-    watcher1->start();
-    watcher2->start();
-
-    watcher1->stop();
-    watcher1->start();
-
-    std::cout << "Actions:\n";
-    while (true) {
-        FileEvent action{};
-        if (!actions.blockingPop(action)) {
-            std::cout << "  ERROR: could not pop\n";
-        } else {
-            std::cout << "  File event: " << action.watchedRootPath << ", " << action.path << '\n';
+    const bool success = reader.read(config, std::string{testJson});
+    if (!success) {
+        for (auto &error : reader.getErrors()) {
+            std::cerr << error << '\n';
         }
+        FATAL_ERROR("Error parsing json");
     }
+
+    FileEventQueue eventQueue{};
+
+    auto watcher = DirectoryWatcher::create(config.matchers[0].watchedFolder, eventQueue);
+    watcher->start();
+
+    FilesystemImpl filesystem{};
+    ConsoleLogger logger{};
+    Processor processor{config, eventQueue, filesystem, &logger};
+
+    std::cout << "Running processor...\n";
+    processor.run();
+    std::cout << "End\n";
 }

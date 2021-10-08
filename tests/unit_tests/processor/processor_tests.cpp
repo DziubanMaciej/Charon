@@ -38,6 +38,11 @@ struct ProcessorTest : ::testing::Test {
         return ProcessorAction{ProcessorAction::Type::Remove, data};
     }
 
+    ProcessorAction createPrintAction() {
+        ProcessorAction::Print data{};
+        return ProcessorAction{ProcessorAction::Type::Print, data};
+    }
+
     ProcessorConfig createProcessorConfigWithOneMatcher(const std::filesystem::path &watchedDir) {
         return createProcessorConfig({watchedDir});
     }
@@ -346,7 +351,7 @@ TEST_F(ProcessorTest, givenMultipleActionsWhenTheyAreExecutedThenLogInfo) {
 }
 
 TEST_F(ProcessorTest, givenNoMatchingActionMatcherWhenEventIsProcessedThenLogInfo) {
-    MockFilesystem filesystem{false};
+    MockFilesystem filesystem{};
     MockLogger logger{};
 
     EXPECT_CALL(logger, log("[Info] Processor could not match file a/file.txt to any action matcher\n"));
@@ -357,6 +362,32 @@ TEST_F(ProcessorTest, givenNoMatchingActionMatcherWhenEventIsProcessedThenLogInf
     Processor processor{config, eventQueue, filesystem, &logger};
 
     pushFileCreationEvent("a", "a/file.txt");
+    pushInterruptEvent();
+    processor.run();
+}
+
+TEST_F(ProcessorTest, givenPrintActionWhenEventIsProcessedThenLogInfo) {
+    MockFilesystem filesystem{};
+    MockLogger logger{};
+
+    {
+        InSequence seq{};
+        EXPECT_CALL(logger, log("[Info] File a/file.txt has been created\n"));
+        EXPECT_CALL(logger, log("[Info] File a/file.txt has been removed\n"));
+        EXPECT_CALL(logger, log("[Info] File a/file.txt has been modified\n"));
+        EXPECT_CALL(logger, log("[Info] A file has been moved from path a/file.txt\n"));
+        EXPECT_CALL(logger, log("[Info] A file has been moved to a/file.txt\n"));
+    }
+
+    ProcessorConfig config = createProcessorConfigWithOneMatcher("a");
+    config.matchers[0].actions = {createPrintAction()};
+    Processor processor{config, eventQueue, filesystem, &logger};
+
+    pushFileEvent("a", FileEvent::Type::Add, "a/file.txt");
+    pushFileEvent("a", FileEvent::Type::Remove, "a/file.txt");
+    pushFileEvent("a", FileEvent::Type::Modify, "a/file.txt");
+    pushFileEvent("a", FileEvent::Type::RenameOld, "a/file.txt");
+    pushFileEvent("a", FileEvent::Type::RenameNew, "a/file.txt");
     pushInterruptEvent();
     processor.run();
 }

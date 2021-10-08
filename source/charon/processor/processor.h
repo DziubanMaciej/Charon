@@ -24,6 +24,7 @@ private:
     void processEvent(const FileEvent &event) const;
     ProcessorActionMatcher *findActionMatcher(const FileEvent &event) const;
     void executeProcessorAction(const FileEvent &event, const ProcessorAction &action, ActionMatcherState &actionMatcherState) const;
+    void logFileEvent(const FileEvent &event) const;
 
     PathResolver pathResolver;
     ProcessorConfig &config;
