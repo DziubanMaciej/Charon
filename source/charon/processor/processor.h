@@ -2,6 +2,7 @@
 
 #include "charon/threading/blocking_queue.h"
 #include "charon/watcher/file_action.h"
+#include "charon/util/logger.h"
 
 class ProcessorConfig;
 class ProcessorActionMatcher;
@@ -9,7 +10,7 @@ class ProcessorAction;
 
 class Processor {
 public:
-    Processor(ProcessorConfig &config, BlockingQueue<FileEvent> &eventQueue);
+    Processor(ProcessorConfig &config, BlockingQueue<FileEvent> &eventQueue, Logger *logger);
 
     void run();
 
@@ -25,4 +26,5 @@ private:
 
     ProcessorConfig &config;
     BlockingQueue<FileEvent> &eventQueue;
+    Logger *logger;
 };

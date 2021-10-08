@@ -2,10 +2,12 @@
 #include "charon/processor/processor.h"
 #include "charon/processor/processor_config.h"
 #include "charon/util/error.h"
+#include "charon/util/logger.h"
 
-Processor::Processor(ProcessorConfig &config, BlockingQueue<FileEvent> &eventQueue)
+Processor::Processor(ProcessorConfig &config, BlockingQueue<FileEvent> &eventQueue, Logger *logger)
     : config(config),
-      eventQueue(eventQueue) {}
+      eventQueue(eventQueue),
+      logger(logger) {}
 
 void Processor::run() {
     while (true) {
@@ -27,7 +29,7 @@ void Processor::processEvent(const FileEvent &event) const {
 
     ProcessorActionMatcher *matcher = findActionMatcher(event);
     if (matcher == nullptr) {
-        // TODO log info about unmatched file
+        log(logger, LogLevel::Info) << "Processor could not match file " << event.path << " to any action matcher";
         return;
     }
 
@@ -68,6 +70,7 @@ void Processor::executeProcessorAction(const FileEvent &event, const ProcessorAc
         const auto dstPath = PathResolver::resolvePath(data.destinationDir, event.path, data.destinationName, actionMatcherState.lastResolvedPath);
         std::filesystem::copy(event.path, dstPath);
         actionMatcherState.lastResolvedPath = dstPath;
+        log(logger, LogLevel::Info) << "Processor copying file " << event.path << " to " << dstPath;
         break;
     }
     case ProcessorAction::Type::Move: {
@@ -75,11 +78,13 @@ void Processor::executeProcessorAction(const FileEvent &event, const ProcessorAc
         const auto dstPath = PathResolver::resolvePath(data.destinationDir, event.path, data.destinationName, actionMatcherState.lastResolvedPath);
         std::filesystem::rename(event.path, dstPath);
         actionMatcherState.lastResolvedPath = dstPath;
+        log(logger, LogLevel::Info) << "Processor moving file " << event.path << " to " << dstPath;
         break;
     }
     case ProcessorAction::Type::Remove:
         std::filesystem::remove(event.path);
         actionMatcherState.lastResolvedPath = std::filesystem::path{};
+        log(logger, LogLevel::Info) << "Processor removing file " << event.path;
         break;
     default:
         UNREACHABLE_CODE
