@@ -5,7 +5,7 @@
 #include "charon/util/filesystem.h"
 #include "charon/util/logger.h"
 
-Processor::Processor(ProcessorConfig &config, FileEventQueue &eventQueue, Filesystem &filesystem, Logger *logger)
+Processor::Processor(const ProcessorConfig &config, FileEventQueue &eventQueue, Filesystem &filesystem, Logger *logger)
     : pathResolver(filesystem),
       config(config),
       eventQueue(eventQueue),
@@ -26,7 +26,7 @@ void Processor::run() {
 }
 
 void Processor::processEvent(const FileEvent &event) const {
-    ProcessorActionMatcher *matcher = findActionMatcher(event);
+    const ProcessorActionMatcher *matcher = findActionMatcher(event);
     if (matcher == nullptr) {
         log(logger, LogLevel::Info) << "Processor could not match file " << event.path << " to any action matcher";
         return;
@@ -38,8 +38,8 @@ void Processor::processEvent(const FileEvent &event) const {
     }
 }
 
-ProcessorActionMatcher *Processor::findActionMatcher(const FileEvent &event) const {
-    for (ProcessorActionMatcher &matcher : this->config.matchers) {
+const ProcessorActionMatcher *Processor::findActionMatcher(const FileEvent &event) const {
+    for (const ProcessorActionMatcher &matcher : this->config.matchers) {
         // Filter by watched folder
         if (event.watchedRootPath != matcher.watchedFolder) {
             continue;

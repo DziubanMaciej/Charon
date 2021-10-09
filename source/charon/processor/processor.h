@@ -11,7 +11,7 @@ class ProcessorAction;
 
 class Processor {
 public:
-    Processor(ProcessorConfig &config, FileEventQueue &eventQueue, Filesystem &filesystem, Logger *logger);
+    Processor(const ProcessorConfig &config, FileEventQueue &eventQueue, Filesystem &filesystem, Logger *logger);
 
     void run();
 
@@ -22,12 +22,12 @@ private:
     };
 
     void processEvent(const FileEvent &event) const;
-    ProcessorActionMatcher *findActionMatcher(const FileEvent &event) const;
+    const ProcessorActionMatcher *findActionMatcher(const FileEvent &event) const;
     void executeProcessorAction(const FileEvent &event, const ProcessorAction &action, ActionMatcherState &actionMatcherState) const;
     void logFileEvent(const FileEvent &event) const;
 
     PathResolver pathResolver;
-    ProcessorConfig &config;
+    const ProcessorConfig &config;
     FileEventQueue &eventQueue;
     Filesystem &filesystem;
     Logger *logger;
