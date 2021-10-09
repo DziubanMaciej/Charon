@@ -10,10 +10,10 @@ TEST(LoggerTest, givenVariousLogLevelsWhenRaiiLogIsCalledThenPrependTheLogWithLo
     EXPECT_CALL(logger, log("[Warning] c 1\n"));
     EXPECT_CALL(logger, log("[Debug] d 1\n"));
 
-    log(&logger, LogLevel::Error) << "a " << 1;
-    log(&logger, LogLevel::Info) << "b " << 1;
-    log(&logger, LogLevel::Warning) << "c " << 1;
-    log(&logger, LogLevel::Debug) << "d " << 1;
+    log(logger, LogLevel::Error) << "a " << 1;
+    log(logger, LogLevel::Info) << "b " << 1;
+    log(logger, LogLevel::Warning) << "c " << 1;
+    log(logger, LogLevel::Debug) << "d " << 1;
 }
 
 TEST(LoggerTest, whenConsoleLoggerIsUsedThenPrintMessagesToConsole) {
@@ -24,7 +24,7 @@ TEST(LoggerTest, whenConsoleLoggerIsUsedThenPrintMessagesToConsole) {
     EXPECT_STREQ("Hello world", testing::internal::GetCapturedStdout().c_str());
 
     ::testing::internal::CaptureStdout();
-    log(&logger, LogLevel::Info) << "Hello world";
+    log(logger, LogLevel::Info) << "Hello world";
     EXPECT_STREQ("[Info] Hello world\n", testing::internal::GetCapturedStdout().c_str());
 }
 
@@ -36,6 +36,6 @@ TEST(LoggerTest, whenNullLoggerIsUsedThenDoNotPrintAnything) {
     EXPECT_TRUE(testing::internal::GetCapturedStdout().empty());
 
     ::testing::internal::CaptureStdout();
-    log(&logger, LogLevel::Info) << "Hello world";
+    log(logger, LogLevel::Info) << "Hello world";
     EXPECT_TRUE(testing::internal::GetCapturedStdout().empty());
 }

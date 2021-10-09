@@ -16,7 +16,7 @@ struct hash<fs::path> {
 } // namespace std
 
 Charon::Charon(const ProcessorConfig &config, Filesystem &filesystem, Logger &logger, DirectoryWatcherFactory &watcherFactory)
-    : processor(config, this->eventQueue, filesystem, &logger),
+    : processor(config, this->eventQueue, filesystem, logger),
       logger(logger) {
 
     std::unordered_set<fs::path> directoriesToWatch = {};
@@ -33,7 +33,7 @@ bool Charon::runWatchers() {
     for (auto &watcher : this->directoryWatchers) {
         const bool watcherStarted = watcher->start();
         if (!watcherStarted) {
-            log(&logger, LogLevel::Error) << "Watcher for directory " << watcher->getWatchedDirectory() << " failed to start";
+            log(logger, LogLevel::Error) << "Watcher for directory " << watcher->getWatchedDirectory() << " failed to start";
             return false;
         }
     }

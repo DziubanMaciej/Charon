@@ -61,8 +61,8 @@ private:
     std::ostringstream buffer{};
 };
 
-inline RaiiLog log(Logger *logger, LogLevel logLevel) {
-    return RaiiLog{logger, logLevel};
+inline RaiiLog log(Logger &logger, LogLevel logLevel) {
+    return RaiiLog{&logger, logLevel};
 }
 
 struct ConsoleLogger : Logger {

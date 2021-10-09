@@ -11,7 +11,7 @@ class ProcessorAction;
 
 class Processor {
 public:
-    Processor(const ProcessorConfig &config, FileEventQueue &eventQueue, Filesystem &filesystem, Logger *logger);
+    Processor(const ProcessorConfig &config, FileEventQueue &eventQueue, Filesystem &filesystem, Logger &logger);
 
     void run();
 
@@ -30,5 +30,5 @@ private:
     const ProcessorConfig &config;
     FileEventQueue &eventQueue;
     Filesystem &filesystem;
-    Logger *logger;
+    Logger &logger;
 };
