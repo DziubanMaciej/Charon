@@ -1,4 +1,5 @@
 #include "charon/watcher/directory_watcher.h"
+#include "charon/watcher/directory_watcher_factory.h"
 #include "os_tests/test_files_helper.h"
 
 #include <gtest/gtest.h>
@@ -8,7 +9,7 @@ using namespace std::chrono_literals;
 struct DirectoryWatcherTest : ::testing::Test {
     void SetUp() override {
         watchedDir = TestFilesHelper::createDirectory("dir");
-        watcher = DirectoryWatcher::create(watchedDir, eventQueue);
+        watcher = DirectoryWatcherFactoryImpl{}.create(watchedDir, eventQueue);
     }
 
     void waitAfterWatcherStart() {

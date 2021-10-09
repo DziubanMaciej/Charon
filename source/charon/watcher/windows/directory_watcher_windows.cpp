@@ -1,7 +1,8 @@
 #include "charon/util/error.h"
+#include "charon/watcher/directory_watcher_factory.h"
 #include "charon/watcher/windows/directory_watcher_windows.h"
 
-std::unique_ptr<DirectoryWatcher> DirectoryWatcher::create(const std::filesystem::path &directoryPath, FileEventQueue &outputQueue) {
+std::unique_ptr<DirectoryWatcher> DirectoryWatcherFactoryImpl::create(const std::filesystem::path &directoryPath, FileEventQueue &outputQueue) {
     return std::unique_ptr<DirectoryWatcher>(new DirectoryWatcherWindows(directoryPath, outputQueue));
 }
 
