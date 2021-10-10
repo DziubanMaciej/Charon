@@ -27,13 +27,10 @@ int main(int argc, char **argv) {
     }
 ]
 )";
-    ProcessConfigReader reader{};
+    ProcessConfigReader reader{logger};
     ProcessorConfig config{};
     const bool success = reader.read(config, std::string{testJson});
     if (!success) {
-        for (auto &error : reader.getErrors()) {
-            log(logger, LogLevel::Error) << "json parsing error: " << error;
-        }
         return EXIT_FAILURE;
     }
 
