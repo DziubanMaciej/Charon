@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <filesystem>
 #include <iostream>
 #include <mutex>
@@ -74,4 +75,23 @@ struct ConsoleLogger : Logger {
 
 struct NullLogger : Logger {
     void log(LogLevel level, const std::string &message) override {}
+};
+
+struct MultiplexedLogger : Logger {
+    template <typename... LoggerTypes>
+    MultiplexedLogger(LoggerTypes... args) {
+        std::array<Logger *, sizeof...(args)> pointers = {args...};
+        for (Logger *logger : pointers) {
+            this->loggers.push_back(logger);
+        }
+    }
+
+    void log(LogLevel level, const std::string &message) override {
+        for (Logger *logger : this->loggers) {
+            logger->log(level, message);
+        }
+    }
+
+private:
+    std::vector<Logger *> loggers = {};
 };

@@ -39,3 +39,16 @@ TEST(LoggerTest, whenNullLoggerIsUsedThenDoNotPrintAnything) {
     log(logger, LogLevel::Info) << "Hello world";
     EXPECT_TRUE(testing::internal::GetCapturedStdout().empty());
 }
+
+TEST(LoggerTest, whenMultiplexedLoggerIsUsedThenCallAllLoggers) {
+    MockLogger logger1{};
+    MockLogger logger2{};
+    MockLogger logger3{};
+
+    EXPECT_CALL(logger1, log(LogLevel::Error, "message"));
+    EXPECT_CALL(logger2, log(LogLevel::Error, "message"));
+    EXPECT_CALL(logger3, log(LogLevel::Error, "message"));
+
+    MultiplexedLogger logger{&logger1, &logger2, &logger3};
+    log(logger, LogLevel::Error) << "message";
+}
