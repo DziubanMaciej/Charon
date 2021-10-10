@@ -18,9 +18,13 @@ struct FileEvent {
     std::filesystem::path path = {};
 };
 
+inline bool operator==(const FileEvent &left, const FileEvent &right) {
+    return left.watchedRootPath == right.watchedRootPath &&
+           left.type == right.type &&
+           left.path == right.path;
+}
+
 using FileEventQueue = BlockingQueue<FileEvent>;
-
-
 
 namespace std {
 inline std::string getFileEventTypeAsPassiveVerb(FileEvent::Type type) {

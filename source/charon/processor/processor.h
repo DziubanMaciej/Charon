@@ -21,12 +21,13 @@ private:
         std::filesystem::path lastResolvedPath;
     };
 
-    void processEvent(const FileEvent &event) const;
+    void processEvent(const FileEvent &event);
     const ProcessorActionMatcher *findActionMatcher(const FileEvent &event) const;
-    void executeProcessorAction(const FileEvent &event, const ProcessorAction &action, ActionMatcherState &actionMatcherState) const;
+    void executeProcessorAction(const FileEvent &event, const ProcessorAction &action, ActionMatcherState &actionMatcherState);
     void logFileEvent(const FileEvent &event) const;
 
     PathResolver pathResolver;
+    std::vector<FileEvent> eventsToIgnore{};
     const ProcessorConfig &config;
     FileEventQueue &eventQueue;
     Filesystem &filesystem;

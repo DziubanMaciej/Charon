@@ -50,10 +50,14 @@ void Charon::readUserConsoleInput() {
         std::getline(std::cin, line);
 
         if (line == "q") {
-            FileEvent interruptEvent{};
-            interruptEvent.type = FileEvent::Type::Interrupt;
-            eventQueue.push(std::move(interruptEvent));
+            stopProcessor();
             break;
         }
     }
+}
+
+void Charon::stopProcessor() {
+    FileEvent interruptEvent{};
+    interruptEvent.type = FileEvent::Type::Interrupt;
+    eventQueue.push(std::move(interruptEvent));
 }

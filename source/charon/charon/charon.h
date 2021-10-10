@@ -15,6 +15,7 @@ public:
 
     bool runWatchers();
     void runProcessor();
+    void stopProcessor();
     void readUserConsoleInput();
 
 private:

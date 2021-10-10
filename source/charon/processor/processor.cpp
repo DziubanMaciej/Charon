@@ -25,7 +25,12 @@ void Processor::run() {
     }
 }
 
-void Processor::processEvent(const FileEvent &event) const {
+void Processor::processEvent(const FileEvent &event) {
+    if (auto it = std::find(eventsToIgnore.begin(), eventsToIgnore.end(), event); it != eventsToIgnore.end()) {
+        eventsToIgnore.erase(it);
+        return;
+    }
+
     const ProcessorActionMatcher *matcher = findActionMatcher(event);
     if (matcher == nullptr) {
         log(logger, LogLevel::Info) << "Processor could not match file " << event.path << " to any action matcher";
@@ -62,7 +67,7 @@ const ProcessorActionMatcher *Processor::findActionMatcher(const FileEvent &even
     return nullptr;
 }
 
-void Processor::executeProcessorAction(const FileEvent &event, const ProcessorAction &action, ActionMatcherState &actionMatcherState) const {
+void Processor::executeProcessorAction(const FileEvent &event, const ProcessorAction &action, ActionMatcherState &actionMatcherState) {
     switch (action.type) {
     case ProcessorAction::Type::Copy: {
         const auto data = std::get<ProcessorAction::MoveOrCopy>(action.data);
@@ -76,12 +81,14 @@ void Processor::executeProcessorAction(const FileEvent &event, const ProcessorAc
         const auto data = std::get<ProcessorAction::MoveOrCopy>(action.data);
         const auto dstPath = pathResolver.resolvePath(data.destinationDir, event.path, data.destinationName, actionMatcherState.lastResolvedPath);
         filesystem.move(event.path, dstPath);
+        eventsToIgnore.push_back(FileEvent{event.watchedRootPath, FileEvent::Type::Remove, event.path});
         actionMatcherState.lastResolvedPath = dstPath;
         log(logger, LogLevel::Info) << "Processor moving file " << event.path << " to " << dstPath;
         break;
     }
     case ProcessorAction::Type::Remove:
         filesystem.remove(event.path);
+        eventsToIgnore.push_back(FileEvent{event.watchedRootPath, FileEvent::Type::Remove, event.path});
         actionMatcherState.lastResolvedPath = std::filesystem::path{};
         log(logger, LogLevel::Info) << "Processor removing file " << event.path;
         break;
