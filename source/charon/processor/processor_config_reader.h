@@ -4,12 +4,14 @@
 
 #include <nlohmann/json.hpp>
 
+struct Logger;
+
 class ProcessConfigReader {
 public:
+    ProcessConfigReader(Logger &logger);
+
     bool read(ProcessorConfig &outConfig, const std::filesystem::path &jsonFile);
     bool read(ProcessorConfig &outConfig, const std::string &json);
-
-    const auto &getErrors() const { return outErrors; }
 
 private:
     bool parseProcessorConfig(ProcessorConfig &outConfig, const nlohmann::json &node);
@@ -18,5 +20,5 @@ private:
 
     static std::string readFile(const std::filesystem::path &jsonFile);
 
-    std::vector<std::string> outErrors = {};
+    Logger &logger;
 };

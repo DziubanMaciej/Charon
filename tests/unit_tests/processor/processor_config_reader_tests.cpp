@@ -1,54 +1,63 @@
 #include "charon/processor/processor_config_reader.h"
+#include "unit_tests/mocks/mock_logger.h"
 
 #include <gtest/gtest.h>
 
 #define EXPECT_EMPTY(container) EXPECT_EQ(0u, container.size())
-#define EXPECT_ONE_PROCESSOR_ERROR(error) EXPECT_EQ(std::vector<std::string>{error}, reader.getErrors());
 
 TEST(ProcessorConfigReaderBasicTest, givenEmptyJsonWhenReadingThenReturnError) {
-    ProcessConfigReader reader{};
+    MockLogger logger{};
+    EXPECT_CALL(logger, log("Specified json was badly formed."));
+
+    ProcessConfigReader reader{logger};
     ProcessorConfig config{};
     std::string json = "";
     EXPECT_FALSE(reader.read(config, json));
-    EXPECT_ONE_PROCESSOR_ERROR("Specified json was badly formed.");
 }
 
 TEST(ProcessorConfigReaderBasicTest, givenBadlyFormedJsonWhenReadingThenReturnError) {
-    ProcessConfigReader reader{};
+    MockLogger logger{};
+    EXPECT_CALL(logger, log("Specified json was badly formed."));
+
+    ProcessConfigReader reader{logger};
     ProcessorConfig config{};
     std::string json = "[ { ]";
     EXPECT_FALSE(reader.read(config, json));
-    EXPECT_ONE_PROCESSOR_ERROR("Specified json was badly formed.");
 }
 
 TEST(ProcessorConfigReaderBasicTest, givenEmptyArrayWhenReadingThenReturnEmptyConfig) {
-    ProcessConfigReader reader{};
+    MockLogger logger{};
+    EXPECT_CALL(logger, log).Times(0);
+
+    ProcessConfigReader reader{logger};
     ProcessorConfig config{};
     std::string json = "[]";
     ASSERT_TRUE(reader.read(config, json));
-    EXPECT_EMPTY(reader.getErrors());
     EXPECT_EMPTY(config.matchers);
 }
 
 TEST(ProcessorConfigReaderBadTypeTest, givenRootNodeIsNotAnArrayWhenReadingThenReturnError) {
-    ProcessConfigReader reader{};
+    MockLogger logger{};
+    EXPECT_CALL(logger, log("Root node must be an array")).Times(3);
+
+    ProcessConfigReader reader{logger};
     ProcessorConfig config{};
 
     std::string json = "{}";
     EXPECT_FALSE(reader.read(config, json));
-    EXPECT_ONE_PROCESSOR_ERROR("Root node must be an array");
 
     json = "1";
     EXPECT_FALSE(reader.read(config, json));
-    EXPECT_ONE_PROCESSOR_ERROR("Root node must be an array");
 
     json = "\"str\"";
     EXPECT_FALSE(reader.read(config, json));
-    EXPECT_ONE_PROCESSOR_ERROR("Root node must be an array");
 }
 
 TEST(ProcessorConfigReaderBadTypeTest, givenActionMatcherIsNotAnObjectWhenReadingThenReturnError) {
-    ProcessConfigReader reader{};
+    MockLogger logger{};
+    EXPECT_CALL(logger, log("Action matcher node must be an object"));
+
+    ProcessConfigReader reader{logger};
     ProcessorConfig config{};
     std::string json = R"(
         [
@@ -56,11 +65,13 @@ TEST(ProcessorConfigReaderBadTypeTest, givenActionMatcherIsNotAnObjectWhenReadin
         ]
     )";
     EXPECT_FALSE(reader.read(config, json));
-    EXPECT_ONE_PROCESSOR_ERROR("Action matcher node must be an object");
 }
 
 TEST(ProcessorConfigReaderBadTypeTest, givenExtensionsMemberIsNotAnArrayWhenReadingThenReturnError) {
-    ProcessConfigReader reader{};
+    MockLogger logger{};
+    EXPECT_CALL(logger, log("Action matcher \"extensions\" member must be an array."));
+
+    ProcessConfigReader reader{logger};
     ProcessorConfig config{};
     std::string json = R"(
         [
@@ -72,11 +83,13 @@ TEST(ProcessorConfigReaderBadTypeTest, givenExtensionsMemberIsNotAnArrayWhenRead
         ]
     )";
     EXPECT_FALSE(reader.read(config, json));
-    EXPECT_ONE_PROCESSOR_ERROR("Action matcher \"extensions\" member must be an array.");
 }
 
 TEST(ProcessorConfigReaderBadTypeTest, givenActionsMemberIsNotAnArrayWhenReadingThenReturnError) {
-    ProcessConfigReader reader{};
+    MockLogger logger{};
+    EXPECT_CALL(logger, log("Action matcher \"actions\" member must be an array."));
+
+    ProcessConfigReader reader{logger};
     ProcessorConfig config{};
     std::string json = R"(
         [
@@ -88,11 +101,13 @@ TEST(ProcessorConfigReaderBadTypeTest, givenActionsMemberIsNotAnArrayWhenReading
         ]
     )";
     EXPECT_FALSE(reader.read(config, json));
-    EXPECT_ONE_PROCESSOR_ERROR("Action matcher \"actions\" member must be an array.");
 }
 
 TEST(ProcessorConfigReaderMissingFieldTest, givenNoWatchedFoldersFieldWhenReadingThenReturnError) {
-    ProcessConfigReader reader{};
+    MockLogger logger{};
+    EXPECT_CALL(logger, log("Action matcher node must contain \"watchedFolder\" field."));
+
+    ProcessConfigReader reader{logger};
     ProcessorConfig config{};
     std::string json = R"(
         [
@@ -103,11 +118,13 @@ TEST(ProcessorConfigReaderMissingFieldTest, givenNoWatchedFoldersFieldWhenReadin
         ]
     )";
     EXPECT_FALSE(reader.read(config, json));
-    EXPECT_ONE_PROCESSOR_ERROR("Action matcher node must contain \"watchedFolder\" field.");
 }
 
 TEST(ProcessorConfigReaderMissingFieldTest, givenNoExtensionsFieldWhenReadingThenReturnSuccessAndEmptyExtensionsFilter) {
-    ProcessConfigReader reader{};
+    MockLogger logger{};
+    EXPECT_CALL(logger, log).Times(0);
+
+    ProcessConfigReader reader{logger};
     ProcessorConfig config{};
     std::string json = R"(
         [
@@ -118,13 +135,15 @@ TEST(ProcessorConfigReaderMissingFieldTest, givenNoExtensionsFieldWhenReadingThe
         ]
     )";
     ASSERT_TRUE(reader.read(config, json));
-    EXPECT_EMPTY(reader.getErrors());
     EXPECT_EQ(1u, config.matchers.size());
     EXPECT_EMPTY(config.matchers[0].watchedExtensions);
 }
 
 TEST(ProcessorConfigReaderMissingFieldTest, givenNoActionsFieldWhenReadingThenReturnError) {
-    ProcessConfigReader reader{};
+    MockLogger logger{};
+    EXPECT_CALL(logger, log("Action matcher node must contain \"actions\" field."));
+
+    ProcessConfigReader reader{logger};
     ProcessorConfig config{};
     std::string json = R"(
         [
@@ -135,11 +154,13 @@ TEST(ProcessorConfigReaderMissingFieldTest, givenNoActionsFieldWhenReadingThenRe
         ]
     )";
     EXPECT_FALSE(reader.read(config, json));
-    EXPECT_ONE_PROCESSOR_ERROR("Action matcher node must contain \"actions\" field.");
 }
 
 TEST(ProcessorConfigReaderMissingFieldTest, givenNoOverrideExistingFieldWhenReadingThenReturnSuccessAndSetValueToFalse) {
-    ProcessConfigReader reader{};
+    MockLogger logger{};
+    EXPECT_CALL(logger, log).Times(0);
+
+    ProcessConfigReader reader{logger};
     ProcessorConfig config{};
     std::string json = R"(
         [
@@ -157,12 +178,14 @@ TEST(ProcessorConfigReaderMissingFieldTest, givenNoOverrideExistingFieldWhenRead
         ]
     )";
     ASSERT_TRUE(reader.read(config, json));
-    EXPECT_EMPTY(reader.getErrors());
     EXPECT_FALSE(std::get<ProcessorAction::MoveOrCopy>(config.matchers[0].actions[0].data).overwriteExisting);
 }
 
 TEST(ProcessConfigReaderPositiveTest, givenCopyActionWhenReadingThenParseCorrectly) {
-    ProcessConfigReader reader{};
+    MockLogger logger{};
+    EXPECT_CALL(logger, log).Times(0);
+
+    ProcessConfigReader reader{logger};
     ProcessorConfig config{};
     std::string json = R"(
         [
@@ -181,7 +204,6 @@ TEST(ProcessConfigReaderPositiveTest, givenCopyActionWhenReadingThenParseCorrect
         ]
     )";
     ASSERT_TRUE(reader.read(config, json));
-    EXPECT_EMPTY(reader.getErrors());
     EXPECT_EQ(ProcessorAction::Type::Copy, config.matchers[0].actions[0].type);
     auto data = std::get<ProcessorAction::MoveOrCopy>(config.matchers[0].actions[0].data);
     EXPECT_EQ("D:/Desktop/Dst1", data.destinationDir);
@@ -189,9 +211,11 @@ TEST(ProcessConfigReaderPositiveTest, givenCopyActionWhenReadingThenParseCorrect
     EXPECT_TRUE(data.overwriteExisting);
 }
 
-
 TEST(ProcessConfigReaderPositiveTest, givenMoveActionWhenReadingThenParseCorrectly) {
-    ProcessConfigReader reader{};
+    MockLogger logger{};
+    EXPECT_CALL(logger, log).Times(0);
+
+    ProcessConfigReader reader{logger};
     ProcessorConfig config{};
     std::string json = R"(
         [
@@ -210,7 +234,6 @@ TEST(ProcessConfigReaderPositiveTest, givenMoveActionWhenReadingThenParseCorrect
         ]
     )";
     ASSERT_TRUE(reader.read(config, json));
-    EXPECT_EMPTY(reader.getErrors());
     EXPECT_EQ(ProcessorAction::Type::Move, config.matchers[0].actions[0].type);
     auto data = std::get<ProcessorAction::MoveOrCopy>(config.matchers[0].actions[0].data);
     EXPECT_EQ("D:/Desktop/Dst1", data.destinationDir);
@@ -219,7 +242,10 @@ TEST(ProcessConfigReaderPositiveTest, givenMoveActionWhenReadingThenParseCorrect
 }
 
 TEST(ProcessConfigReaderPositiveTest, givenRemoveActionWhenReadingThenParseCorrectly) {
-    ProcessConfigReader reader{};
+    MockLogger logger{};
+    EXPECT_CALL(logger, log).Times(0);
+
+    ProcessConfigReader reader{logger};
     ProcessorConfig config{};
     std::string json = R"(
         [
@@ -235,13 +261,15 @@ TEST(ProcessConfigReaderPositiveTest, givenRemoveActionWhenReadingThenParseCorre
         ]
     )";
     ASSERT_TRUE(reader.read(config, json));
-    EXPECT_EMPTY(reader.getErrors());
     EXPECT_EQ(ProcessorAction::Type::Remove, config.matchers[0].actions[0].type);
     EXPECT_TRUE(std::holds_alternative<ProcessorAction::Remove>(config.matchers[0].actions[0].data));
 }
 
 TEST(ProcessConfigReaderPositiveTest, givenPrintActionWhenReadingThenParseCorrectly) {
-    ProcessConfigReader reader{};
+    MockLogger logger{};
+    EXPECT_CALL(logger, log).Times(0);
+
+    ProcessConfigReader reader{logger};
     ProcessorConfig config{};
     std::string json = R"(
         [
@@ -257,13 +285,15 @@ TEST(ProcessConfigReaderPositiveTest, givenPrintActionWhenReadingThenParseCorrec
         ]
     )";
     ASSERT_TRUE(reader.read(config, json));
-    EXPECT_EMPTY(reader.getErrors());
     EXPECT_EQ(ProcessorAction::Type::Print, config.matchers[0].actions[0].type);
     EXPECT_TRUE(std::holds_alternative<ProcessorAction::Print>(config.matchers[0].actions[0].data));
 }
 
 TEST(ProcessConfigReaderPositiveTest, givenComplexConfigWhenReadingThenParseCorrectly) {
-    ProcessConfigReader reader{};
+    MockLogger logger{};
+    EXPECT_CALL(logger, log("Action matcher node must contain \"actions\" field."));
+
+    ProcessConfigReader reader{logger};
     ProcessorConfig config{};
     std::string json = R"(
         [
@@ -298,7 +328,6 @@ TEST(ProcessConfigReaderPositiveTest, givenComplexConfigWhenReadingThenParseCorr
     )";
 
     ASSERT_TRUE(reader.read(config, json));
-    EXPECT_EMPTY(reader.getErrors());
     EXPECT_EQ(2u, config.matchers.size());
 
     {
