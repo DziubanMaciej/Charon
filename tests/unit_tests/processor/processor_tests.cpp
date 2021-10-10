@@ -288,7 +288,7 @@ TEST_F(ProcessorTest, whenMoveActionIsExecutedThenLogInfo) {
     NiceMock<MockFilesystem> filesystem{false};
     MockLogger logger{};
 
-    EXPECT_CALL(logger, log("[Info] Processor moving file a/file.txt to b/file.txt\n"));
+    EXPECT_CALL(logger, log(LogLevel::Info, "Processor moving file a/file.txt to b/file.txt"));
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher("a");
     config.matchers[0].actions = {createMoveAction("b", "${name}")};
@@ -303,7 +303,7 @@ TEST_F(ProcessorTest, whenCopyActionIsExecutedThenLogInfo) {
     NiceMock<MockFilesystem> filesystem{false};
     MockLogger logger{};
 
-    EXPECT_CALL(logger, log("[Info] Processor copying file a/file.txt to b/file.txt\n"));
+    EXPECT_CALL(logger, log(LogLevel::Info, "Processor copying file a/file.txt to b/file.txt"));
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher("a");
     config.matchers[0].actions = {createCopyAction("b", "${name}")};
@@ -318,7 +318,7 @@ TEST_F(ProcessorTest, whenRemoveActionIsExecutedThenLogInfo) {
     NiceMock<MockFilesystem> filesystem{false};
     MockLogger logger{};
 
-    EXPECT_CALL(logger, log("[Info] Processor removing file a/file.txt\n"));
+    EXPECT_CALL(logger, log(LogLevel::Info, "Processor removing file a/file.txt"));
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher("a");
     config.matchers[0].actions = {createRemoveAction()};
@@ -333,9 +333,9 @@ TEST_F(ProcessorTest, givenMultipleActionsWhenTheyAreExecutedThenLogInfo) {
     NiceMock<MockFilesystem> filesystem{false};
     MockLogger logger{};
 
-    EXPECT_CALL(logger, log("[Info] Processor copying file a/file.txt to b/file.txt\n"));
-    EXPECT_CALL(logger, log("[Info] Processor moving file a/file.txt to c/file.txt\n"));
-    EXPECT_CALL(logger, log("[Info] Processor removing file a/file.txt\n"));
+    EXPECT_CALL(logger, log(LogLevel::Info, "Processor copying file a/file.txt to b/file.txt"));
+    EXPECT_CALL(logger, log(LogLevel::Info, "Processor moving file a/file.txt to c/file.txt"));
+    EXPECT_CALL(logger, log(LogLevel::Info, "Processor removing file a/file.txt"));
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher("a");
     config.matchers[0].actions = {
@@ -354,7 +354,7 @@ TEST_F(ProcessorTest, givenNoMatchingActionMatcherWhenEventIsProcessedThenLogInf
     MockFilesystem filesystem{};
     MockLogger logger{};
 
-    EXPECT_CALL(logger, log("[Info] Processor could not match file a/file.txt to any action matcher\n"));
+    EXPECT_CALL(logger, log(LogLevel::Info, "Processor could not match file a/file.txt to any action matcher"));
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher("a");
     config.matchers[0].actions = {createCopyAction("b", "${name}")};
@@ -372,11 +372,11 @@ TEST_F(ProcessorTest, givenPrintActionWhenEventIsProcessedThenLogInfo) {
 
     {
         InSequence seq{};
-        EXPECT_CALL(logger, log("[Info] File a/file.txt has been created\n"));
-        EXPECT_CALL(logger, log("[Info] File a/file.txt has been removed\n"));
-        EXPECT_CALL(logger, log("[Info] File a/file.txt has been modified\n"));
-        EXPECT_CALL(logger, log("[Info] A file has been moved from path a/file.txt\n"));
-        EXPECT_CALL(logger, log("[Info] A file has been moved to a/file.txt\n"));
+        EXPECT_CALL(logger, log(LogLevel::Info, "File a/file.txt has been created"));
+        EXPECT_CALL(logger, log(LogLevel::Info, "File a/file.txt has been removed"));
+        EXPECT_CALL(logger, log(LogLevel::Info, "File a/file.txt has been modified"));
+        EXPECT_CALL(logger, log(LogLevel::Info, "A file has been moved from path a/file.txt"));
+        EXPECT_CALL(logger, log(LogLevel::Info, "A file has been moved to a/file.txt"));
     }
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher("a");

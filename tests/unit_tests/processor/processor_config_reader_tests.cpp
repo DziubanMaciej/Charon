@@ -7,7 +7,7 @@
 
 TEST(ProcessorConfigReaderBasicTest, givenEmptyJsonWhenReadingThenReturnError) {
     MockLogger logger{};
-    EXPECT_CALL(logger, log("Specified json was badly formed."));
+    EXPECT_CALL(logger, log(LogLevel::Error, "Specified json was badly formed."));
 
     ProcessConfigReader reader{logger};
     ProcessorConfig config{};
@@ -17,7 +17,7 @@ TEST(ProcessorConfigReaderBasicTest, givenEmptyJsonWhenReadingThenReturnError) {
 
 TEST(ProcessorConfigReaderBasicTest, givenBadlyFormedJsonWhenReadingThenReturnError) {
     MockLogger logger{};
-    EXPECT_CALL(logger, log("Specified json was badly formed."));
+    EXPECT_CALL(logger, log(LogLevel::Error, "Specified json was badly formed."));
 
     ProcessConfigReader reader{logger};
     ProcessorConfig config{};
@@ -38,7 +38,7 @@ TEST(ProcessorConfigReaderBasicTest, givenEmptyArrayWhenReadingThenReturnEmptyCo
 
 TEST(ProcessorConfigReaderBadTypeTest, givenRootNodeIsNotAnArrayWhenReadingThenReturnError) {
     MockLogger logger{};
-    EXPECT_CALL(logger, log("Root node must be an array")).Times(3);
+    EXPECT_CALL(logger, log(LogLevel::Error, "Root node must be an array")).Times(3);
 
     ProcessConfigReader reader{logger};
     ProcessorConfig config{};
@@ -55,7 +55,7 @@ TEST(ProcessorConfigReaderBadTypeTest, givenRootNodeIsNotAnArrayWhenReadingThenR
 
 TEST(ProcessorConfigReaderBadTypeTest, givenActionMatcherIsNotAnObjectWhenReadingThenReturnError) {
     MockLogger logger{};
-    EXPECT_CALL(logger, log("Action matcher node must be an object"));
+    EXPECT_CALL(logger, log(LogLevel::Error, "Action matcher node must be an object"));
 
     ProcessConfigReader reader{logger};
     ProcessorConfig config{};
@@ -69,7 +69,7 @@ TEST(ProcessorConfigReaderBadTypeTest, givenActionMatcherIsNotAnObjectWhenReadin
 
 TEST(ProcessorConfigReaderBadTypeTest, givenExtensionsMemberIsNotAnArrayWhenReadingThenReturnError) {
     MockLogger logger{};
-    EXPECT_CALL(logger, log("Action matcher \"extensions\" member must be an array."));
+    EXPECT_CALL(logger, log(LogLevel::Error, "Action matcher \"extensions\" member must be an array."));
 
     ProcessConfigReader reader{logger};
     ProcessorConfig config{};
@@ -87,7 +87,7 @@ TEST(ProcessorConfigReaderBadTypeTest, givenExtensionsMemberIsNotAnArrayWhenRead
 
 TEST(ProcessorConfigReaderBadTypeTest, givenActionsMemberIsNotAnArrayWhenReadingThenReturnError) {
     MockLogger logger{};
-    EXPECT_CALL(logger, log("Action matcher \"actions\" member must be an array."));
+    EXPECT_CALL(logger, log(LogLevel::Error, "Action matcher \"actions\" member must be an array."));
 
     ProcessConfigReader reader{logger};
     ProcessorConfig config{};
@@ -105,7 +105,7 @@ TEST(ProcessorConfigReaderBadTypeTest, givenActionsMemberIsNotAnArrayWhenReading
 
 TEST(ProcessorConfigReaderMissingFieldTest, givenNoWatchedFoldersFieldWhenReadingThenReturnError) {
     MockLogger logger{};
-    EXPECT_CALL(logger, log("Action matcher node must contain \"watchedFolder\" field."));
+    EXPECT_CALL(logger, log(LogLevel::Error, "Action matcher node must contain \"watchedFolder\" field."));
 
     ProcessConfigReader reader{logger};
     ProcessorConfig config{};
@@ -141,7 +141,7 @@ TEST(ProcessorConfigReaderMissingFieldTest, givenNoExtensionsFieldWhenReadingThe
 
 TEST(ProcessorConfigReaderMissingFieldTest, givenNoActionsFieldWhenReadingThenReturnError) {
     MockLogger logger{};
-    EXPECT_CALL(logger, log("Action matcher node must contain \"actions\" field."));
+    EXPECT_CALL(logger, log(LogLevel::Error, "Action matcher node must contain \"actions\" field."));
 
     ProcessConfigReader reader{logger};
     ProcessorConfig config{};
@@ -291,7 +291,7 @@ TEST(ProcessConfigReaderPositiveTest, givenPrintActionWhenReadingThenParseCorrec
 
 TEST(ProcessConfigReaderPositiveTest, givenComplexConfigWhenReadingThenParseCorrectly) {
     MockLogger logger{};
-    EXPECT_CALL(logger, log("Action matcher node must contain \"actions\" field."));
+    EXPECT_CALL(logger, log).Times(0);
 
     ProcessConfigReader reader{logger};
     ProcessorConfig config{};

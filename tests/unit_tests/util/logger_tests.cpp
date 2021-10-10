@@ -5,10 +5,10 @@
 
 TEST(LoggerTest, givenVariousLogLevelsWhenRaiiLogIsCalledThenPrependTheLogWithLogLevelString) {
     MockLogger logger{};
-    EXPECT_CALL(logger, log("[Error] a 1\n"));
-    EXPECT_CALL(logger, log("[Info] b 1\n"));
-    EXPECT_CALL(logger, log("[Warning] c 1\n"));
-    EXPECT_CALL(logger, log("[Debug] d 1\n"));
+    EXPECT_CALL(logger, log(LogLevel::Error, "a 1"));
+    EXPECT_CALL(logger, log(LogLevel::Info, "b 1"));
+    EXPECT_CALL(logger, log(LogLevel::Warning, "c 1"));
+    EXPECT_CALL(logger, log(LogLevel::Debug, "d 1"));
 
     log(logger, LogLevel::Error) << "a " << 1;
     log(logger, LogLevel::Info) << "b " << 1;
@@ -20,8 +20,8 @@ TEST(LoggerTest, whenConsoleLoggerIsUsedThenPrintMessagesToConsole) {
     ConsoleLogger logger{};
 
     ::testing::internal::CaptureStdout();
-    logger.log("Hello world");
-    EXPECT_STREQ("Hello world", testing::internal::GetCapturedStdout().c_str());
+    logger.log(LogLevel::Info, "Hello world");
+    EXPECT_STREQ("[Info] Hello world\n", testing::internal::GetCapturedStdout().c_str());
 
     ::testing::internal::CaptureStdout();
     log(logger, LogLevel::Info) << "Hello world";
@@ -32,7 +32,7 @@ TEST(LoggerTest, whenNullLoggerIsUsedThenDoNotPrintAnything) {
     NullLogger logger{};
 
     ::testing::internal::CaptureStdout();
-    logger.log("Hello world");
+    logger.log(LogLevel::Info, "Hello world");
     EXPECT_TRUE(testing::internal::GetCapturedStdout().empty());
 
     ::testing::internal::CaptureStdout();

@@ -14,24 +14,27 @@ enum class LogLevel {
 
 struct Logger {
     virtual ~Logger() {}
-    virtual void log(const std::string &message) = 0;
+    virtual void log(LogLevel level, const std::string &message) = 0;
     std::mutex mutex;
+
+protected:
+    const static char *getPreamble(LogLevel level) {
+        const static char *preambles[] = {
+            "[Error] ",
+            "[Info]",
+            "[Warning] ",
+            "[Debug] ",
+        };
+        return preambles[static_cast<size_t>(level)];
+    }
 };
 
 class RaiiLog {
 public:
-    RaiiLog(Logger *logger, LogLevel logLevel) : logger(logger) {
-        if (logger) {
-            lock = std::unique_lock{logger->mutex};
-        }
-
-        const static char *preambles[] = {
-            "[Error]",
-            "[Info]",
-            "[Warning]",
-            "[Debug]",
-        };
-        buffer << preambles[static_cast<size_t>(logLevel)] << ' ';
+    RaiiLog(Logger &logger, LogLevel logLevel)
+        : logger(logger),
+          logLevel(logLevel) {
+        lock = std::unique_lock{logger.mutex};
     }
 
     template <typename T>
@@ -49,28 +52,26 @@ public:
     }
 
     ~RaiiLog() {
-        buffer << '\n';
-        if (logger) {
-            logger->log(buffer.str());
-        }
+        logger.log(logLevel, buffer.str());
     }
 
 private:
-    Logger *logger;
+    const LogLevel logLevel;
+    Logger &logger;
     std::unique_lock<std::mutex> lock;
     std::ostringstream buffer{};
 };
 
 inline RaiiLog log(Logger &logger, LogLevel logLevel) {
-    return RaiiLog{&logger, logLevel};
+    return RaiiLog{logger, logLevel};
 }
 
 struct ConsoleLogger : Logger {
-    void log(const std::string &message) override {
-        std::cout << message;
+    void log(LogLevel level, const std::string &message) override {
+        std::cout << getPreamble(level) << ' ' << message << '\n';
     }
 };
 
 struct NullLogger : Logger {
-    void log(const std::string &message) override {}
+    void log(LogLevel level, const std::string &message) override {}
 };

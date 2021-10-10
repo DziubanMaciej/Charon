@@ -9,5 +9,5 @@ struct MockLogger : Logger {
         EXPECT_CALL(*this, log).Times(0);
     }
 
-    MOCK_METHOD(void, log, (const std::string &message), (override));
+    MOCK_METHOD(void, log, (LogLevel logLevel, const std::string &message), (override));
 };
