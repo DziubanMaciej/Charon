@@ -251,7 +251,10 @@ TEST_F(ProcessorTest, givenMultipleActionsTriggeredAndCounterIsUsedWhenProcessor
 TEST_F(ProcessorTest, givenAllFilenamesTakenWhenCounterIsUsedThenReturnError) {
     ConsoleLogger consoleLogger{};
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
-    config.matchers[0].actions = {createMoveAction("#")};
+    config.matchers[0].actions = {
+        createMoveAction("#"),
+        createCopyAction("#"),
+    };
     Processor processor{config, eventQueue, filesystem, consoleLogger};
 
     for (auto i = 0u; i < 11; i++) {
@@ -262,7 +265,9 @@ TEST_F(ProcessorTest, givenAllFilenamesTakenWhenCounterIsUsedThenReturnError) {
 
     ::testing::internal::CaptureStdout();
     processor.run();
-    EXPECT_STREQ("[Error] Processor could not resolve destination filename.\n", testing::internal::GetCapturedStdout().c_str());
+    EXPECT_STREQ("[Error] Processor could not resolve destination filename.\n"
+                 "[Error] Processor could not resolve destination filename.\n",
+                 testing::internal::GetCapturedStdout().c_str());
 
     EXPECT_TRUE(TestFilesHelper::fileExists(srcPath / "11"));
     EXPECT_FALSE(TestFilesHelper::fileExists(dstPath / "11"));
