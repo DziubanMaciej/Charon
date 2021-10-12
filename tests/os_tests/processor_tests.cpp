@@ -247,3 +247,23 @@ TEST_F(ProcessorTest, givenMultipleActionsTriggeredAndCounterIsUsedWhenProcessor
     EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "def.png"));
     EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "ghi_png.png"));
 }
+
+TEST_F(ProcessorTest, givenAllFilenamesTakenWhenCounterIsUsedThenReturnError) {
+    ConsoleLogger consoleLogger{};
+    ProcessorConfig config = createProcessorConfigWithOneMatcher();
+    config.matchers[0].actions = {createMoveAction("#")};
+    Processor processor{config, eventQueue, filesystem, consoleLogger};
+
+    for (auto i = 0u; i < 11; i++) {
+        TestFilesHelper::createFile(dstPath / std::to_string(i));
+    }
+    pushFileCreationEventAndCreateFile(srcPath / "11");
+    pushInterruptEvent();
+
+    ::testing::internal::CaptureStdout();
+    processor.run();
+    EXPECT_STREQ("[Error] Processor could not resolve destination filename.\n", testing::internal::GetCapturedStdout().c_str());
+
+    EXPECT_TRUE(TestFilesHelper::fileExists(srcPath / "11"));
+    EXPECT_FALSE(TestFilesHelper::fileExists(dstPath / "11"));
+}

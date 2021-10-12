@@ -22,7 +22,7 @@ protected:
     const static char *getPreamble(LogLevel level) {
         const static char *preambles[] = {
             "[Error] ",
-            "[Info]",
+            "[Info] ",
             "[Warning] ",
             "[Debug] ",
         };
@@ -69,7 +69,7 @@ inline RaiiLog log(Logger &logger, LogLevel logLevel) {
 
 struct ConsoleLogger : Logger {
     void log(LogLevel level, const std::string &message) override {
-        std::cout << getPreamble(level) << ' ' << message << '\n';
+        std::cout << getPreamble(level) << message << '\n';
     }
 };
 

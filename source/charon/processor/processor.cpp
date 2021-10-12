@@ -72,18 +72,26 @@ void Processor::executeProcessorAction(const FileEvent &event, const ProcessorAc
     case ProcessorAction::Type::Copy: {
         const auto data = std::get<ProcessorAction::MoveOrCopy>(action.data);
         const auto dstPath = pathResolver.resolvePath(data.destinationDir, event.path, data.destinationName, actionMatcherState.lastResolvedPath);
-        filesystem.copy(event.path, dstPath);
-        actionMatcherState.lastResolvedPath = dstPath;
-        log(logger, LogLevel::Info) << "Processor copying file " << event.path << " to " << dstPath;
+        if (dstPath.empty()) {
+            log(logger, LogLevel::Error) << "Processor could not resolve destination filename.";
+        } else {
+            filesystem.copy(event.path, dstPath);
+            actionMatcherState.lastResolvedPath = dstPath;
+            log(logger, LogLevel::Info) << "Processor copying file " << event.path << " to " << dstPath;
+        }
         break;
     }
     case ProcessorAction::Type::Move: {
         const auto data = std::get<ProcessorAction::MoveOrCopy>(action.data);
         const auto dstPath = pathResolver.resolvePath(data.destinationDir, event.path, data.destinationName, actionMatcherState.lastResolvedPath);
-        filesystem.move(event.path, dstPath);
-        eventsToIgnore.push_back(FileEvent{event.watchedRootPath, FileEvent::Type::Remove, event.path});
-        actionMatcherState.lastResolvedPath = dstPath;
-        log(logger, LogLevel::Info) << "Processor moving file " << event.path << " to " << dstPath;
+        if (dstPath.empty()) {
+            log(logger, LogLevel::Error) << "Processor could not resolve destination filename.";
+        } else {
+            filesystem.move(event.path, dstPath);
+            eventsToIgnore.push_back(FileEvent{event.watchedRootPath, FileEvent::Type::Remove, event.path});
+            actionMatcherState.lastResolvedPath = dstPath;
+            log(logger, LogLevel::Info) << "Processor moving file " << event.path << " to " << dstPath;
+        }
         break;
     }
     case ProcessorAction::Type::Remove:

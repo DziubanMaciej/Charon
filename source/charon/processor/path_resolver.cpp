@@ -46,8 +46,7 @@ std::filesystem::path PathResolver::resolvePath(const std::filesystem::path &dir
         }
     }
 
-    // We haven't find an available counter
-    UNREACHABLE_CODE; // TODO handle this
+    return {};
 }
 
 void PathResolver::replace(std::string &subject, const std::string &search, const std::string &replace) {
