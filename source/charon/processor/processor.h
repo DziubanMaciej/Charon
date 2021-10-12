@@ -24,7 +24,11 @@ private:
     void processEvent(const FileEvent &event);
     const ProcessorActionMatcher *findActionMatcher(const FileEvent &event) const;
     void executeProcessorAction(const FileEvent &event, const ProcessorAction &action, ActionMatcherState &actionMatcherState);
-    void logFileEvent(const FileEvent &event) const;
+    void executeProcessorActionMoveOrCopy(const FileEvent &event, const ProcessorAction &action,
+                                          ActionMatcherState &actionMatcherState, bool isMove);
+    void executeProcessorActionRemove(const FileEvent &event, const ProcessorAction &action,
+                                          ActionMatcherState &actionMatcherState);
+    void executeProcessorActionPrint(const FileEvent &event) const;
 
     PathResolver pathResolver;
     std::vector<FileEvent> eventsToIgnore{};

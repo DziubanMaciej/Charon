@@ -69,46 +69,54 @@ const ProcessorActionMatcher *Processor::findActionMatcher(const FileEvent &even
 
 void Processor::executeProcessorAction(const FileEvent &event, const ProcessorAction &action, ActionMatcherState &actionMatcherState) {
     switch (action.type) {
-    case ProcessorAction::Type::Copy: {
-        const auto data = std::get<ProcessorAction::MoveOrCopy>(action.data);
-        const auto dstPath = pathResolver.resolvePath(data.destinationDir, event.path, data.destinationName, actionMatcherState.lastResolvedPath);
-        if (dstPath.empty()) {
-            log(logger, LogLevel::Error) << "Processor could not resolve destination filename.";
-        } else {
-            filesystem.copy(event.path, dstPath);
-            actionMatcherState.lastResolvedPath = dstPath;
-            log(logger, LogLevel::Info) << "Processor copying file " << event.path << " to " << dstPath;
-        }
+    case ProcessorAction::Type::Copy:
+        executeProcessorActionMoveOrCopy(event, action, actionMatcherState, false);
         break;
-    }
-    case ProcessorAction::Type::Move: {
-        const auto data = std::get<ProcessorAction::MoveOrCopy>(action.data);
-        const auto dstPath = pathResolver.resolvePath(data.destinationDir, event.path, data.destinationName, actionMatcherState.lastResolvedPath);
-        if (dstPath.empty()) {
-            log(logger, LogLevel::Error) << "Processor could not resolve destination filename.";
-        } else {
-            filesystem.move(event.path, dstPath);
-            eventsToIgnore.push_back(FileEvent{event.watchedRootPath, FileEvent::Type::Remove, event.path});
-            actionMatcherState.lastResolvedPath = dstPath;
-            log(logger, LogLevel::Info) << "Processor moving file " << event.path << " to " << dstPath;
-        }
+    case ProcessorAction::Type::Move:
+        executeProcessorActionMoveOrCopy(event, action, actionMatcherState, true);
         break;
-    }
     case ProcessorAction::Type::Remove:
-        filesystem.remove(event.path);
-        eventsToIgnore.push_back(FileEvent{event.watchedRootPath, FileEvent::Type::Remove, event.path});
-        actionMatcherState.lastResolvedPath = std::filesystem::path{};
-        log(logger, LogLevel::Info) << "Processor removing file " << event.path;
+        executeProcessorActionRemove(event, action, actionMatcherState);
         break;
     case ProcessorAction::Type::Print:
-        logFileEvent(event);
+        executeProcessorActionPrint(event);
         break;
     default:
         UNREACHABLE_CODE
     }
 }
 
-void Processor::logFileEvent(const FileEvent &event) const {
+void Processor::executeProcessorActionMoveOrCopy(const FileEvent &event, const ProcessorAction &action,
+                                                 ActionMatcherState &actionMatcherState, bool isMove) {
+    const auto data = std::get<ProcessorAction::MoveOrCopy>(action.data);
+    const auto dstPath = pathResolver.resolvePath(data.destinationDir, event.path, data.destinationName, actionMatcherState.lastResolvedPath);
+    actionMatcherState.lastResolvedPath = dstPath;
+    if (dstPath.empty()) {
+        log(logger, LogLevel::Error) << "Processor could not resolve destination filename.";
+        return;
+    }
+
+    const char *verbForLog{};
+    if (isMove) {
+        filesystem.move(event.path, dstPath);
+        verbForLog = "moving";
+        eventsToIgnore.push_back(FileEvent{event.watchedRootPath, FileEvent::Type::Remove, event.path});
+    } else {
+        filesystem.copy(event.path, dstPath);
+        verbForLog = "copying";
+    }
+
+    log(logger, LogLevel::Info) << "Processor " << verbForLog << " file " << event.path << " to " << dstPath;
+}
+
+void Processor::executeProcessorActionRemove(const FileEvent &event, const ProcessorAction &action, ActionMatcherState &actionMatcherState) {
+    filesystem.remove(event.path);
+    eventsToIgnore.push_back(FileEvent{event.watchedRootPath, FileEvent::Type::Remove, event.path});
+    actionMatcherState.lastResolvedPath = std::filesystem::path{};
+    log(logger, LogLevel::Info) << "Processor removing file " << event.path;
+}
+
+void Processor::executeProcessorActionPrint(const FileEvent &event) const {
     switch (event.type) {
     case FileEvent::Type::Add:
         log(logger, LogLevel::Info) << "File " << event.path << " has been created";
