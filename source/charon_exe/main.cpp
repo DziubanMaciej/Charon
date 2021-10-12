@@ -7,7 +7,9 @@
 #include <iostream>
 
 int main(int argc, char **argv) {
-    ConsoleLogger logger{};
+    FileLogger fileLogger{fs::current_path() / "log.txt"};
+    ConsoleLogger consoleLogger{};
+    MultiplexedLogger logger{&fileLogger, &consoleLogger};
 
     auto testJson = R"(
 [

@@ -2,9 +2,12 @@
 
 #include <array>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <mutex>
 #include <sstream>
+
+namespace fs = std::filesystem;
 
 enum class LogLevel {
     Error,
@@ -71,6 +74,18 @@ struct ConsoleLogger : Logger {
     void log(LogLevel level, const std::string &message) override {
         std::cout << getPreamble(level) << message << '\n';
     }
+};
+
+struct FileLogger : Logger {
+    FileLogger(const fs::path &logFile) : file(logFile, std::ios::out) {}
+
+    void log(LogLevel level, const std::string &message) override {
+        file << getPreamble(level) << message << '\n';
+        file.flush();
+    }
+
+private:
+    std::ofstream file{};
 };
 
 struct NullLogger : Logger {
