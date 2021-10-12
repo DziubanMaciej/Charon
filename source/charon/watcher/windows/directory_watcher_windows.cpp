@@ -18,7 +18,7 @@ HANDLE DirectoryWatcherWindows::openHandle(const std::filesystem::path &director
     return CreateFileW(
         directoryPath.c_str(),
         FILE_LIST_DIRECTORY,
-        FILE_SHARE_READ | FILE_SHARE_DELETE | FILE_SHARE_WRITE,
+        FILE_SHARE_READ | FILE_SHARE_WRITE,
         nullptr,
         OPEN_EXISTING,
         FILE_FLAG_BACKUP_SEMANTICS,
