@@ -272,3 +272,20 @@ TEST_F(ProcessorTest, givenAllFilenamesTakenWhenCounterIsUsedThenReturnError) {
     EXPECT_TRUE(TestFilesHelper::fileExists(srcPath / "11"));
     EXPECT_FALSE(TestFilesHelper::fileExists(dstPath / "11"));
 }
+
+TEST_F(ProcessorTest, givenDestinationDirectoryDoesNotExistWhenCopyOrMoveIsTriggeredThenCreateIt) {
+    ProcessorConfig config = createProcessorConfigWithOneMatcher();
+    config.matchers[0].actions = {
+        createCopyAction("file", dstPath / "a"),
+        createMoveAction("file", dstPath / "b"),
+    };
+    Processor processor{config, eventQueue, filesystem, nullLogger};
+
+    pushFileCreationEventAndCreateFile(srcPath / "file");
+    pushInterruptEvent();
+    processor.run();
+
+    EXPECT_FALSE(TestFilesHelper::fileExists(srcPath / "file"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "a" / "file"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "b" / "file"));
+}

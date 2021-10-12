@@ -23,8 +23,12 @@ struct ProcessorConfigFixture {
     }
 
     ProcessorAction createMoveAction(const std::string &destinationName) {
+        return createMoveAction(destinationName, this->dstPath);
+    }
+
+    ProcessorAction createMoveAction(const std::string &destinationName, const std::filesystem::path &destinationDir) {
         ProcessorAction::MoveOrCopy data{};
-        data.destinationDir = dstPath;
+        data.destinationDir = destinationDir;
         data.destinationName = destinationName;
         return ProcessorAction{ProcessorAction::Type::Move, data};
     }
