@@ -156,7 +156,7 @@ TEST(ProcessorConfigReaderMissingFieldTest, givenNoActionsFieldWhenReadingThenRe
     EXPECT_FALSE(reader.read(config, json));
 }
 
-TEST(ProcessorConfigReaderMissingFieldTest, givenNoOverrideExistingFieldWhenReadingThenReturnSuccessAndSetValueToFalse) {
+TEST(ProcessConfigReaderPositiveTest, givenCopyActionWhenReadingThenParseCorrectly) {
     MockLogger logger{};
     EXPECT_CALL(logger, log).Times(0);
 
@@ -178,37 +178,10 @@ TEST(ProcessorConfigReaderMissingFieldTest, givenNoOverrideExistingFieldWhenRead
         ]
     )";
     ASSERT_TRUE(reader.read(config, json));
-    EXPECT_FALSE(std::get<ProcessorAction::MoveOrCopy>(config.matchers[0].actions[0].data).overwriteExisting);
-}
-
-TEST(ProcessConfigReaderPositiveTest, givenCopyActionWhenReadingThenParseCorrectly) {
-    MockLogger logger{};
-    EXPECT_CALL(logger, log).Times(0);
-
-    ProcessConfigReader reader{logger};
-    ProcessorConfig config{};
-    std::string json = R"(
-        [
-            {
-                "watchedFolder": "D:/Desktop/Test",
-                "extensions": [ "png", "jpg", "gif" ],
-                "actions": [
-                    {
-                        "type": "copy",
-                        "destinationDir": "D:/Desktop/Dst1",
-                        "destinationName": "#.${ext}",
-                        "overwriteExisting": true
-                    }
-                ]
-            }
-        ]
-    )";
-    ASSERT_TRUE(reader.read(config, json));
     EXPECT_EQ(ProcessorAction::Type::Copy, config.matchers[0].actions[0].type);
     auto data = std::get<ProcessorAction::MoveOrCopy>(config.matchers[0].actions[0].data);
     EXPECT_EQ("D:/Desktop/Dst1", data.destinationDir);
     EXPECT_EQ("#.${ext}", data.destinationName);
-    EXPECT_TRUE(data.overwriteExisting);
 }
 
 TEST(ProcessConfigReaderPositiveTest, givenMoveActionWhenReadingThenParseCorrectly) {
@@ -226,8 +199,7 @@ TEST(ProcessConfigReaderPositiveTest, givenMoveActionWhenReadingThenParseCorrect
                     {
                         "type": "move",
                         "destinationDir": "D:/Desktop/Dst1",
-                        "destinationName": "#.${ext}",
-                        "overwriteExisting": true
+                        "destinationName": "#.${ext}"
                     }
                 ]
             }
@@ -238,7 +210,6 @@ TEST(ProcessConfigReaderPositiveTest, givenMoveActionWhenReadingThenParseCorrect
     auto data = std::get<ProcessorAction::MoveOrCopy>(config.matchers[0].actions[0].data);
     EXPECT_EQ("D:/Desktop/Dst1", data.destinationDir);
     EXPECT_EQ("#.${ext}", data.destinationName);
-    EXPECT_TRUE(data.overwriteExisting);
 }
 
 TEST(ProcessConfigReaderPositiveTest, givenRemoveActionWhenReadingThenParseCorrectly) {
@@ -304,14 +275,12 @@ TEST(ProcessConfigReaderPositiveTest, givenComplexConfigWhenReadingThenParseCorr
                     {
                         "type": "copy",
                         "destinationDir": "D:/Desktop/Dst1",
-                        "destinationName": "#.${ext}",
-                        "overwriteExisting": false
+                        "destinationName": "#.${ext}"
                     },
                     {
                         "type": "move",
                         "destinationDir": "D:/Desktop/Dst2",
-                        "destinationName": "##.${ext}",
-                        "overwriteExisting": true
+                        "destinationName": "##.${ext}"
                     }
                 ]
             },
@@ -341,7 +310,6 @@ TEST(ProcessConfigReaderPositiveTest, givenComplexConfigWhenReadingThenParseCorr
             EXPECT_EQ(ProcessorAction::Type::Copy, action.type);
             EXPECT_EQ("D:/Desktop/Dst1", actionData.destinationDir);
             EXPECT_EQ("#.${ext}", actionData.destinationName);
-            EXPECT_FALSE(actionData.overwriteExisting);
         }
         {
             const auto &action = matcher.actions[1];
@@ -349,7 +317,6 @@ TEST(ProcessConfigReaderPositiveTest, givenComplexConfigWhenReadingThenParseCorr
             EXPECT_EQ(ProcessorAction::Type::Move, action.type);
             EXPECT_EQ("D:/Desktop/Dst2", actionData.destinationDir);
             EXPECT_EQ("##.${ext}", actionData.destinationName);
-            EXPECT_TRUE(actionData.overwriteExisting);
         }
     }
 

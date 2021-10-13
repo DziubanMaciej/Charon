@@ -16,7 +16,6 @@ struct ProcessorAction {
     struct MoveOrCopy {
         std::filesystem::path destinationDir;
         std::string destinationName;
-        bool overwriteExisting;
     };
     struct Remove {};
     struct Print {};

@@ -135,10 +135,6 @@ bool ProcessConfigReader::parseProcessorAction(ProcessorAction &outAction, const
             return false;
         }
 
-        if (auto it = node.find("overwriteExisting"); it != node.end()) {
-            data.overwriteExisting = it->get<bool>();
-        }
-
         outAction.data = data;
         break;
     }
