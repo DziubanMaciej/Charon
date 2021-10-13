@@ -11,8 +11,8 @@ using ::testing::AtLeast;
 using ::testing::InSequence;
 using ::testing::Return;
 
-struct ProcessorTest : ::testing::Test {
-    void SetUp() override {
+struct ProcessorFixture {
+    void SetUp() {
         dummyPath1 = std::filesystem::path("dummy/path/1/");
         dummyPath2 = std::filesystem::path("dummy/path/2/");
         dummyPath3 = std::filesystem::path("dummy/path/3/");
@@ -72,6 +72,12 @@ struct ProcessorTest : ::testing::Test {
     std::filesystem::path dummyPath3{};
     FileEventQueue eventQueue{};
     NullLogger nullLogger{};
+};
+
+struct ProcessorTest : ::testing::Test, ProcessorFixture {
+    void SetUp() override {
+        ProcessorFixture::SetUp();
+    }
 };
 
 TEST_F(ProcessorTest, whenCopyActionIsTriggeredThenRequestFileCopy) {
@@ -414,3 +420,102 @@ TEST_F(ProcessorTest, givenCreateDirectoryEventWhenProcessorIsRunningThenSkipThe
     pushInterruptEvent();
     processor.run();
 }
+
+struct ProcessorTestWithDifferentEventsAndActions
+    : ::testing::TestWithParam<std::tuple<FileEvent::Type, ProcessorAction::Type, bool>>,
+      ProcessorFixture {
+    void SetUp() override {
+        ProcessorFixture::SetUp();
+    }
+
+    ProcessorAction createActionOfType(ProcessorAction::Type type) {
+        switch (type) {
+        case ProcessorAction::Type::Copy:
+            return createCopyAction(dummyPath2, "${name}");
+        case ProcessorAction::Type::Move:
+            return createMoveAction(dummyPath2, "${name}");
+        case ProcessorAction::Type::Remove:
+            return createRemoveAction();
+        case ProcessorAction::Type::Print:
+            return createPrintAction();
+        default:
+            EXPECT_FALSE(true);
+            throw "error";
+        }
+    }
+
+    void expectActionPerformed(ProcessorAction::Type type, MockFilesystem &filesystem, MockLogger &logger) {
+        switch (type) {
+        case ProcessorAction::Type::Copy:
+            EXPECT_CALL(logger, log).Times(AnyNumber());
+            EXPECT_CALL(filesystem, copy);
+            break;
+        case ProcessorAction::Type::Move:
+            EXPECT_CALL(logger, log).Times(AnyNumber());
+            EXPECT_CALL(filesystem, move);
+            break;
+        case ProcessorAction::Type::Remove:
+            EXPECT_CALL(logger, log).Times(AnyNumber());
+            EXPECT_CALL(filesystem, remove);
+            break;
+        case ProcessorAction::Type::Print:
+            EXPECT_CALL(logger, log);
+            break;
+        default:
+            EXPECT_FALSE(true);
+            throw "error";
+        }
+    }
+};
+
+TEST_P(ProcessorTestWithDifferentEventsAndActions, givenNonNewEventAndFilesystemActionWhenProcessorIsRunningThenSkipTheAction) {
+    const auto eventType = std::get<FileEvent::Type>(GetParam());
+    const auto actionType = std::get<ProcessorAction::Type>(GetParam());
+    const auto shouldExecuteAction = std::get<bool>(GetParam());
+
+    MockFilesystem filesystem{};
+    MockLogger logger{};
+
+    if (shouldExecuteAction) {
+        expectActionPerformed(actionType, filesystem, logger);
+    }
+
+    ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
+    config.matchers[0].actions = {createActionOfType(actionType)};
+    Processor processor{config, eventQueue, filesystem, logger};
+    pushFileEvent(dummyPath1, eventType, dummyPath1 / "file");
+    pushInterruptEvent();
+    processor.run();
+}
+
+static const auto filesystemActions = ::testing::Values(ProcessorAction::Type::Copy,
+                                                        ProcessorAction::Type::Move,
+                                                        ProcessorAction::Type::Remove);
+static const auto nonFilesystemActions = ::testing::Values(ProcessorAction::Type::Print);
+static const auto newFileEvents = ::testing::Values(FileEvent::Type::Add,
+                                                    FileEvent::Type::RenameNew);
+static const auto nonNewFileEvents = ::testing::Values(FileEvent::Type::Modify,
+                                                       FileEvent::Type::RenameOld,
+                                                       FileEvent::Type::Remove);
+static const auto executeAction = ::testing::Values(true);
+static const auto doNotExecuteAction = ::testing::Values(false);
+
+INSTANTIATE_TEST_SUITE_P(
+    ProcessorTestWithNewFileEventsAndFilesystemActions,
+    ProcessorTestWithDifferentEventsAndActions,
+    ::testing::Combine(newFileEvents, filesystemActions, executeAction));
+
+INSTANTIATE_TEST_SUITE_P(
+    ProcessorTestWithNewFileEventsAndNonFilesystemActions,
+    ProcessorTestWithDifferentEventsAndActions,
+    ::testing::Combine(newFileEvents, nonFilesystemActions, executeAction));
+
+INSTANTIATE_TEST_SUITE_P(
+    ProcessorTestWithNonNewFileEventsAndFilesystemActions,
+    ProcessorTestWithDifferentEventsAndActions,
+    ::testing::Combine(nonNewFileEvents, filesystemActions, doNotExecuteAction));
+
+INSTANTIATE_TEST_SUITE_P(
+    ProcessorTestWithNonNewFileEventsAndNonFilesystemActions,
+    ProcessorTestWithDifferentEventsAndActions,
+    ::testing::Combine(nonNewFileEvents, nonFilesystemActions, executeAction));

@@ -1,6 +1,5 @@
 
 #include "charon/processor/processor.h"
-#include "charon/processor/processor_config.h"
 #include "charon/util/error.h"
 #include "charon/util/filesystem.h"
 #include "charon/util/logger.h"
@@ -44,7 +43,9 @@ void Processor::processEvent(const FileEvent &event) {
 
     ActionMatcherState actionMatcherState{};
     for (const ProcessorAction &action : matcher->actions) {
-        executeProcessorAction(event, action, actionMatcherState);
+        if (shouldActionBeExecutedForGivenEventType(event.type, action.type)) {
+            executeProcessorAction(event, action, actionMatcherState);
+        }
     }
 }
 
@@ -141,4 +142,10 @@ void Processor::executeProcessorActionPrint(const FileEvent &event) const {
     case FileEvent::Type::Interrupt:
         break;
     }
+}
+
+bool Processor::shouldActionBeExecutedForGivenEventType(FileEvent::Type eventType, ProcessorAction::Type actionType) {
+    const bool isNewFile = eventType == FileEvent::Type::Add || eventType == FileEvent::Type::RenameNew;
+    const bool isPrintAction = actionType == ProcessorAction::Type::Print;
+    return isPrintAction || isNewFile;
 }

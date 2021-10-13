@@ -1,13 +1,13 @@
 #pragma once
 
 #include "charon/processor/path_resolver.h"
+#include "charon/processor/processor_config.h"
 #include "charon/watcher/file_event.h"
 
 struct Filesystem;
 struct Logger;
 class ProcessorConfig;
 class ProcessorActionMatcher;
-class ProcessorAction;
 
 class Processor {
 public:
@@ -27,8 +27,10 @@ private:
     void executeProcessorActionMoveOrCopy(const FileEvent &event, const ProcessorAction &action,
                                           ActionMatcherState &actionMatcherState, bool isMove);
     void executeProcessorActionRemove(const FileEvent &event, const ProcessorAction &action,
-                                          ActionMatcherState &actionMatcherState);
+                                      ActionMatcherState &actionMatcherState);
     void executeProcessorActionPrint(const FileEvent &event) const;
+
+    static bool shouldActionBeExecutedForGivenEventType(FileEvent::Type eventType, ProcessorAction::Type actionType);
 
     PathResolver pathResolver;
     std::vector<FileEvent> eventsToIgnore{};

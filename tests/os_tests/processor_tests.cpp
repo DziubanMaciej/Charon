@@ -366,3 +366,59 @@ TEST_F(ProcessorTest, givenEmptyDirectoryCreationEventDoesWhenProcessorIsRunning
     EXPECT_TRUE(TestFilesHelper::fileExists(emptyDir));
     EXPECT_EQ(0u, TestFilesHelper::countFilesInDirectory(dstPath));
 }
+
+TEST_F(ProcessorTest, givenFileRemovedEventWhenProcessorIsRunningThenIgnoreIt) {
+    ProcessorConfig config = createProcessorConfigWithOneMatcher();
+    config.matchers[0].actions = {createMoveAction("${name}", dstPath)};
+    Processor processor{config, eventQueue, filesystem, nullLogger};
+
+    eventQueue.push(FileEvent{srcPath, FileEvent::Type::Remove, srcPath / "removedFile"});
+    pushInterruptEvent();
+    processor.run();
+
+    EXPECT_EQ(0u, TestFilesHelper::countFilesInDirectory(dstPath));
+    EXPECT_EQ(0u, TestFilesHelper::countFilesInDirectory(srcPath));
+}
+
+TEST_F(ProcessorTest, givenFileRenamedFromEventWhenProcessorIsRunningThenIgnoreIt) {
+    ProcessorConfig config = createProcessorConfigWithOneMatcher();
+    config.matchers[0].actions = {createMoveAction("${name}", dstPath)};
+    Processor processor{config, eventQueue, filesystem, nullLogger};
+
+    eventQueue.push(FileEvent{srcPath, FileEvent::Type::RenameOld, srcPath / "renamedFromFile"});
+    pushInterruptEvent();
+    processor.run();
+
+    EXPECT_EQ(0u, TestFilesHelper::countFilesInDirectory(dstPath));
+    EXPECT_EQ(0u, TestFilesHelper::countFilesInDirectory(srcPath));
+}
+
+TEST_F(ProcessorTest, givenFileModifiedEventWhenProcessorIsRunningThenIgnoreIt) {
+    ProcessorConfig config = createProcessorConfigWithOneMatcher();
+    config.matchers[0].actions = {createMoveAction("${name}", dstPath)};
+    Processor processor{config, eventQueue, filesystem, nullLogger};
+
+    TestFilesHelper::createFile(srcPath / "modifiedFile");
+    eventQueue.push(FileEvent{srcPath, FileEvent::Type::Modify, srcPath / "modifiedFile"});
+    pushInterruptEvent();
+    processor.run();
+
+    EXPECT_TRUE(TestFilesHelper::fileExists(srcPath / "modifiedFile"));
+    EXPECT_EQ(0u, TestFilesHelper::countFilesInDirectory(dstPath));
+    EXPECT_EQ(1u, TestFilesHelper::countFilesInDirectory(srcPath));
+}
+
+TEST_F(ProcessorTest, givenFileRenamedToEventWhenProcessorIsRunningThenPerformAction) {
+    ProcessorConfig config = createProcessorConfigWithOneMatcher();
+    config.matchers[0].actions = {createMoveAction("${name}", dstPath)};
+    Processor processor{config, eventQueue, filesystem, nullLogger};
+
+    TestFilesHelper::createFile(srcPath / "renamedToFile");
+    eventQueue.push(FileEvent{srcPath, FileEvent::Type::RenameNew, srcPath / "renamedToFile"});
+    pushInterruptEvent();
+    processor.run();
+
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "renamedToFile"));
+    EXPECT_EQ(1u, TestFilesHelper::countFilesInDirectory(dstPath));
+    EXPECT_EQ(0u, TestFilesHelper::countFilesInDirectory(srcPath));
+}
