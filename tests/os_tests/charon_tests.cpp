@@ -42,17 +42,17 @@ private:
 };
 
 struct WhiteboxFilesystem : FilesystemImpl {
-    void copy(const fs::path &src, const fs::path &dst) const override {
+    OptionalError copy(const fs::path &src, const fs::path &dst) const override {
         copyCount++;
-        FilesystemImpl::copy(src, dst);
+        return FilesystemImpl::copy(src, dst);
     }
-    void move(const fs::path &src, const fs::path &dst) const override {
+    OptionalError move(const fs::path &src, const fs::path &dst) const override {
         moveCount++;
-        FilesystemImpl::move(src, dst);
+        return FilesystemImpl::move(src, dst);
     }
-    void remove(const fs::path &file) const override {
+    OptionalError remove(const fs::path &file) const override {
         removeCount++;
-        FilesystemImpl::remove(file);
+        return FilesystemImpl::remove(file);
     }
 
     mutable size_t copyCount = 0u;

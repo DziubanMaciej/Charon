@@ -1,25 +1,37 @@
 #include "filesystem_impl.h"
 
-void FilesystemImpl::copy(const fs::path &src, const fs::path &dst) const {
+OptionalError FilesystemImpl::copy(const fs::path &src, const fs::path &dst) const {
     fs::create_directories(dst.parent_path());
-    std::error_code ec;
-    fs::copy(src, dst, ec);
-    if (ec.value() != 0) {
-        fs::create_directories(dst.parent_path());
+
+    std::error_code error{};
+    fs::copy(src, dst, error);
+    if (error.value() != 0) {
+        return error;
+    } else {
+        return {};
     }
 }
 
-void FilesystemImpl::move(const fs::path &src, const fs::path &dst) const {
+OptionalError FilesystemImpl::move(const fs::path &src, const fs::path &dst) const {
     fs::create_directories(dst.parent_path());
-    std::error_code ec;
-    fs::rename(src, dst, ec);
-    if (ec.value() != 0) {
-        fs::create_directories(dst.parent_path());
+
+    std::error_code error{};
+    fs::rename(src, dst, error);
+    if (error.value() != 0) {
+        return error;
+    } else {
+        return {};
     }
 }
 
-void FilesystemImpl::remove(const fs::path &file) const {
-    fs::remove(file);
+OptionalError FilesystemImpl::remove(const fs::path &file) const {
+    std::error_code error{};
+    fs::remove(file, error);
+    if (error.value() != 0) {
+        return error;
+    } else {
+        return {};
+    }
 }
 
 bool FilesystemImpl::isDirectory(const fs::path &path) const {
