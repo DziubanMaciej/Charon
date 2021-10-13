@@ -313,10 +313,10 @@ TEST_F(ProcessorTest, givenAllFilenamesTakenWhenCounterIsUsedThenReturnError) {
     };
     Processor processor{config, eventQueue, filesystem, consoleLogger};
 
-    for (auto i = 0u; i < 11; i++) {
+    for (auto i = 0u; i < 10; i++) {
         TestFilesHelper::createFile(dstPath / std::to_string(i));
     }
-    pushFileCreationEventAndCreateFile(srcPath / "11");
+    pushFileCreationEventAndCreateFile(srcPath / "10");
     pushInterruptEvent();
 
     ::testing::internal::CaptureStdout();
@@ -325,8 +325,8 @@ TEST_F(ProcessorTest, givenAllFilenamesTakenWhenCounterIsUsedThenReturnError) {
                  "[Error] Processor could not resolve destination filename.\n",
                  testing::internal::GetCapturedStdout().c_str());
 
-    EXPECT_TRUE(TestFilesHelper::fileExists(srcPath / "11"));
-    EXPECT_FALSE(TestFilesHelper::fileExists(dstPath / "11"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(srcPath / "10"));
+    EXPECT_FALSE(TestFilesHelper::fileExists(dstPath / "10"));
 }
 
 TEST_F(ProcessorTest, givenDestinationDirectoryDoesNotExistWhenCopyOrMoveIsTriggeredThenCreateIt) {
