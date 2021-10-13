@@ -22,10 +22,6 @@ void FilesystemImpl::remove(const fs::path &file) const {
     fs::remove(file);
 }
 
-bool FilesystemImpl::exists(const fs::path &file) const {
-    return fs::exists(file);
-}
-
 std::vector<fs::path> FilesystemImpl::listFiles(const fs::path &directory) const {
     std::vector<fs::path> result{};
     for (const auto &entry : fs::directory_iterator(directory)) {

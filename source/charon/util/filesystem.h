@@ -9,6 +9,5 @@ struct Filesystem {
     virtual void copy(const fs::path &src, const fs::path &dst) const = 0;
     virtual void move(const fs::path &src, const fs::path &dst) const = 0;
     virtual void remove(const fs::path &file) const = 0;
-    virtual bool exists(const fs::path &file) const = 0;
     virtual std::vector<fs::path> listFiles(const fs::path &directory) const = 0;
 };
