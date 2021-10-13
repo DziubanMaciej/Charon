@@ -393,3 +393,25 @@ TEST_F(ProcessorTest, givenPrintActionWhenEventIsProcessedThenLogInfo) {
     pushInterruptEvent();
     processor.run();
 }
+
+TEST_F(ProcessorTest, givenCreateDirectoryEventWhenProcessorIsRunningThenSkipTheEvent) {
+    MockFilesystem filesystem{};
+    MockLogger logger{false};
+
+    EXPECT_CALL(filesystem, isDirectory(dummyPath1 / "file"))
+        .Times(1)
+        .WillOnce(Return(false));
+    EXPECT_CALL(filesystem, isDirectory(dummyPath1 / "directory"))
+        .Times(1)
+        .WillOnce(Return(true));
+    EXPECT_CALL(filesystem, copy(dummyPath1 / "file", dummyPath2 / "file"));
+
+    ProcessorConfig config = createProcessorConfigWithOneMatcher("a");
+    config.matchers[0].actions = {createCopyAction(dummyPath2, "${name}")};
+    Processor processor{config, eventQueue, filesystem, logger};
+
+    pushFileEvent("a", FileEvent::Type::Add, dummyPath1 / "file");
+    pushFileEvent("a", FileEvent::Type::Add, dummyPath1 / "directory");
+    pushInterruptEvent();
+    processor.run();
+}

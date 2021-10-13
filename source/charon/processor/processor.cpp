@@ -32,6 +32,10 @@ void Processor::processEvent(const FileEvent &event) {
         return;
     }
 
+    if (filesystem.isDirectory(event.path)) {
+        return;
+    }
+
     const ProcessorActionMatcher *matcher = findActionMatcher(event);
     if (matcher == nullptr) {
         log(logger, LogLevel::Info) << "Processor could not match file " << event.path << " to any action matcher";

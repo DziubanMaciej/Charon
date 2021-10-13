@@ -345,3 +345,24 @@ TEST_F(ProcessorTest, givenDestinationDirectoryDoesNotExistWhenCopyOrMoveIsTrigg
     EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "a" / "file"));
     EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "b" / "file"));
 }
+
+TEST_F(ProcessorTest, givenEmptyDirectoryCreationEventDoesWhenProcessorIsRunningThenIgnoreIt) {
+    ProcessorConfig config = createProcessorConfigWithOneMatcher();
+    config.matchers[0].actions = {createMoveAction("${name}", dstPath)};
+    Processor processor{config, eventQueue, filesystem, nullLogger};
+
+    auto nonEmptyDir = TestFilesHelper::createDirectory(srcPath / "dir1");
+    TestFilesHelper::createFile(nonEmptyDir / "file1");
+    TestFilesHelper::createFile(nonEmptyDir / "file2");
+    auto emptyDir = TestFilesHelper::createDirectory(srcPath / "dir2");
+    eventQueue.push(FileEvent{srcPath, FileEvent::Type::Add, nonEmptyDir});
+    eventQueue.push(FileEvent{srcPath, FileEvent::Type::Add, emptyDir});
+    pushInterruptEvent();
+    processor.run();
+
+    EXPECT_TRUE(TestFilesHelper::fileExists(nonEmptyDir));
+    EXPECT_TRUE(TestFilesHelper::fileExists(nonEmptyDir / "file1"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(nonEmptyDir / "file2"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(emptyDir));
+    EXPECT_EQ(0u, TestFilesHelper::countFilesInDirectory(dstPath));
+}
