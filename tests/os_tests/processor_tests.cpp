@@ -341,9 +341,26 @@ TEST_F(ProcessorTest, givenDestinationDirectoryDoesNotExistWhenCopyOrMoveIsTrigg
     pushInterruptEvent();
     processor.run();
 
-    EXPECT_FALSE(TestFilesHelper::fileExists(srcPath / "file"));
+    EXPECT_EQ(0u, TestFilesHelper::countFilesInDirectory(srcPath));
     EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "a" / "file"));
     EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "b" / "file"));
+}
+
+TEST_F(ProcessorTest, givenDestinationDirectoryDoesNotExistAndCounterIsUsedWhenCopyOrMoveIsTriggeredThenCreateIt) {
+    ProcessorConfig config = createProcessorConfigWithOneMatcher();
+    config.matchers[0].actions = {
+        createCopyAction("file###", dstPath / "a"),
+        createMoveAction("file###", dstPath / "b"),
+    };
+    Processor processor{config, eventQueue, filesystem, nullLogger};
+
+    pushFileCreationEventAndCreateFile(srcPath / "file");
+    pushInterruptEvent();
+    processor.run();
+
+    EXPECT_EQ(0u, TestFilesHelper::countFilesInDirectory(srcPath));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "a" / "file000"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "b" / "file000"));
 }
 
 TEST_F(ProcessorTest, givenEmptyDirectoryCreationEventDoesWhenProcessorIsRunningThenIgnoreIt) {

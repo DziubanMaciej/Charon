@@ -27,6 +27,10 @@ bool FilesystemImpl::isDirectory(const fs::path &path) const {
 }
 
 std::vector<fs::path> FilesystemImpl::listFiles(const fs::path &directory) const {
+    if (!fs::exists(directory)) {
+        return {};
+    }
+
     std::vector<fs::path> result{};
     for (const auto &entry : fs::directory_iterator(directory)) {
         result.push_back(entry.path());
