@@ -198,9 +198,65 @@ TEST_F(ProcessorTest, givenFilesWithDifferentExtensionsTriggeredAndCounterIsUsed
     processor.run();
 
     EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_000.pdf"));
-    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_000.gif"));
-    EXPECT_FALSE(TestFilesHelper::fileExists(dstPath / "file_001.pdf"));
-    EXPECT_FALSE(TestFilesHelper::fileExists(dstPath / "file_001.gif"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_001.gif"));
+}
+
+TEST_F(ProcessorTest, givenGapInCounterWhenCounterIsUsedThenFillTheGaps) {
+    ProcessorConfig config = createProcessorConfigWithOneMatcher();
+    config.matchers[0].actions = {createMoveAction("file_###")};
+    Processor processor{config, eventQueue, filesystem, nullLogger};
+
+    TestFilesHelper::createFile(dstPath / "file_000.txt");
+    TestFilesHelper::createFile(dstPath / "file_001.txt");
+    TestFilesHelper::createFile(dstPath / "file_002.txt");
+    TestFilesHelper::createFile(dstPath / "file_004.txt");
+    TestFilesHelper::createFile(dstPath / "file_007.txt");
+    TestFilesHelper::createFile(dstPath / "file_008.txt");
+
+    pushFileCreationEventAndCreateFile(srcPath / "a.1");
+    pushFileCreationEventAndCreateFile(srcPath / "a.2");
+    pushFileCreationEventAndCreateFile(srcPath / "a.3");
+    pushFileCreationEventAndCreateFile(srcPath / "a.4");
+    pushFileCreationEventAndCreateFile(srcPath / "a.5");
+    pushInterruptEvent();
+    processor.run();
+
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_000.txt"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_001.txt"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_002.txt"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_003.1"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_004.txt"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_005.2"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_006.3"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_007.txt"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_008.txt"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_009.4"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_010.5"));
+
+    EXPECT_EQ(0u, TestFilesHelper::countFilesInDirectory(srcPath));
+    EXPECT_EQ(11u, TestFilesHelper::countFilesInDirectory(dstPath));
+}
+
+TEST_F(ProcessorTest, givenGapOnZeroIndexInCounterWhenCounterIsUsedThenFillTheGap) {
+    ProcessorConfig config = createProcessorConfigWithOneMatcher();
+    config.matchers[0].actions = {createMoveAction("file_###")};
+    Processor processor{config, eventQueue, filesystem, nullLogger};
+
+    TestFilesHelper::createFile(dstPath / "file_001.txt");
+    TestFilesHelper::createFile(dstPath / "file_002.txt");
+    TestFilesHelper::createFile(dstPath / "file_003.txt");
+
+    pushFileCreationEventAndCreateFile(srcPath / "a.1");
+    pushInterruptEvent();
+    processor.run();
+
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_000.1"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_001.txt"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_002.txt"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_003.txt"));
+
+    EXPECT_EQ(0u, TestFilesHelper::countFilesInDirectory(srcPath));
+    EXPECT_EQ(4u, TestFilesHelper::countFilesInDirectory(dstPath));
 }
 
 TEST_F(ProcessorTest, givenMultipleFileCopyActionsTriggeredAndCounterIsUsedWhenProcessorIsRunningThenCopyFile) {

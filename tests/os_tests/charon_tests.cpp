@@ -121,7 +121,28 @@ TEST_F(CharonOsTests, givenRemoveActionWhenCharonIsRunningThenExecuteActions) {
     EXPECT_EQ(1u, filesystem.removeCount);
 }
 
-TEST_F(CharonOsTests, givenMultipleFileEvenstWhenCharonIsRunningThenExecuteActions) {
+TEST_F(CharonOsTests, givenMultipleFileEventsWhenCharonIsRunningThenExecuteActions) {
+    ProcessorConfig processorConfig = createProcessorConfigWithOneMatcher();
+    processorConfig.matchers[0].actions = {createCopyAction("a#")};
+    Charon charon{processorConfig, filesystem, logger, watcherFactory};
+    RaiiCharonRunner charonRunner{charon};
+    ASSERT_TRUE(charonRunner.isRunning());
+    for (int i = 0; i < 7; i++) {
+        TestFilesHelper::createFile(srcPath / (std::string("file") + std::to_string(i)));
+    }
+
+    waitForProcessor();
+
+    for (int i = 0; i < 7; i++) {
+        EXPECT_TRUE(TestFilesHelper::fileExists(srcPath / (std::string("file") + std::to_string(i))));
+        EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / (std::string("a") + std::to_string(i))));
+    }
+    EXPECT_EQ(7u, filesystem.copyCount);
+    EXPECT_EQ(0u, filesystem.moveCount);
+    EXPECT_EQ(0u, filesystem.removeCount);
+}
+
+TEST_F(CharonOsTests, givenMultipleFileEventsAndMultipleActionsWhenCharonIsRunningThenExecuteActions) {
     ProcessorConfig processorConfig = createProcessorConfigWithOneMatcher();
     processorConfig.matchers[0].actions = {
         createCopyAction("a#"),
@@ -130,18 +151,18 @@ TEST_F(CharonOsTests, givenMultipleFileEvenstWhenCharonIsRunningThenExecuteActio
     Charon charon{processorConfig, filesystem, logger, watcherFactory};
     RaiiCharonRunner charonRunner{charon};
     ASSERT_TRUE(charonRunner.isRunning());
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 7; i++) {
         TestFilesHelper::createFile(srcPath / (std::string("file") + std::to_string(i)));
     }
 
     waitForProcessor();
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 7; i++) {
         EXPECT_FALSE(TestFilesHelper::fileExists(srcPath / (std::string("file") + std::to_string(i))));
         EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / (std::string("a") + std::to_string(i))));
         EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / (std::string("aa") + std::to_string(i))));
     }
-    EXPECT_EQ(10u, filesystem.copyCount);
-    EXPECT_EQ(10u, filesystem.moveCount);
+    EXPECT_EQ(7u, filesystem.copyCount);
+    EXPECT_EQ(7u, filesystem.moveCount);
     EXPECT_EQ(0u, filesystem.removeCount);
 }

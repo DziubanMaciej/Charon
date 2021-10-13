@@ -4,6 +4,7 @@
 #include "charon/util/error.h"
 #include "charon/util/filesystem.h"
 #include "charon/util/logger.h"
+#include "charon/util/string_helper.h"
 
 Processor::Processor(const ProcessorConfig &config, FileEventQueue &eventQueue, Filesystem &filesystem, Logger &logger)
     : pathResolver(filesystem),
@@ -52,7 +53,7 @@ const ProcessorActionMatcher *Processor::findActionMatcher(const FileEvent &even
 
         // Filter by file extension
         if (!matcher.watchedExtensions.empty()) {
-            const auto extension = pathResolver.removeLeadingDot(event.path.extension());
+            const auto extension = StringHelper::removeLeadingDot(event.path.extension());
             const auto it = std::find(matcher.watchedExtensions.begin(), matcher.watchedExtensions.end(), extension);
             if (it == matcher.watchedExtensions.end()) {
                 continue;

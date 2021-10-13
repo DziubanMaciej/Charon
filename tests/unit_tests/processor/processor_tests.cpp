@@ -118,7 +118,8 @@ TEST_F(ProcessorTest, givenCounterUsedWhenCopyActionIsTriggeredThenCheckForFirst
     MockFilesystem filesystem{};
     {
         InSequence seq{};
-        EXPECT_CALL(filesystem, exists(dummyPath2 / "000.jpg")).WillOnce(Return(false));
+        EXPECT_CALL(filesystem, listFiles(dummyPath2))
+            .WillOnce(Return(std::vector<fs::path>{}));
         EXPECT_CALL(filesystem, copy(dummyPath1 / "b.jpg", dummyPath2 / "000.jpg"));
     }
 
@@ -135,11 +136,12 @@ TEST_F(ProcessorTest, givenCounterUsedAndThereAreExistingFilesWhenCopyActionIsTr
     MockFilesystem filesystem{};
     {
         InSequence seq{};
-        EXPECT_CALL(filesystem, exists(dummyPath2 / "000.jpg")).WillOnce(Return(true));
-        EXPECT_CALL(filesystem, exists(dummyPath2 / "001.jpg")).WillOnce(Return(true));
-        EXPECT_CALL(filesystem, exists(dummyPath2 / "002.jpg")).WillOnce(Return(true));
-        EXPECT_CALL(filesystem, exists(dummyPath2 / "003.jpg")).WillOnce(Return(true));
-        EXPECT_CALL(filesystem, exists(dummyPath2 / "004.jpg")).WillOnce(Return(false));
+        EXPECT_CALL(filesystem, listFiles(dummyPath2))
+            .WillOnce(Return(std::vector<fs::path>{
+                dummyPath2 / "000.jpg",
+                dummyPath2 / "001.jpg",
+                dummyPath2 / "002.jpg",
+                dummyPath2 / "003.jpg"}));
         EXPECT_CALL(filesystem, copy(dummyPath1 / "b.jpg", dummyPath2 / "004.jpg"));
     }
 
@@ -169,7 +171,7 @@ TEST_F(ProcessorTest, givenNameVariableUsedWhenCopyActionIsTriggeredThenResolveN
 
 TEST_F(ProcessorTest, givenPreviousNameVariableUsedWhenCopyActionIsTriggeredThenResolveNameProperly) {
     MockFilesystem filesystem{};
-    EXPECT_CALL(filesystem, exists(dummyPath2 / "000.jpg"));
+    EXPECT_CALL(filesystem, listFiles(dummyPath2));
     EXPECT_CALL(filesystem, copy(dummyPath1 / "b.jpg", dummyPath2 / "000.jpg"));
     EXPECT_CALL(filesystem, copy(dummyPath1 / "b.jpg", dummyPath2 / "a_000_b.jpg"));
 

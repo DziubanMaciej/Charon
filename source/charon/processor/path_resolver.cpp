@@ -1,6 +1,7 @@
 #include "charon/processor/path_resolver.h"
 #include "charon/util/error.h"
 #include "charon/util/filesystem.h"
+#include "charon/util/string_helper.h"
 
 #include <sstream>
 
@@ -21,9 +22,9 @@ std::filesystem::path PathResolver::resolvePath(const std::filesystem::path &dir
     const std::filesystem::path extension = oldName.extension();
 
     // Perform variable substitutions
-    replace(result, "${name}", oldName.stem().string());
-    replace(result, "${previousName}", lastResolvedPath.stem().string());
-    replace(result, "${extension}", removeLeadingDot(extension));
+    StringHelper::replace(result, "${name}", oldName.stem().string());
+    StringHelper::replace(result, "${previousName}", lastResolvedPath.stem().string());
+    StringHelper::replace(result, "${extension}", StringHelper::removeLeadingDot(extension));
 
     // If no counter is present, then we're done
     const size_t digits = std::count(newName.begin(), newName.end(), '#');
@@ -31,30 +32,37 @@ std::filesystem::path PathResolver::resolvePath(const std::filesystem::path &dir
         return finalizePath(dir, result, extension);
     }
 
-    // If we have a counter, try to find lowest available one
+    // We have a counter, list all files and sort lexicographically
+    std::vector<fs::path> filesInNewDir = filesystem.listFiles(dir);
+    std::sort(filesInNewDir.begin(), filesInNewDir.end());
+
+    // Find first possible name (with counter 0)
     std::string resultWithCounter = result;
     const auto counterStart = resultWithCounter.begin() + resultWithCounter.find('#');
-    const size_t maxIndex = getMaxIndex(digits);
-    for (size_t index = 0u; index <= maxIndex; index++) {
-        const std::string counterString = counterToString(index, digits);
-        std::copy_n(counterString.data(), digits, counterStart);
+    setCounter(counterStart, 0u, digits);
+    const auto predicate = [&resultWithCounter](const fs::path &p) { return resultWithCounter == p.stem().string(); };
+    auto existingFile = std::find_if(filesInNewDir.begin(), filesInNewDir.end(), predicate);
+    if (existingFile == filesInNewDir.end()) {
+        return finalizePath(dir, resultWithCounter, extension);
+    }
+    existingFile++;
 
-        const std::filesystem::path finalizedResultWithCounter = finalizePath(dir, resultWithCounter, extension);
-        const bool available = !filesystem.exists(finalizedResultWithCounter);
-        if (available) {
-            return finalizedResultWithCounter;
+    // Check rest of names
+    size_t counter = 1u;
+    setCounter(counterStart, counter, digits);
+    for (; existingFile != filesInNewDir.end(); existingFile++) {
+        // If it's not free, go to the next one
+        if (predicate(*existingFile)) {
+            counter++;
+            setCounter(counterStart, counter, digits);
         }
     }
 
-    return {};
-}
-
-void PathResolver::replace(std::string &subject, const std::string &search, const std::string &replace) {
-    size_t pos = 0;
-    while ((pos = subject.find(search, pos)) != std::string::npos) {
-        subject.replace(pos, search.length(), replace);
-        pos += replace.length();
+    if (counter < getMaxIndex(digits)) {
+        return finalizePath(dir, resultWithCounter, extension);
     }
+
+    return {};
 }
 
 size_t PathResolver::getMaxIndex(size_t digits) {
@@ -65,18 +73,12 @@ size_t PathResolver::getMaxIndex(size_t digits) {
     return result - 1;
 }
 
-std::string PathResolver::counterToString(size_t index, size_t digits) {
-    std::ostringstream stream{};
-    stream << std::setfill('0') << std::setw(digits) << index;
-    return stream.str();
-}
+void PathResolver::setCounter(std::string::iterator counterAddress, size_t index, size_t digits) {
+    std::ostringstream counterStringStream{};
+    counterStringStream << std::setfill('0') << std::setw(digits) << index;
+    const std::string counterString = counterStringStream.str();
 
-std::string PathResolver::removeLeadingDot(const std::filesystem::path &path) {
-    if (path.empty()) {
-        return {};
-    } else {
-        return path.string().substr(1);
-    }
+    std::copy_n(counterString.data(), digits, counterAddress);
 }
 
 std::filesystem::path PathResolver::finalizePath(const std::filesystem::path &destinationDir,

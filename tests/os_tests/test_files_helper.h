@@ -5,6 +5,8 @@
 #include <filesystem>
 #include <fstream>
 
+namespace fs = std::filesystem;
+
 struct TestFilesHelper {
     static void cleanupTestDirectory() {
         std::filesystem::remove_all(TEST_DIRECTORY_PATH);
@@ -39,5 +41,12 @@ struct TestFilesHelper {
     static bool fileExists(const std::filesystem::path &path) {
         const auto fullPath = getTestFilePath(path);
         return std::filesystem::exists(fullPath);
+    }
+
+    static size_t countFilesInDirectory(const std::filesystem::path &path) {
+        const auto fullPath = getTestFilePath(path);
+        size_t result = 0u;
+        auto iterator = fs::directory_iterator(fullPath);
+        return std::distance(fs::begin(iterator), fs::end(iterator));
     }
 };

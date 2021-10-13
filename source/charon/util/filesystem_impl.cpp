@@ -2,12 +2,20 @@
 
 void FilesystemImpl::copy(const fs::path &src, const fs::path &dst) const {
     fs::create_directories(dst.parent_path());
-    fs::copy(src, dst);
+    std::error_code ec;
+    fs::copy(src, dst, ec);
+    if (ec.value() != 0) {
+        fs::create_directories(dst.parent_path());
+    }
 }
 
 void FilesystemImpl::move(const fs::path &src, const fs::path &dst) const {
     fs::create_directories(dst.parent_path());
-    fs::rename(src, dst);
+    std::error_code ec;
+    fs::rename(src, dst, ec);
+    if (ec.value() != 0) {
+        fs::create_directories(dst.parent_path());
+    }
 }
 
 void FilesystemImpl::remove(const fs::path &file) const {
@@ -16,4 +24,12 @@ void FilesystemImpl::remove(const fs::path &file) const {
 
 bool FilesystemImpl::exists(const fs::path &file) const {
     return fs::exists(file);
+}
+
+std::vector<fs::path> FilesystemImpl::listFiles(const fs::path &directory) const {
+    std::vector<fs::path> result{};
+    for (const auto &entry : fs::directory_iterator(directory)) {
+        result.push_back(entry.path());
+    }
+    return result;
 }

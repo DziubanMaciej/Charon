@@ -18,4 +18,5 @@ struct MockFilesystem : Filesystem {
     MOCK_METHOD(void, move, (const fs::path &src, const fs::path &dst), (const, override));
     MOCK_METHOD(void, remove, (const fs::path &file), (const, override));
     MOCK_METHOD(bool, exists, (const fs::path &file), (const, override));
+    MOCK_METHOD(std::vector<fs::path>, listFiles, (const fs::path &directory), (const, override));
 };
