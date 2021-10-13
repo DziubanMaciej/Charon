@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
                 "type": "print"
             },
             {
-                "type": "copy",
+                "type": "move",
                 "destinationDir": "D:/Desktop/Test/Dst",
                 "destinationName": "file_###"
             }
