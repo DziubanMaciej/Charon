@@ -102,24 +102,34 @@ void Processor::executeProcessorActionMoveOrCopy(const FileEvent &event, const P
         return;
     }
 
-    const char *verbForLog{};
+    const char *verbForLog = isMove ? "moving" : "copying";
+    log(logger, LogLevel::Info) << "Processor " << verbForLog << " file " << event.path << " to " << dstPath;
+
+    OptionalError error{};
     if (isMove) {
-        filesystem.move(event.path, dstPath);
-        verbForLog = "moving";
+        error = filesystem.move(event.path, dstPath);
         eventsToIgnore.push_back(FileEvent{event.watchedRootPath, FileEvent::Type::Remove, event.path});
     } else {
-        filesystem.copy(event.path, dstPath);
-        verbForLog = "copying";
+        error = filesystem.copy(event.path, dstPath);
     }
 
-    log(logger, LogLevel::Info) << "Processor " << verbForLog << " file " << event.path << " to " << dstPath;
+    if (error.has_value()) {
+        std::error_code code = error.value();
+        log(logger, LogLevel::Error) << "Filesystem operation returned code " << code.value() << ": " << code.message();
+    }
 }
 
 void Processor::executeProcessorActionRemove(const FileEvent &event, const ProcessorAction &action, ActionMatcherState &actionMatcherState) {
-    filesystem.remove(event.path);
-    eventsToIgnore.push_back(FileEvent{event.watchedRootPath, FileEvent::Type::Remove, event.path});
     actionMatcherState.lastResolvedPath = std::filesystem::path{};
     log(logger, LogLevel::Info) << "Processor removing file " << event.path;
+
+    const OptionalError error = filesystem.remove(event.path);
+    eventsToIgnore.push_back(FileEvent{event.watchedRootPath, FileEvent::Type::Remove, event.path});
+
+    if (error.has_value()) {
+        std::error_code code = error.value();
+        log(logger, LogLevel::Error) << "Filesystem operation returned code " << code.value() << ": " << code.message();
+    }
 }
 
 void Processor::executeProcessorActionPrint(const FileEvent &event) const {
