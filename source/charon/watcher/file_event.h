@@ -25,17 +25,3 @@ inline bool operator==(const FileEvent &left, const FileEvent &right) {
 }
 
 using FileEventQueue = BlockingQueue<FileEvent>;
-
-namespace std {
-inline std::string getFileEventTypeAsPassiveVerb(FileEvent::Type type) {
-    const static std::string strings[] = {
-        "added",
-        "removed",
-        "modified",
-        "RenameOld",
-        "RenameNew",
-        "Interrupt",
-    };
-    return strings[static_cast<size_t>(type)];
-}
-} // namespace std
