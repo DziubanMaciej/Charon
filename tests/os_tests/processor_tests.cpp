@@ -422,3 +422,18 @@ TEST_F(ProcessorTest, givenFileRenamedToEventWhenProcessorIsRunningThenPerformAc
     EXPECT_EQ(1u, TestFilesHelper::countFilesInDirectory(dstPath));
     EXPECT_EQ(0u, TestFilesHelper::countFilesInDirectory(srcPath));
 }
+
+TEST_F(ProcessorTest, givenFileAlreadyExistsWhenProcessorPerformsMoveActionThenOverwriteIt) {
+    ProcessorConfig config = createProcessorConfigWithOneMatcher();
+    config.matchers[0].actions = {createMoveAction("conflictingFile", dstPath)};
+    Processor processor{config, eventQueue, filesystem, nullLogger};
+
+    TestFilesHelper::createFile(dstPath / "conflictingFile");
+    pushFileCreationEventAndCreateFile(srcPath / "myFile");
+    pushInterruptEvent();
+    processor.run();
+
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "conflictingFile"));
+    EXPECT_EQ(1u, TestFilesHelper::countFilesInDirectory(dstPath));
+    EXPECT_EQ(0u, TestFilesHelper::countFilesInDirectory(srcPath));
+}

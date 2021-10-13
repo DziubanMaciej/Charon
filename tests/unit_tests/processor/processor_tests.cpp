@@ -159,6 +159,151 @@ TEST_F(ProcessorTest, givenCounterUsedAndThereAreExistingFilesWhenCopyActionIsTr
     processor.run();
 }
 
+TEST_F(ProcessorTest, givenCounterUsedAndIndexZeroIsFreeWhenCopyActionIsTriggeredThenUseIndexZero) {
+    MockFilesystem filesystem{};
+    {
+        InSequence seq{};
+        EXPECT_CALL(filesystem, listFiles(dummyPath2))
+            .WillOnce(Return(std::vector<fs::path>{
+                dummyPath2 / "001.jpg",
+                dummyPath2 / "002.jpg",
+                dummyPath2 / "003.jpg"}));
+        EXPECT_CALL(filesystem, copy(dummyPath1 / "b.jpg", dummyPath2 / "000.jpg"));
+    }
+
+    ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
+    config.matchers[0].actions = {createCopyAction(dummyPath2, "###")};
+    Processor processor{config, eventQueue, filesystem, nullLogger};
+
+    pushFileCreationEvent(dummyPath1, dummyPath1 / "b.jpg");
+    pushInterruptEvent();
+    processor.run();
+}
+
+TEST_F(ProcessorTest, givenCounterUsedAndIndexOneIsFreeWhenCopyActionIsTriggeredThenUseIndexOne) {
+    MockFilesystem filesystem{};
+    {
+        InSequence seq{};
+        EXPECT_CALL(filesystem, listFiles(dummyPath2))
+            .WillOnce(Return(std::vector<fs::path>{
+                dummyPath2 / "000.jpg",
+                dummyPath2 / "002.jpg",
+                dummyPath2 / "003.jpg"}));
+        EXPECT_CALL(filesystem, copy(dummyPath1 / "b.jpg", dummyPath2 / "001.jpg"));
+    }
+
+    ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
+    config.matchers[0].actions = {createCopyAction(dummyPath2, "###")};
+    Processor processor{config, eventQueue, filesystem, nullLogger};
+
+    pushFileCreationEvent(dummyPath1, dummyPath1 / "b.jpg");
+    pushInterruptEvent();
+    processor.run();
+}
+
+TEST_F(ProcessorTest, givenCounterUsedAndMultipleGapsInNamesWhenCopyActionsAreTriggeredThenFillGaps) {
+    MockFilesystem filesystem{};
+    {
+        InSequence seq{};
+        EXPECT_CALL(filesystem, listFiles(dummyPath2))
+            .WillOnce(Return(std::vector<fs::path>{
+                dummyPath2 / "000.jpg",
+                dummyPath2 / "002.jpg",
+                dummyPath2 / "005.jpg",}));
+        EXPECT_CALL(filesystem, copy(dummyPath1 / "a.jpg", dummyPath2 / "001.jpg"));
+        EXPECT_CALL(filesystem, listFiles(dummyPath2))
+            .WillOnce(Return(std::vector<fs::path>{
+                dummyPath2 / "000.jpg",
+                dummyPath2 / "001.jpg",
+                dummyPath2 / "002.jpg",
+                dummyPath2 / "005.jpg",
+            }));
+        EXPECT_CALL(filesystem, copy(dummyPath1 / "b.jpg", dummyPath2 / "003.jpg"));
+        EXPECT_CALL(filesystem, listFiles(dummyPath2))
+            .WillOnce(Return(std::vector<fs::path>{
+                dummyPath2 / "000.jpg",
+                dummyPath2 / "001.jpg",
+                dummyPath2 / "002.jpg",
+                dummyPath2 / "003.jpg",
+                dummyPath2 / "005.jpg",
+            }));
+        EXPECT_CALL(filesystem, copy(dummyPath1 / "c.jpg", dummyPath2 / "004.jpg"));
+        EXPECT_CALL(filesystem, listFiles(dummyPath2))
+            .WillOnce(Return(std::vector<fs::path>{
+                dummyPath2 / "000.jpg",
+                dummyPath2 / "001.jpg",
+                dummyPath2 / "002.jpg",
+                dummyPath2 / "003.jpg",
+                dummyPath2 / "004.jpg",
+                dummyPath2 / "005.jpg",
+            }));
+        EXPECT_CALL(filesystem, copy(dummyPath1 / "d.jpg", dummyPath2 / "006.jpg"));
+    }
+
+    ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
+    config.matchers[0].actions = {createCopyAction(dummyPath2, "###")};
+    Processor processor{config, eventQueue, filesystem, nullLogger};
+
+    pushFileCreationEvent(dummyPath1, dummyPath1 / "a.jpg");
+    pushFileCreationEvent(dummyPath1, dummyPath1 / "b.jpg");
+    pushFileCreationEvent(dummyPath1, dummyPath1 / "c.jpg");
+    pushFileCreationEvent(dummyPath1, dummyPath1 / "d.jpg");
+    pushInterruptEvent();
+    processor.run();
+}
+
+TEST_F(ProcessorTest, givenCounterUsedAndMultipleGapsInNamesWithDifferentExtensionsWhenCopyActionsAreTriggeredThenFillGaps) {
+    MockFilesystem filesystem{};
+    {
+        InSequence seq{};
+        EXPECT_CALL(filesystem, listFiles(dummyPath2))
+            .WillOnce(Return(std::vector<fs::path>{
+                dummyPath2 / "000.jpg",
+                dummyPath2 / "002.jpg",
+                dummyPath2 / "005.jpg",
+            }));
+        EXPECT_CALL(filesystem, copy(dummyPath1 / "a.1", dummyPath2 / "001.1"));
+        EXPECT_CALL(filesystem, listFiles(dummyPath2))
+            .WillOnce(Return(std::vector<fs::path>{
+                dummyPath2 / "000.jpg",
+                dummyPath2 / "001.1",
+                dummyPath2 / "002.jpg",
+                dummyPath2 / "005.jpg",
+            }));
+        EXPECT_CALL(filesystem, copy(dummyPath1 / "b.2", dummyPath2 / "003.2"));
+        EXPECT_CALL(filesystem, listFiles(dummyPath2))
+            .WillOnce(Return(std::vector<fs::path>{
+                dummyPath2 / "000.jpg",
+                dummyPath2 / "001.1",
+                dummyPath2 / "002.jpg",
+                dummyPath2 / "003.2",
+                dummyPath2 / "005.jpg",
+            }));
+        EXPECT_CALL(filesystem, copy(dummyPath1 / "c.3", dummyPath2 / "004.3"));
+        EXPECT_CALL(filesystem, listFiles(dummyPath2))
+            .WillOnce(Return(std::vector<fs::path>{
+                dummyPath2 / "000.jpg",
+                dummyPath2 / "001.1",
+                dummyPath2 / "002.jpg",
+                dummyPath2 / "003.2",
+                dummyPath2 / "004.3",
+                dummyPath2 / "005.jpg",
+            }));
+        EXPECT_CALL(filesystem, copy(dummyPath1 / "d.4", dummyPath2 / "006.4"));
+    }
+
+    ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
+    config.matchers[0].actions = {createCopyAction(dummyPath2, "###")};
+    Processor processor{config, eventQueue, filesystem, nullLogger};
+
+    pushFileCreationEvent(dummyPath1, dummyPath1 / "a.1");
+    pushFileCreationEvent(dummyPath1, dummyPath1 / "b.2");
+    pushFileCreationEvent(dummyPath1, dummyPath1 / "c.3");
+    pushFileCreationEvent(dummyPath1, dummyPath1 / "d.4");
+    pushInterruptEvent();
+    processor.run();
+}
+
 TEST_F(ProcessorTest, givenNameVariableUsedWhenCopyActionIsTriggeredThenResolveNameProperly) {
     MockFilesystem filesystem{};
     EXPECT_CALL(filesystem, copy(dummyPath1 / "b.jpg", dummyPath2 / "a_b_c.jpg"));
