@@ -9,7 +9,6 @@
 using ::testing::_;
 using ::testing::AtLeast;
 using ::testing::InSequence;
-using ::testing::NiceMock;
 using ::testing::Return;
 
 struct ProcessorTest : ::testing::Test {
@@ -287,7 +286,7 @@ TEST_F(ProcessorTest, givenMultipleActionMatchersExtensionFiltersNotSatisfiedWhe
 }
 
 TEST_F(ProcessorTest, whenMoveActionIsExecutedThenLogInfo) {
-    NiceMock<MockFilesystem> filesystem{false};
+    MockFilesystem filesystem{false};
     MockLogger logger{};
 
     EXPECT_CALL(logger, log(LogLevel::Info, "Processor moving file a/file.txt to b/file.txt"));
@@ -302,7 +301,7 @@ TEST_F(ProcessorTest, whenMoveActionIsExecutedThenLogInfo) {
 }
 
 TEST_F(ProcessorTest, whenCopyActionIsExecutedThenLogInfo) {
-    NiceMock<MockFilesystem> filesystem{false};
+    MockFilesystem filesystem{false};
     MockLogger logger{};
 
     EXPECT_CALL(logger, log(LogLevel::Info, "Processor copying file a/file.txt to b/file.txt"));
@@ -317,7 +316,7 @@ TEST_F(ProcessorTest, whenCopyActionIsExecutedThenLogInfo) {
 }
 
 TEST_F(ProcessorTest, whenRemoveActionIsExecutedThenLogInfo) {
-    NiceMock<MockFilesystem> filesystem{false};
+    MockFilesystem filesystem{false};
     MockLogger logger{};
 
     EXPECT_CALL(logger, log(LogLevel::Info, "Processor removing file a/file.txt"));
@@ -332,7 +331,7 @@ TEST_F(ProcessorTest, whenRemoveActionIsExecutedThenLogInfo) {
 }
 
 TEST_F(ProcessorTest, givenMultipleActionsWhenTheyAreExecutedThenLogInfo) {
-    NiceMock<MockFilesystem> filesystem{false};
+    MockFilesystem filesystem{false};
     MockLogger logger{};
 
     EXPECT_CALL(logger, log(LogLevel::Info, "Processor copying file a/file.txt to b/file.txt"));

@@ -4,18 +4,18 @@
 
 #include <gmock/gmock.h>
 
-using ::testing::AtLeast;
-using ::testing::Return;
+using ::testing::AnyNumber;
+using ::testing::Exactly;
 
 struct MockFilesystem : Filesystem {
     MockFilesystem(bool expectNoCalls = true) {
-        if (expectNoCalls) {
-            EXPECT_CALL(*this, copy).Times(0);
-            EXPECT_CALL(*this, move).Times(0);
-            EXPECT_CALL(*this, remove).Times(0);
-            EXPECT_CALL(*this, listFiles).Times(0);
-            EXPECT_CALL(*this, isDirectory).Times(AtLeast(0)).WillRepeatedly(Return(false));
-        }
+        const auto matcher = expectNoCalls ? Exactly(0) : AnyNumber();
+        EXPECT_CALL(*this, copy).Times(matcher);
+        EXPECT_CALL(*this, move).Times(matcher);
+        EXPECT_CALL(*this, remove).Times(matcher);
+        EXPECT_CALL(*this, listFiles).Times(matcher);
+
+        EXPECT_CALL(*this, isDirectory).Times(AnyNumber());
     }
 
     MOCK_METHOD(void, copy, (const fs::path &src, const fs::path &dst), (const, override));
