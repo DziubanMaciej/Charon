@@ -1,10 +1,11 @@
 #pragma once
+#include "charon/util/class_traits.h"
 
 #include <filesystem>
 
 namespace fs = std::filesystem;
 
-struct Filesystem {
+struct Filesystem : NonCopyableAndMovable {
     virtual ~Filesystem() {}
     virtual void copy(const fs::path &src, const fs::path &dst) const = 0;
     virtual void move(const fs::path &src, const fs::path &dst) const = 0;

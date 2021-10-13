@@ -1,5 +1,7 @@
 #pragma once
 
+#include "charon/util/class_traits.h"
+
 #include <array>
 #include <filesystem>
 #include <fstream>
@@ -16,7 +18,7 @@ enum class LogLevel {
     Debug,
 };
 
-struct Logger {
+struct Logger : NonCopyableAndMovable {
     virtual ~Logger() {}
     virtual void log(LogLevel level, const std::string &message) = 0;
     std::mutex mutex;

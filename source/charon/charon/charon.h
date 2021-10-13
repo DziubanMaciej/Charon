@@ -1,6 +1,7 @@
 #pragma once
 
 #include "charon/processor/processor.h"
+#include "charon/util/class_traits.h"
 #include "charon/util/filesystem.h"
 #include "charon/watcher/directory_watcher.h"
 
@@ -9,7 +10,7 @@
 class Logger;
 class DirectoryWatcherFactory;
 
-class Charon {
+class Charon : NonCopyableAndMovable {
 public:
     Charon(const ProcessorConfig &config, Filesystem &filesystem, Logger &logger, DirectoryWatcherFactory &watcherFactory);
 

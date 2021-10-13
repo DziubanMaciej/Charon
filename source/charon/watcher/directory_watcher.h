@@ -1,10 +1,11 @@
 #pragma once
 
+#include "charon/util/class_traits.h"
 #include "charon/watcher/file_event.h"
 
 #include <thread>
 
-class DirectoryWatcher {
+class DirectoryWatcher : NonCopyableAndMovable {
 public:
     DirectoryWatcher(const std::filesystem::path &directoryPath, FileEventQueue &outputQueue);
     virtual ~DirectoryWatcher() {}

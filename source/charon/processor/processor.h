@@ -2,6 +2,7 @@
 
 #include "charon/processor/path_resolver.h"
 #include "charon/processor/processor_config.h"
+#include "charon/util/class_traits.h"
 #include "charon/watcher/file_event.h"
 
 struct Filesystem;
@@ -9,7 +10,7 @@ struct Logger;
 class ProcessorConfig;
 class ProcessorActionMatcher;
 
-class Processor {
+class Processor : NonCopyableAndMovable {
 public:
     Processor(const ProcessorConfig &config, FileEventQueue &eventQueue, Filesystem &filesystem, Logger &logger);
 

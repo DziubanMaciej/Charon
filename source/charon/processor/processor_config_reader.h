@@ -1,12 +1,13 @@
 #pragma once
 
 #include "charon/processor/processor_config.h"
+#include "charon/util/class_traits.h"
 
 #include <nlohmann/json.hpp>
 
 struct Logger;
 
-class ProcessConfigReader {
+class ProcessConfigReader : NonCopyableAndMovable {
 public:
     ProcessConfigReader(Logger &logger);
 

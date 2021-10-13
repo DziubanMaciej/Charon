@@ -1,12 +1,14 @@
 #pragma once
 
+#include "charon/util/class_traits.h"
+
 #include <chrono>
 #include <condition_variable>
 #include <mutex>
 #include <queue>
 
 template <typename T>
-class BlockingQueue {
+class BlockingQueue : NonCopyableAndMovable {
 public:
     BlockingQueue() = default;
     BlockingQueue(const BlockingQueue &) = delete;

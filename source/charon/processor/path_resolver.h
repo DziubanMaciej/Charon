@@ -1,12 +1,14 @@
 
 #pragma once
 
+#include "charon/util/class_traits.h"
+
 #include <filesystem>
 #include <string>
 
 class Filesystem;
 
-class PathResolver {
+class PathResolver : NonCopyableAndMovable {
 public:
     PathResolver(Filesystem &filesystem);
 
@@ -22,7 +24,7 @@ private:
                                            const std::filesystem::path &oldNameExtension,
                                            const std::filesystem::path &lastResolvedName);
     void applyCounterSubstitution(std::string &name,
-                                         const std::filesystem::path &newDir) const;
+                                  const std::filesystem::path &newDir) const;
 
     static size_t getMaxIndex(size_t digits);
 
