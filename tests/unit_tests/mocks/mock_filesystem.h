@@ -23,4 +23,7 @@ struct MockFilesystem : Filesystem {
     MOCK_METHOD(OptionalError, remove, (const fs::path &file), (const, override));
     MOCK_METHOD(bool, isDirectory, (const fs::path &path), (const, override));
     MOCK_METHOD(std::vector<fs::path>, listFiles, (const fs::path &directory), (const, override));
+
+    MOCK_METHOD((std::pair<OsHandle, LockResult>), lockFile, (const fs::path &path), (const, override));
+    MOCK_METHOD(void, unlockFile, (OsHandle handle), (const, override));
 };

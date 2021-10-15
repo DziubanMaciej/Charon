@@ -1,4 +1,5 @@
 #pragma once
+#include "charon/charon/os_handle.h"
 #include "charon/util/class_traits.h"
 
 #include <filesystem>
@@ -15,4 +16,14 @@ struct Filesystem : NonCopyableAndMovable {
     virtual OptionalError remove(const fs::path &file) const = 0;
     virtual bool isDirectory(const fs::path &path) const = 0;
     virtual std::vector<fs::path> listFiles(const fs::path &directory) const = 0;
+
+    enum class LockResult {
+        Unknown,
+        Success,
+        DoesNotExist,
+        UsedByOtherProcess,
+        NoAccess,
+    };
+    virtual std::pair<OsHandle, LockResult> lockFile(const fs::path &path) const = 0;
+    virtual void unlockFile(OsHandle handle) const = 0;
 };
