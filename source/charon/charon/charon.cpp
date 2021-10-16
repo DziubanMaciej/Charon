@@ -29,25 +29,51 @@ Charon::Charon(const ProcessorConfig &config, Filesystem &filesystem, Logger &lo
     }
 }
 
-bool Charon::runWatchers() {
-    for (auto &watcher : this->directoryWatchers) {
-        const bool watcherStarted = watcher->start();
-        if (!watcherStarted) {
-            log(logger, LogLevel::Error) << "Watcher for directory " << watcher->getWatchedDirectory() << " failed to start";
+bool Charon::start() {
+    if (isStarted.exchange(true)) {
+        return false;
+    }
+
+    // Run watchers
+    for (auto watcherIndex = 0u; watcherIndex < directoryWatchers.size(); watcherIndex++) {
+        DirectoryWatcher &currentWatcher = *directoryWatchers[watcherIndex];
+        if (!currentWatcher.start()) {
+            log(logger, LogLevel::Error) << "Watcher for directory " << currentWatcher.getWatchedDirectory() << " failed to start";
+
+            // If any watcher failed to start, stop all those already running
+            for (auto startedWatcherIndex = 0u; startedWatcherIndex < directoryWatchers.size(); startedWatcherIndex++) {
+                directoryWatchers[startedWatcherIndex]->stop();
+            }
             return false;
         }
     }
+
+    // Run processor
+    processorThread = std::make_unique<std::thread>([this]() {
+        processor.run();
+    });
+
     return true;
 }
 
-void Charon::stopWatchers() {
+bool Charon::stop() {
+    if (!isStarted.exchange(false)) {
+        return false;
+    }
+
+    // Stop processor
+    FileEvent interruptEvent{};
+    interruptEvent.type = FileEvent::Type::Interrupt;
+    eventQueue.push(std::move(interruptEvent));
+    processorThread->join();
+    processorThread = nullptr;
+
+    // Stop watchers
     for (auto &watcher : this->directoryWatchers) {
         watcher->stop();
     }
-}
 
-void Charon::runProcessor() {
-    processor.run();
+    return true;
 }
 
 void Charon::readUserConsoleInput() {
@@ -56,14 +82,8 @@ void Charon::readUserConsoleInput() {
         std::getline(std::cin, line);
 
         if (line == "q") {
-            stopProcessor();
+            stop();
             break;
         }
     }
-}
-
-void Charon::stopProcessor() {
-    FileEvent interruptEvent{};
-    interruptEvent.type = FileEvent::Type::Interrupt;
-    eventQueue.push(std::move(interruptEvent));
 }

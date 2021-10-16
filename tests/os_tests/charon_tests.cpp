@@ -7,32 +7,15 @@
 #include <gtest/gtest.h>
 
 struct RaiiCharonRunner {
-    RaiiCharonRunner(Charon &charon)
-        : charon(charon),
-          charonProcessorThread(runCharonInBackground(charon)) {}
+    RaiiCharonRunner(Charon &charon) : charon(charon) {
+        EXPECT_TRUE(charon.start());
+    }
 
     ~RaiiCharonRunner() {
-        if (isRunning()) {
-            charon.stopProcessor();
-            charonProcessorThread->join();
-            charon.stopWatchers();
-        }
-    }
-
-    bool isRunning() const {
-        return charonProcessorThread != nullptr;
-    }
-
-private:
-    std::unique_ptr<std::thread> runCharonInBackground(Charon &charon) {
-        if (!charon.runWatchers()) {
-            return {};
-        }
-        return std::make_unique<std::thread>([&charon]() { charon.runProcessor(); });
+        EXPECT_TRUE(charon.stop());
     }
 
     Charon &charon;
-    std::unique_ptr<std::thread> charonProcessorThread;
 };
 
 struct WhiteboxFilesystem : FilesystemImpl {
@@ -64,7 +47,6 @@ struct CharonOsTests : ::testing::Test,
         // When Charon is running it may generate additional event (creating a feedback loop). We run it once again,
         // so it gets a chance to process them and handle accordingly.
         RaiiCharonRunner charonRunner{charon};
-        ASSERT_TRUE(charonRunner.isRunning());
     }
 
     WhiteboxFilesystem filesystem;
@@ -83,7 +65,6 @@ TEST_F(CharonOsTests, givenFileEventWhenCharonIsRunningThenExecuteActions) {
 
     {
         RaiiCharonRunner charonRunner{charon};
-        ASSERT_TRUE(charonRunner.isRunning());
         TestFilesHelper::createFile(srcPath / "abc");
     }
     rerunCharon(charon);
@@ -104,7 +85,6 @@ TEST_F(CharonOsTests, givenRemoveActionWhenCharonIsRunningThenExecuteActions) {
 
     {
         RaiiCharonRunner charonRunner{charon};
-        ASSERT_TRUE(charonRunner.isRunning());
         TestFilesHelper::createFile(srcPath / "abc");
     }
     rerunCharon(charon);
@@ -122,7 +102,6 @@ TEST_F(CharonOsTests, givenMultipleFileEventsWhenCharonIsRunningThenExecuteActio
 
     {
         RaiiCharonRunner charonRunner{charon};
-        ASSERT_TRUE(charonRunner.isRunning());
         for (int i = 0; i < 7; i++) {
             TestFilesHelper::createFile(srcPath / (std::string("file") + std::to_string(i)));
         }
@@ -148,7 +127,6 @@ TEST_F(CharonOsTests, givenMultipleFileEventsAndMultipleActionsWhenCharonIsRunni
 
     {
         RaiiCharonRunner charonRunner{charon};
-        ASSERT_TRUE(charonRunner.isRunning());
         for (int i = 0; i < 7; i++) {
             TestFilesHelper::createFile(srcPath / (std::string("file") + std::to_string(i)));
         }

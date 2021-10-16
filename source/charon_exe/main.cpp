@@ -40,11 +40,8 @@ int main(int argc, char **argv) {
     DirectoryWatcherFactoryImpl watcherFactory{};
 
     Charon charon{config, filesystem, logger, watcherFactory};
-    if (!charon.runWatchers()) {
+    if (!charon.start()) {
         return EXIT_FAILURE;
     }
-
-    std::thread consoleInputThread([&]() { charon.readUserConsoleInput(); });
-    charon.runProcessor();
-    consoleInputThread.join();
+    charon.readUserConsoleInput();
 }

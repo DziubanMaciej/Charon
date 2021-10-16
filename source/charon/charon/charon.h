@@ -14,17 +14,16 @@ class Charon : NonCopyableAndMovable {
 public:
     Charon(const ProcessorConfig &config, Filesystem &filesystem, Logger &logger, DirectoryWatcherFactory &watcherFactory);
 
-    void runProcessor();
-    void stopProcessor();
-
-    bool runWatchers();
-    void stopWatchers();
+    bool start();
+    bool stop();
 
     void readUserConsoleInput();
 
 private:
     FileEventQueue eventQueue{};
     Processor processor;
+    std::unique_ptr<std::thread> processorThread{};
     std::vector<std::unique_ptr<DirectoryWatcher>> directoryWatchers{};
     Logger &logger;
+    std::atomic_bool isStarted = false;
 };
