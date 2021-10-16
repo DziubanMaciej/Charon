@@ -40,6 +40,12 @@ bool Charon::runWatchers() {
     return true;
 }
 
+void Charon::stopWatchers() {
+    for (auto &watcher : this->directoryWatchers) {
+        watcher->stop();
+    }
+}
+
 void Charon::runProcessor() {
     processor.run();
 }

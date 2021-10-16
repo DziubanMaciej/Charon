@@ -9,14 +9,13 @@
 struct RaiiCharonRunner {
     RaiiCharonRunner(Charon &charon)
         : charon(charon),
-          charonProcessorThread(runCharonInBackground(charon)) {
-        waitAfterWatcherStart();
-    }
+          charonProcessorThread(runCharonInBackground(charon)) {}
 
     ~RaiiCharonRunner() {
         if (isRunning()) {
             charon.stopProcessor();
             charonProcessorThread->join();
+            charon.stopWatchers();
         }
     }
 
@@ -25,11 +24,6 @@ struct RaiiCharonRunner {
     }
 
 private:
-    void waitAfterWatcherStart() {
-        using namespace std::chrono_literals;
-        std::this_thread::sleep_for(1ms);
-    }
-
     std::unique_ptr<std::thread> runCharonInBackground(Charon &charon) {
         if (!charon.runWatchers()) {
             return {};
@@ -66,15 +60,11 @@ struct CharonOsTests : ::testing::Test,
         ProcessorConfigFixture::SetUp();
     }
 
-    void waitForProcessor() {
-        // We technically could give RaiiCharonRunner a narrower scope to execute its destructor earlier
-        // and terminate Processor by inserting interrupt event and joining the thread. This however doesn't
-        // let us test for eventual feedback loops (events created during handling events, e.g. during moving files).
-        // To capture this, we would have to insert the interrupt event after the Processor handles all events
-        // and DirectoryWatcher generates new. This is quite hard to check without adding some additional
-        // convoluted logic to the Processor.
-        using namespace std::chrono_literals;
-        std::this_thread::sleep_for(10ms);
+    void rerunCharon(Charon &charon) {
+        // When Charon is running it may generate additional event (creating a feedback loop). We run it once again,
+        // so it gets a chance to process them and handle accordingly.
+        RaiiCharonRunner charonRunner{charon};
+        ASSERT_TRUE(charonRunner.isRunning());
     }
 
     WhiteboxFilesystem filesystem;
@@ -90,11 +80,13 @@ TEST_F(CharonOsTests, givenFileEventWhenCharonIsRunningThenExecuteActions) {
         createMoveAction("c"),
     };
     Charon charon{processorConfig, filesystem, logger, watcherFactory};
-    RaiiCharonRunner charonRunner{charon};
-    ASSERT_TRUE(charonRunner.isRunning());
-    TestFilesHelper::createFile(srcPath / "abc");
 
-    waitForProcessor();
+    {
+        RaiiCharonRunner charonRunner{charon};
+        ASSERT_TRUE(charonRunner.isRunning());
+        TestFilesHelper::createFile(srcPath / "abc");
+    }
+    rerunCharon(charon);
 
     EXPECT_FALSE(TestFilesHelper::fileExists(srcPath / "abc"));
     EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "a"));
@@ -109,11 +101,13 @@ TEST_F(CharonOsTests, givenRemoveActionWhenCharonIsRunningThenExecuteActions) {
     ProcessorConfig processorConfig = createProcessorConfigWithOneMatcher();
     processorConfig.matchers[0].actions = {createRemoveAction()};
     Charon charon{processorConfig, filesystem, logger, watcherFactory};
-    RaiiCharonRunner charonRunner{charon};
-    ASSERT_TRUE(charonRunner.isRunning());
-    TestFilesHelper::createFile(srcPath / "abc");
 
-    waitForProcessor();
+    {
+        RaiiCharonRunner charonRunner{charon};
+        ASSERT_TRUE(charonRunner.isRunning());
+        TestFilesHelper::createFile(srcPath / "abc");
+    }
+    rerunCharon(charon);
 
     EXPECT_FALSE(TestFilesHelper::fileExists(srcPath / "abc"));
     EXPECT_EQ(0u, filesystem.copyCount);
@@ -125,13 +119,15 @@ TEST_F(CharonOsTests, givenMultipleFileEventsWhenCharonIsRunningThenExecuteActio
     ProcessorConfig processorConfig = createProcessorConfigWithOneMatcher();
     processorConfig.matchers[0].actions = {createCopyAction("a#")};
     Charon charon{processorConfig, filesystem, logger, watcherFactory};
-    RaiiCharonRunner charonRunner{charon};
-    ASSERT_TRUE(charonRunner.isRunning());
-    for (int i = 0; i < 7; i++) {
-        TestFilesHelper::createFile(srcPath / (std::string("file") + std::to_string(i)));
-    }
 
-    waitForProcessor();
+    {
+        RaiiCharonRunner charonRunner{charon};
+        ASSERT_TRUE(charonRunner.isRunning());
+        for (int i = 0; i < 7; i++) {
+            TestFilesHelper::createFile(srcPath / (std::string("file") + std::to_string(i)));
+        }
+    }
+    rerunCharon(charon);
 
     for (int i = 0; i < 7; i++) {
         EXPECT_TRUE(TestFilesHelper::fileExists(srcPath / (std::string("file") + std::to_string(i))));
@@ -149,13 +145,15 @@ TEST_F(CharonOsTests, givenMultipleFileEventsAndMultipleActionsWhenCharonIsRunni
         createMoveAction("a${previousName}"),
     };
     Charon charon{processorConfig, filesystem, logger, watcherFactory};
-    RaiiCharonRunner charonRunner{charon};
-    ASSERT_TRUE(charonRunner.isRunning());
-    for (int i = 0; i < 7; i++) {
-        TestFilesHelper::createFile(srcPath / (std::string("file") + std::to_string(i)));
-    }
 
-    waitForProcessor();
+    {
+        RaiiCharonRunner charonRunner{charon};
+        ASSERT_TRUE(charonRunner.isRunning());
+        for (int i = 0; i < 7; i++) {
+            TestFilesHelper::createFile(srcPath / (std::string("file") + std::to_string(i)));
+        }
+    }
+    rerunCharon(charon);
 
     for (int i = 0; i < 7; i++) {
         EXPECT_FALSE(TestFilesHelper::fileExists(srcPath / (std::string("file") + std::to_string(i))));

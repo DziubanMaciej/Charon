@@ -14,9 +14,12 @@ class Charon : NonCopyableAndMovable {
 public:
     Charon(const ProcessorConfig &config, Filesystem &filesystem, Logger &logger, DirectoryWatcherFactory &watcherFactory);
 
-    bool runWatchers();
     void runProcessor();
     void stopProcessor();
+
+    bool runWatchers();
+    void stopWatchers();
+
     void readUserConsoleInput();
 
 private:
