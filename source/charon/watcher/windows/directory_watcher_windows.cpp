@@ -6,12 +6,16 @@ std::unique_ptr<DirectoryWatcher> DirectoryWatcherFactoryImpl::create(const std:
     return std::unique_ptr<DirectoryWatcher>(new DirectoryWatcherWindows(directoryPath, outputQueue));
 }
 
+DirectoryWatcherWindows::DirectoryWatcherWindows(const std::filesystem::path &directoryPath, FileEventQueue &outputQueue)
+    : DirectoryWatcher(directoryPath, outputQueue),
+      interruptEvent(true) {}
+
 DirectoryWatcherWindows::~DirectoryWatcherWindows() {
     stop();
 }
 
 bool DirectoryWatcherWindows::isWorking() const {
-    return directoryHandle != INVALID_HANDLE_VALUE && watcherThread != nullptr;
+    return watcherThreadWorking.load();
 }
 
 HANDLE DirectoryWatcherWindows::openHandle(const std::filesystem::path &directoryPath) {
@@ -21,7 +25,7 @@ HANDLE DirectoryWatcherWindows::openHandle(const std::filesystem::path &director
         FILE_SHARE_READ | FILE_SHARE_WRITE,
         nullptr,
         OPEN_EXISTING,
-        FILE_FLAG_BACKUP_SEMANTICS,
+        FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
         nullptr);
 }
 
@@ -30,14 +34,15 @@ bool DirectoryWatcherWindows::start() {
         return false;
     }
 
+    // Create handle to our directory
     directoryHandle = openHandle(directoryPath);
     if (directoryHandle == INVALID_HANDLE_VALUE) {
         return false;
     }
 
-    std::atomic_bool startedNotification = false;
-    this->watcherThread = std::make_unique<std::thread>(watcherThreadProcedure, std::reference_wrapper{*this}, std::reference_wrapper{startedNotification});
-    while (!startedNotification.load())
+    // Start background thread
+    this->watcherThread = std::make_unique<std::thread>(watcherThreadProcedure, std::reference_wrapper{*this});
+    while (!isWorking())
         ;
 
     return true;
@@ -48,41 +53,71 @@ bool DirectoryWatcherWindows::stop() {
         return false;
     }
 
+    // Interrupt background thread and wait for completion
+    SetEvent(interruptEvent);
+    watcherThread->join();
+    ResetEvent(interruptEvent);
+
+    // Verify the thread marked its end
+    FATAL_ERROR_IF(isWorking());
+
+    // Cleanup directory handle
     CancelIoEx(directoryHandle, nullptr);
     CloseHandle(directoryHandle);
     directoryHandle = INVALID_HANDLE_VALUE;
 
-    watcherThread->join();
+    // Cleanup thread reference
     watcherThread = nullptr;
+
     return true;
 }
 
-void DirectoryWatcherWindows::watcherThreadProcedure(DirectoryWatcherWindows &watcher, std::atomic_bool &startedNotification) {
+void DirectoryWatcherWindows::watcherThreadProcedure(DirectoryWatcherWindows &watcher) {
     constexpr size_t bufferSize = 4096;
     auto buffer = std::make_unique<std::byte[]>(bufferSize);
 
-    startedNotification.store(true);
+    Event watcherEvent{false};
+    OVERLAPPED overlapped{};
+    overlapped.hEvent = watcherEvent;
 
     while (true) {
-        // Wait for directory notifications synchronously
+        // Wait for directory notifications asynchronously
         DWORD outputBufferSize{};
-        BOOL value = ReadDirectoryChangesW(
+        BOOL retVal = ReadDirectoryChangesW(
             watcher.directoryHandle,
             buffer.get(),
             bufferSize,
             false,
             FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME,
-            &outputBufferSize,
             nullptr,
+            &overlapped,
             nullptr);
+        FATAL_ERROR_IF(retVal == FALSE, "ReadDirectoryChangesW failed"); // TODO handle this
 
-        // Handle interruption
-        if (value == FALSE || outputBufferSize == 0) {
-            auto a = GetLastError();
+        // We can tell main thread, that we've started
+        watcher.watcherThreadWorking.store(true);
+
+        // We'll wait for two things at the same time - directory notification and interruption signal.
+        // Either one of them will wake us and we will have to act accordingly.
+        HANDLE eventsForWait[2] = {watcher.interruptEvent, overlapped.hEvent};
+        const DWORD waitResult = WaitForMultipleObjects(2u, eventsForWait, false, INFINITE);
+        switch (waitResult) {
+        case WAIT_OBJECT_0:
+            // Interruption event was signalled - we have to return
+            watcher.watcherThreadWorking.store(false);
+            return;
+        case WAIT_OBJECT_0 + 1:
+            // Watcher event was signalled - we have to process the buffer we passed to ReadDirectoryChangesW
             break;
+        default:
+            FATAL_ERROR();
         }
 
-        // Process returned changes
+        // ReadDirectoryChangesW notified us. We still have to check if it succeeded
+        retVal = GetOverlappedResult(watcher.directoryHandle, &overlapped, &outputBufferSize, false);
+        FATAL_ERROR_IF(retVal == FALSE, "GetOverlappedResult failed"); // TODO handle this
+
+        // Process returned events
         auto currentEntry = reinterpret_cast<const FILE_NOTIFY_INFORMATION *>(buffer.get());
         while (true) {
             watcher.outputQueue.push(watcher.createFileEvent(*currentEntry));

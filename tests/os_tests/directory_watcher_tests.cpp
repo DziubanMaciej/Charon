@@ -12,10 +12,6 @@ struct DirectoryWatcherTest : ::testing::Test {
         watcher = DirectoryWatcherFactoryImpl{}.create(watchedDir, eventQueue);
     }
 
-    void waitAfterWatcherStart() {
-        std::this_thread::sleep_for(1ms);
-    }
-
     const static inline auto popTimeoutDuration = 5ms;
     std::filesystem::path watchedDir{};
     FileEventQueue eventQueue{};
@@ -24,7 +20,6 @@ struct DirectoryWatcherTest : ::testing::Test {
 
 TEST_F(DirectoryWatcherTest, givenFileCreatedWhenWatcherIsStartedThenDetectEvent) {
     EXPECT_TRUE(watcher->start());
-    waitAfterWatcherStart();
 
     TestFilesHelper::createFile(watchedDir / "file");
 
@@ -36,8 +31,6 @@ TEST_F(DirectoryWatcherTest, givenFileCreatedWhenWatcherIsStartedThenDetectEvent
 }
 
 TEST_F(DirectoryWatcherTest, givenFileCreatedWhenWatcherIsNotStartedThenDoNotDetectEvent) {
-    waitAfterWatcherStart();
-
     TestFilesHelper::createFile(watchedDir / "file");
 
     FileEvent event{};
@@ -46,10 +39,8 @@ TEST_F(DirectoryWatcherTest, givenFileCreatedWhenWatcherIsNotStartedThenDoNotDet
 
 TEST_F(DirectoryWatcherTest, givenFileCreatedWhenWatcherIsStoppedThenDoNotDetectEvent) {
     EXPECT_TRUE(watcher->start());
-    waitAfterWatcherStart();
 
     EXPECT_TRUE(watcher->stop());
-    waitAfterWatcherStart();
 
     TestFilesHelper::createFile(watchedDir / "file");
 
@@ -59,13 +50,10 @@ TEST_F(DirectoryWatcherTest, givenFileCreatedWhenWatcherIsStoppedThenDoNotDetect
 
 TEST_F(DirectoryWatcherTest, givenFileCreatedWhenWatcherIsRestartedThenDoNotDetectEvent) {
     EXPECT_TRUE(watcher->start());
-    waitAfterWatcherStart();
 
     EXPECT_TRUE(watcher->stop());
-    waitAfterWatcherStart();
 
     EXPECT_TRUE(watcher->start());
-    waitAfterWatcherStart();
 
     TestFilesHelper::createFile(watchedDir / "file");
 
@@ -78,7 +66,6 @@ TEST_F(DirectoryWatcherTest, givenFileCreatedWhenWatcherIsRestartedThenDoNotDete
 
 TEST_F(DirectoryWatcherTest, givenMultipleFilesCreatedWhenWatcherIsActiveThenDetectAllEvents) {
     EXPECT_TRUE(watcher->start());
-    waitAfterWatcherStart();
 
     for (int i = 0; i < 256; i++) {
         TestFilesHelper::createFile(watchedDir / std::to_string(i));
