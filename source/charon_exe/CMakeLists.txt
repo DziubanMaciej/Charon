@@ -6,5 +6,5 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_FILES})
 
 set(TARGET_NAME Charon)
 add_executable(${TARGET_NAME} ${SOURCE_FILES})
-target_link_libraries(${TARGET_NAME} PUBLIC CharonLib)
+target_link_libraries(${TARGET_NAME} PUBLIC CharonLib CharonResources)
 set_target_properties(Charon PROPERTIES FOLDER Charon)

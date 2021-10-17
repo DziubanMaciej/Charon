@@ -1,5 +1,6 @@
 #include "charon/charon/charon.h"
 #include "charon/processor/processor_config_reader.h"
+#include "charon/user_interface/daemon_user_interface.h"
 #include "charon/util/filesystem_impl.h"
 #include "charon/util/logger.h"
 #include "charon/watcher/directory_watcher_factory.h"
@@ -43,5 +44,9 @@ int main(int argc, char **argv) {
     if (!charon.start()) {
         return EXIT_FAILURE;
     }
-    charon.readUserConsoleInput();
+
+    auto ui = DaemonUserInterface::create(charon);
+    ui->run();
+
+    //  charon.readUserConsoleInput();
 }

@@ -1,2 +1,3 @@
+add_subdirectory(charon_resources)
 add_subdirectory(charon)
 add_subdirectory(charon_exe)
