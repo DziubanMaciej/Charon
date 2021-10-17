@@ -59,6 +59,7 @@ bool Charon::start() {
         deferredFileLocker.run();
     });
 
+    log(logger, LogLevel::Info) << "Charon started";
     return true;
 }
 
@@ -82,6 +83,7 @@ bool Charon::stop() {
         watcher->stop();
     }
 
+    log(logger, LogLevel::Info) << "Charon stopped";
     return true;
 }
 
