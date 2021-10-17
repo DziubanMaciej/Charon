@@ -9,15 +9,16 @@
 
 TrayIcon::TrayIcon(HINSTANCE instanceHandle, HWND windowHandle, UINT callbackMessageValue)
     : instanceHandle(instanceHandle),
-      windowHandle(windowHandle) {
-    addNotificationIcon(callbackMessageValue);
+      windowHandle(windowHandle),
+      callbackMessageValue(callbackMessageValue) {
+    addNotificationIcon();
 }
 
 TrayIcon::~TrayIcon() {
+    deleteNotificationIcon();
 }
 
 LRESULT TrayIcon::handleEvent(UINT message, WPARAM wParam, LPARAM lParam) {
-    std::cout << "Lparam: " << LOWORD(lParam) << '\n';
     switch (LOWORD(lParam)) {
     case NIN_SELECT:
         return 0;
@@ -36,19 +37,14 @@ LRESULT TrayIcon::handleEvent(UINT message, WPARAM wParam, LPARAM lParam) {
     }
 }
 
-void TrayIcon::addNotificationIcon(UINT callbackMessageValue) {
+void TrayIcon::addNotificationIcon() {
     NOTIFYICONDATAW nid = {};
     nid.cbSize = sizeof(NOTIFYICONDATA);
     nid.hWnd = windowHandle;
-    nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP | NIF_SHOWTIP | NIF_GUID;
+    nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_GUID;
     nid.guidItem = __uuidof(TrayIconGuid);
     nid.uCallbackMessage = callbackMessageValue;
-
-    auto b = MAKEINTRESOURCEA(IDI_ICON);
-
     LoadIconMetric(instanceHandle, MAKEINTRESOURCEW(IDI_ICON), LIM_SMALL, &nid.hIcon);
-    auto a = GetLastError();
-    wcscpy(nid.szTip, L"My tip xd");
 
     BOOL success = Shell_NotifyIconW(NIM_ADD, &nid);
     FATAL_ERROR_IF(!success, "Failed to create tray icon");
@@ -62,7 +58,9 @@ void TrayIcon::deleteNotificationIcon() {
     NOTIFYICONDATAW nid = {};
     nid.cbSize = sizeof(NOTIFYICONDATA);
     nid.hWnd = windowHandle;
+    nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_GUID;
     nid.guidItem = __uuidof(TrayIconGuid);
+    nid.uCallbackMessage = callbackMessageValue;
     BOOL success = Shell_NotifyIconW(NIM_DELETE, &nid);
     FATAL_ERROR_IF(!success, "Failed to remove tray icon");
 }

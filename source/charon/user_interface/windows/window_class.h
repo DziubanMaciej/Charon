@@ -1,11 +1,12 @@
 #pragma once
 
+#include "charon/util/class_traits.h"
 #include "charon/util/error.h"
 #include "charon_resources/windows/resource.h"
 
 #include <Windows.h>
 
-class WindowClass {
+class WindowClass : NonCopyableAndMovable {
 public:
     WindowClass(HINSTANCE instanceHandle, WNDPROC windowProc, const std::wstring &className)
         : instanceHandle(instanceHandle),
