@@ -6,7 +6,7 @@
 
 class DirectoryWatcherWindows : public DirectoryWatcher {
 public:
-    DirectoryWatcherWindows(const std::filesystem::path &directoryPath, FileEventQueue &outputQueue);
+    DirectoryWatcherWindows(const std::filesystem::path &directoryPath, FileEventQueue &outputQueue, FileEventQueue &deferredOutputQueue);
     DirectoryWatcherWindows::~DirectoryWatcherWindows() override;
 
     bool start() override;

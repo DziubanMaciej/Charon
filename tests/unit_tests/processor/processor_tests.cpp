@@ -3,6 +3,7 @@
 #include "charon/util/logger.h"
 #include "unit_tests/mocks/mock_filesystem.h"
 #include "unit_tests/mocks/mock_logger.h"
+#include "unit_tests/mocks/mock_os_handle.h"
 
 #include <gtest/gtest.h>
 
@@ -10,6 +11,7 @@ using ::testing::_;
 using ::testing::AtLeast;
 using ::testing::InSequence;
 using ::testing::Return;
+using ::testing::SetArgReferee;
 
 struct ProcessorFixture {
     void SetUp() {
@@ -64,7 +66,7 @@ struct ProcessorFixture {
     }
 
     void pushInterruptEvent() {
-        eventQueue.push(FileEvent{std::filesystem::path{}, FileEvent::Type::Interrupt, std::filesystem::path{}});
+        eventQueue.push(FileEvent::interruptEvent);
     }
 
     std::filesystem::path dummyPath1{};
@@ -209,7 +211,8 @@ TEST_F(ProcessorTest, givenCounterUsedAndMultipleGapsInNamesWhenCopyActionsAreTr
             .WillOnce(Return(std::vector<fs::path>{
                 dummyPath2 / "000.jpg",
                 dummyPath2 / "002.jpg",
-                dummyPath2 / "005.jpg",}));
+                dummyPath2 / "005.jpg",
+            }));
         EXPECT_CALL(filesystem, copy(dummyPath1 / "a.jpg", dummyPath2 / "001.jpg"));
         EXPECT_CALL(filesystem, listFiles(dummyPath2))
             .WillOnce(Return(std::vector<fs::path>{
@@ -563,6 +566,26 @@ TEST_F(ProcessorTest, givenCreateDirectoryEventWhenProcessorIsRunningThenSkipThe
     pushFileEvent("a", FileEvent::Type::Add, dummyPath1 / "file");
     pushFileEvent("a", FileEvent::Type::Add, dummyPath1 / "directory");
     pushInterruptEvent();
+    processor.run();
+}
+
+TEST_F(ProcessorTest, adasd) {
+    MockFilesystem filesystem{};
+    auto lockedFileHandle = mockOsHandle;
+
+    EXPECT_CALL(filesystem, unlockFile(lockedFileHandle))
+        .WillOnce(SetArgReferee<0>(defaultOsHandle));
+    EXPECT_CALL(filesystem, copy(dummyPath1 / "locked", dummyPath2 / "dst"));
+    EXPECT_CALL(filesystem, copy(dummyPath1 / "unlocked", dummyPath2 / "dst"));
+
+    ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
+    config.matchers[0].actions = {createCopyAction(dummyPath2, "dst")};
+    Processor processor{config, eventQueue, filesystem, nullLogger};
+
+    eventQueue.push(FileEvent{dummyPath1, FileEvent::Type::Add, dummyPath1 / "locked", lockedFileHandle});
+    eventQueue.push(FileEvent{dummyPath1, FileEvent::Type::Add, dummyPath1 / "unlocked", defaultOsHandle});
+    pushInterruptEvent();
+
     processor.run();
 }
 

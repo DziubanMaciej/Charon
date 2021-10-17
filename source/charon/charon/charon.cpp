@@ -16,7 +16,8 @@ struct hash<fs::path> {
 } // namespace std
 
 Charon::Charon(const ProcessorConfig &config, Filesystem &filesystem, Logger &logger, DirectoryWatcherFactory &watcherFactory)
-    : processor(config, this->eventQueue, filesystem, logger),
+    : deferredFileLocker(deferredFileLockerEventQueue, processorEventQueue, filesystem),
+      processor(config, this->processorEventQueue, filesystem, logger),
       logger(logger) {
 
     std::unordered_set<fs::path> directoriesToWatch = {};
@@ -25,7 +26,7 @@ Charon::Charon(const ProcessorConfig &config, Filesystem &filesystem, Logger &lo
     }
 
     for (const fs::path &directoryToWatch : directoriesToWatch) {
-        this->directoryWatchers.push_back(watcherFactory.create(directoryToWatch, this->eventQueue));
+        this->directoryWatchers.push_back(watcherFactory.create(directoryToWatch, processorEventQueue, deferredFileLockerEventQueue));
     }
 }
 
@@ -53,6 +54,11 @@ bool Charon::start() {
         processor.run();
     });
 
+    // Run deferred file locker
+    deferredFileLockerThread = std::make_unique<std::thread>([this]() {
+        deferredFileLocker.run();
+    });
+
     return true;
 }
 
@@ -61,10 +67,13 @@ bool Charon::stop() {
         return false;
     }
 
+    // Stop deferred file locker
+    deferredFileLockerEventQueue.push(FileEvent::interruptEvent);
+    deferredFileLockerThread->join();
+    deferredFileLockerThread = nullptr;
+
     // Stop processor
-    FileEvent interruptEvent{};
-    interruptEvent.type = FileEvent::Type::Interrupt;
-    eventQueue.push(std::move(interruptEvent));
+    processorEventQueue.push(FileEvent::interruptEvent);
     processorThread->join();
     processorThread = nullptr;
 

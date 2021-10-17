@@ -32,8 +32,9 @@ std::pair<OsHandle, FilesystemImpl::LockResult> FilesystemImpl::lockFile(const f
     return {handle, lockResult};
 }
 
-void FilesystemImpl::unlockFile(OsHandle handle) const {
+void FilesystemImpl::unlockFile(OsHandle &handle) const {
     if (handle != 0 && handle != INVALID_HANDLE_VALUE) {
         CloseHandle(handle);
     }
+    handle = INVALID_HANDLE_VALUE;
 }

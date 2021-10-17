@@ -18,14 +18,14 @@ void Processor::run() {
         if (!eventQueue.blockingPop(event)) {
             break;
         }
-        if (event.type == FileEvent::Type::Interrupt) {
+        if (event.isInterrupt()) {
             break;
         }
         processEvent(event);
     }
 }
 
-void Processor::processEvent(const FileEvent &event) {
+void Processor::processEvent(FileEvent &event) {
     if (auto it = std::find(eventsToIgnore.begin(), eventsToIgnore.end(), event); it != eventsToIgnore.end()) {
         eventsToIgnore.erase(it);
         return;
@@ -39,6 +39,10 @@ void Processor::processEvent(const FileEvent &event) {
     if (matcher == nullptr) {
         log(logger, LogLevel::Info) << "Processor could not match file " << event.path << " to any action matcher";
         return;
+    }
+
+    if (event.isLocked()) {
+        filesystem.unlockFile(event.lockedFileHandle);
     }
 
     ActionMatcherState actionMatcherState{};

@@ -32,6 +32,22 @@ struct TestFilesHelper {
         return fullPath;
     }
 
+    static void moveFile(const std::filesystem::path &src, const std::filesystem::path &dst) {
+        const auto fullSrcPath = getTestFilePath(src);
+        const auto fullDstPath = getTestFilePath(dst);
+        fs::rename(src, dst);
+    }
+
+    static void removeFile(const std::filesystem::path &path) {
+        const auto fullPath = getTestFilePath(path);
+        fs::remove(fullPath);
+    }
+
+    static std::ofstream openFileForWriting(const std::filesystem::path &path) {
+        const auto fullPath = getTestFilePath(path);
+        return std::ofstream{fullPath, std::ios::out};
+    }
+
     static std::filesystem::path createDirectory(const std::filesystem::path &path) {
         const auto fullPath = getTestFilePath(path);
         std::filesystem::create_directories(fullPath);

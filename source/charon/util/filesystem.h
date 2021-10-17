@@ -25,5 +25,5 @@ struct Filesystem : NonCopyableAndMovable {
         NoAccess,
     };
     virtual std::pair<OsHandle, LockResult> lockFile(const fs::path &path) const = 0;
-    virtual void unlockFile(OsHandle handle) const = 0;
+    virtual void unlockFile(OsHandle &handle) const = 0;
 };

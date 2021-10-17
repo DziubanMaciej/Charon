@@ -142,3 +142,33 @@ TEST_F(CharonOsTests, givenMultipleFileEventsAndMultipleActionsWhenCharonIsRunni
     EXPECT_EQ(7u, filesystem.moveCount);
     EXPECT_EQ(0u, filesystem.removeCount);
 }
+
+TEST_F(CharonOsTests, givenFilesAreOpenedForSomeTimeWhenCharonIsRunningThenWaitForThemToBeClosed) {
+    constexpr auto filesCount = 100u;
+
+    ProcessorConfig processorConfig = createProcessorConfigWithOneMatcher();
+    processorConfig.matchers[0].actions = {createMoveAction("${name}")};
+    Charon charon{processorConfig, filesystem, logger, watcherFactory};
+
+    {
+        RaiiCharonRunner charonRunner{charon};
+
+        std::vector<std::ofstream> files{};
+        for (auto i = 0u; i < filesCount; i++) {
+            files.push_back(TestFilesHelper::openFileForWriting(srcPath / std::to_string(i)));
+        }
+        for (auto &file : files) {
+            file.close();
+        }
+    }
+    rerunCharon(charon);
+
+    EXPECT_EQ(0u, TestFilesHelper::countFilesInDirectory(srcPath));
+    EXPECT_EQ(filesCount, TestFilesHelper::countFilesInDirectory(dstPath));
+    for (auto i = 0u; i < filesCount; i++) {
+        EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / std::to_string(i)));
+    }
+    EXPECT_EQ(0u, filesystem.copyCount);
+    EXPECT_EQ(filesCount, filesystem.moveCount);
+    EXPECT_EQ(0u, filesystem.removeCount);
+}

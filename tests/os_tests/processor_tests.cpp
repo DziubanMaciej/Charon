@@ -1,5 +1,5 @@
+#include "charon/charon/os_handle.h"
 #include "charon/processor/processor.h"
-#include "charon/processor/processor_config.h"
 #include "charon/util/filesystem_impl.h"
 #include "charon/util/logger.h"
 #include "os_tests/fixtures/processor_config_fixture.h"
@@ -17,7 +17,7 @@ struct ProcessorTest : ::testing::Test, ProcessorConfigFixture {
     }
 
     void pushInterruptEvent() {
-        eventQueue.push(FileEvent{srcPath, FileEvent::Type::Interrupt, std::filesystem::path{}});
+        eventQueue.push(FileEvent::interruptEvent);
     }
 
     FileEventQueue eventQueue{};
@@ -453,4 +453,27 @@ TEST_F(ProcessorTest, givenFileAlreadyExistsWhenProcessorPerformsMoveActionThenO
     EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "conflictingFile"));
     EXPECT_EQ(1u, TestFilesHelper::countFilesInDirectory(dstPath));
     EXPECT_EQ(0u, TestFilesHelper::countFilesInDirectory(srcPath));
+}
+
+TEST_F(ProcessorTest, givenLockedFileWhenProcessingEventThenUnlockFileAndProcessAction) {
+    ProcessorConfig config = createProcessorConfigWithOneMatcher();
+    config.matchers[0].actions = {createMoveAction("niceFile")};
+    Processor processor{config, eventQueue, filesystem, nullLogger};
+
+    auto filePath = srcPath / "a";
+    {
+        TestFilesHelper::createFile(filePath);
+
+        auto [lockedFileHandle, lockResult] = filesystem.lockFile(filePath);
+        ASSERT_EQ(lockResult, Filesystem::LockResult::Success);
+        ASSERT_NE(lockedFileHandle, defaultOsHandle);
+
+        eventQueue.push(FileEvent{srcPath, FileEvent::Type::Add, filePath, lockedFileHandle});
+        pushInterruptEvent();
+    }
+
+    processor.run();
+
+    EXPECT_FALSE(TestFilesHelper::fileExists(srcPath / "a"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "niceFile"));
 }

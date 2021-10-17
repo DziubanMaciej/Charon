@@ -22,7 +22,7 @@ private:
         std::filesystem::path lastResolvedPath;
     };
 
-    void processEvent(const FileEvent &event);
+    void processEvent(FileEvent &event);
     const ProcessorActionMatcher *findActionMatcher(const FileEvent &event) const;
     void executeProcessorAction(const FileEvent &event, const ProcessorAction &action, ActionMatcherState &actionMatcherState);
     void executeProcessorActionMoveOrCopy(const FileEvent &event, const ProcessorAction &action,

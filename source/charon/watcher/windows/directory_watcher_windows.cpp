@@ -2,12 +2,16 @@
 #include "charon/watcher/directory_watcher_factory.h"
 #include "charon/watcher/windows/directory_watcher_windows.h"
 
-std::unique_ptr<DirectoryWatcher> DirectoryWatcherFactoryImpl::create(const std::filesystem::path &directoryPath, FileEventQueue &outputQueue) {
-    return std::unique_ptr<DirectoryWatcher>(new DirectoryWatcherWindows(directoryPath, outputQueue));
+std::unique_ptr<DirectoryWatcher> DirectoryWatcherFactoryImpl::create(const std::filesystem::path &directoryPath,
+                                                                      FileEventQueue &outputQueue,
+                                                                      FileEventQueue &deferredOutputQueue) {
+    return std::unique_ptr<DirectoryWatcher>(new DirectoryWatcherWindows(directoryPath, outputQueue, deferredOutputQueue));
 }
 
-DirectoryWatcherWindows::DirectoryWatcherWindows(const std::filesystem::path &directoryPath, FileEventQueue &outputQueue)
-    : DirectoryWatcher(directoryPath, outputQueue),
+DirectoryWatcherWindows::DirectoryWatcherWindows(const std::filesystem::path &directoryPath,
+                                                 FileEventQueue &outputQueue,
+                                                 FileEventQueue &deferredOutputQueue)
+    : DirectoryWatcher(directoryPath, outputQueue, deferredOutputQueue),
       interruptEvent(true) {}
 
 DirectoryWatcherWindows::~DirectoryWatcherWindows() {
@@ -120,7 +124,12 @@ void DirectoryWatcherWindows::watcherThreadProcedure(DirectoryWatcherWindows &wa
         // Process returned events
         auto currentEntry = reinterpret_cast<const FILE_NOTIFY_INFORMATION *>(buffer.get());
         while (true) {
-            watcher.outputQueue.push(watcher.createFileEvent(*currentEntry));
+            FileEvent event = watcher.createFileEvent(*currentEntry);
+            if (event.needsFileLocking()) {
+                watcher.deferredOutputQueue.push(std::move(event));
+            } else {
+                watcher.outputQueue.push(std::move(event));
+            }
 
             if (currentEntry->NextEntryOffset == 0) {
                 break;

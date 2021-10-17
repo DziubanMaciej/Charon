@@ -7,7 +7,7 @@
 
 class DirectoryWatcher : NonCopyableAndMovable {
 public:
-    DirectoryWatcher(const std::filesystem::path &directoryPath, FileEventQueue &outputQueue);
+    DirectoryWatcher(const std::filesystem::path &directoryPath, FileEventQueue &outputQueue, FileEventQueue &deferredOutputQueue);
     virtual ~DirectoryWatcher() {}
 
     virtual bool start() = 0;
@@ -19,4 +19,5 @@ public:
 protected:
     const std::filesystem::path directoryPath;
     FileEventQueue &outputQueue;
+    FileEventQueue &deferredOutputQueue;
 };
