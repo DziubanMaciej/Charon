@@ -4,8 +4,8 @@
 DeferredFileLocker::DeferredFileLocker(FileEventQueue &inputQueue, FileEventQueue &outputQueue, Filesystem &filesystem)
     : inputQueue(inputQueue),
       outputQueue(outputQueue),
-      filesystem(filesystem) {
-}
+      filesystem(filesystem),
+      fetchTimeout(std::chrono::milliseconds(100)) {}
 
 void DeferredFileLocker::run() {
     bool running = true;
@@ -17,7 +17,7 @@ void DeferredFileLocker::run() {
 
 void DeferredFileLocker::fetchFromInputQueue() {
     FileEvent event{};
-    if (inputQueue.blockingPop(event, std::chrono::milliseconds(100))) {
+    if (inputQueue.blockingPop(event, fetchTimeout)) {
         do {
             events.push_back(std::move(event));
         } while (inputQueue.nonBlockingPop(event));

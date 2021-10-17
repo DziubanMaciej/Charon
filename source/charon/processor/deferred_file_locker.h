@@ -20,4 +20,5 @@ private:
     FileEventQueue &inputQueue;
     FileEventQueue &outputQueue;
     Filesystem &filesystem;
+    std::chrono::milliseconds fetchTimeout;
 };
