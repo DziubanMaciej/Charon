@@ -4,7 +4,11 @@
 
 class CustomGtestEventListener : public ::testing::EmptyTestEventListener {
 public:
-    void OnTestStart(const ::testing::TestInfo &test_info) override {
+    void OnTestStart(const ::testing::TestInfo &testInfo) override {
+        TestFilesHelper::cleanupTestDirectory();
+    }
+
+    void OnTestEnd(const ::testing::TestInfo &testInfo) override {
         TestFilesHelper::cleanupTestDirectory();
     }
 };

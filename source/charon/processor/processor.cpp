@@ -26,6 +26,10 @@ void Processor::run() {
 }
 
 void Processor::processEvent(FileEvent &event) {
+    if (event.isLocked()) {
+        filesystem.unlockFile(event.lockedFileHandle);
+    }
+
     if (auto it = std::find(eventsToIgnore.begin(), eventsToIgnore.end(), event); it != eventsToIgnore.end()) {
         eventsToIgnore.erase(it);
         return;
@@ -39,10 +43,6 @@ void Processor::processEvent(FileEvent &event) {
     if (matcher == nullptr) {
         log(logger, LogLevel::Info) << "Processor could not match file " << event.path << " to any action matcher";
         return;
-    }
-
-    if (event.isLocked()) {
-        filesystem.unlockFile(event.lockedFileHandle);
     }
 
     ActionMatcherState actionMatcherState{};

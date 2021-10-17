@@ -20,6 +20,21 @@ struct ProcessorTest : ::testing::Test, ProcessorConfigFixture {
         eventQueue.push(FileEvent::interruptEvent);
     }
 
+    bool isFileLocked(const std::filesystem::path &path) {
+        auto [lockedFileHandle, lockResult] = filesystem.lockFile(path);
+        switch (lockResult) {
+        case Filesystem::LockResult::DoesNotExist:
+            return false;
+        case Filesystem::LockResult::Success:
+            filesystem.unlockFile(lockedFileHandle);
+            return false;
+        case Filesystem::LockResult::UsedByOtherProcess:
+            return true;
+        default:
+            GTEST_NONFATAL_FAILURE_("No access to test file");
+        }
+    }
+
     FileEventQueue eventQueue{};
     NullLogger nullLogger{};
     FilesystemImpl filesystem{};
@@ -476,4 +491,31 @@ TEST_F(ProcessorTest, givenLockedFileWhenProcessingEventThenUnlockFileAndProcess
 
     EXPECT_FALSE(TestFilesHelper::fileExists(srcPath / "a"));
     EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "niceFile"));
+    EXPECT_FALSE(isFileLocked(filePath));
+}
+
+TEST_F(ProcessorTest, givenLockedFileWithIgnoredExtensionWhenProcessingEventThenUnlockFileAndSkipAction) {
+    ProcessorConfig config = createProcessorConfigWithOneMatcher();
+    config.matchers[0].actions = {createMoveAction("niceFile")};
+    config.matchers[0].watchedExtensions = {"png"};
+    Processor processor{config, eventQueue, filesystem, nullLogger};
+
+    auto filePath = srcPath / "a";
+    {
+        TestFilesHelper::createFile(filePath);
+
+        auto [lockedFileHandle, lockResult] = filesystem.lockFile(filePath);
+        ASSERT_EQ(lockResult, Filesystem::LockResult::Success);
+        ASSERT_NE(lockedFileHandle, defaultOsHandle);
+
+        eventQueue.push(FileEvent{srcPath, FileEvent::Type::Add, filePath, lockedFileHandle});
+        pushInterruptEvent();
+    }
+
+    processor.run();
+
+    EXPECT_TRUE(TestFilesHelper::fileExists(srcPath / "a"));
+    EXPECT_EQ(1u, TestFilesHelper::countFilesInDirectory(srcPath));
+    EXPECT_EQ(0u, TestFilesHelper::countFilesInDirectory(dstPath));
+    EXPECT_FALSE(isFileLocked(filePath));
 }
