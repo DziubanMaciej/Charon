@@ -37,12 +37,25 @@ LRESULT TrayIcon::handleEvent(UINT message, WPARAM wParam, LPARAM lParam) {
     }
 }
 
+void TrayIcon::displayNotification(const std::wstring &title, const std::wstring &message) {
+    NOTIFYICONDATAW nid = {};
+    nid.cbSize = sizeof(nid);
+    nid.hWnd = windowHandle;
+    nid.uID = 0u;
+    nid.uFlags = NIF_INFO;
+    nid.dwInfoFlags = NIIF_INFO | NIIF_RESPECT_QUIET_TIME;
+    wcscpy(nid.szInfoTitle, title.c_str());
+    wcscpy(nid.szInfo, message.c_str());
+    BOOL success = Shell_NotifyIconW(NIM_MODIFY, &nid);
+    FATAL_ERROR_IF(!success, "Failed to create tray notification");
+}
+
 void TrayIcon::addNotificationIcon() {
     NOTIFYICONDATAW nid = {};
-    nid.cbSize = sizeof(NOTIFYICONDATA);
+    nid.cbSize = sizeof(nid);
+    nid.uID = 0u;
     nid.hWnd = windowHandle;
-    nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_GUID;
-    nid.guidItem = __uuidof(TrayIconGuid);
+    nid.uFlags = NIF_ICON | NIF_MESSAGE;
     nid.uCallbackMessage = callbackMessageValue;
     LoadIconMetric(instanceHandle, MAKEINTRESOURCEW(IDI_ICON), LIM_SMALL, &nid.hIcon);
 
@@ -58,8 +71,8 @@ void TrayIcon::deleteNotificationIcon() {
     NOTIFYICONDATAW nid = {};
     nid.cbSize = sizeof(NOTIFYICONDATA);
     nid.hWnd = windowHandle;
-    nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_GUID;
-    nid.guidItem = __uuidof(TrayIconGuid);
+    nid.uID = 0u;
+    nid.uFlags = NIF_MESSAGE | NIF_ICON;
     nid.uCallbackMessage = callbackMessageValue;
     BOOL success = Shell_NotifyIconW(NIM_DELETE, &nid);
     FATAL_ERROR_IF(!success, "Failed to remove tray icon");

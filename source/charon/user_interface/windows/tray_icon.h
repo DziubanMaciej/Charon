@@ -3,8 +3,7 @@
 #include "charon/util/class_traits.h"
 
 #include <Windows.h>
-
-class __declspec(uuid("d25a9ba1-79a8-405c-9ce0-7678390d1dc7")) TrayIconGuid;
+#include <string>
 
 class TrayIcon : NonCopyableAndMovable {
 public:
@@ -12,6 +11,7 @@ public:
     ~TrayIcon();
 
     LRESULT handleEvent(UINT message, WPARAM wParam, LPARAM lParam);
+    void displayNotification(const std::wstring &title, const std::wstring &message);
 
 private:
     void addNotificationIcon();

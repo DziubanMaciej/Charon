@@ -26,6 +26,7 @@ LRESULT DaemonUserInterfaceWindows::windowProcImpl(HWND windowHandle, UINT messa
     switch (message) {
     case WMAPP_Init:
         trayIcon = std::make_unique<TrayIcon>(instanceHandle, windowHandle, WMAPP_TrayIconCallback);
+        trayIcon->displayNotification(L"Charon has started", L"You can access Charon settings in the notification area.");
         return 0;
     case WM_DESTROY:
         trayIcon = nullptr;
