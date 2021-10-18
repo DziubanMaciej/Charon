@@ -41,6 +41,8 @@ int main(int argc, char **argv) {
     DirectoryWatcherFactoryImpl watcherFactory{};
 
     Charon charon{config, filesystem, logger, watcherFactory};
+    charon.setLogFilePath(fileLogger.getPath());
+    charon.setConfigFilePath(L"");
     if (!charon.start()) {
         return EXIT_FAILURE;
     }

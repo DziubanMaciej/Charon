@@ -10,10 +10,5 @@ public:
     virtual void run() = 0;
 
 protected:
-    void stop() {
-        charon.stop();
-    }
-
-private:
     Charon &charon;
 };

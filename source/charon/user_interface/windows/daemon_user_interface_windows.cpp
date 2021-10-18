@@ -36,11 +36,14 @@ LRESULT DaemonUserInterfaceWindows::windowProcImpl(HWND windowHandle, UINT messa
     case WM_COMMAND:
         switch (LOWORD(wParam)) {
         case IDM_SHOW_CONFIG_FILE:
-            openConfigFile();
+            openTextFile(charon.getConfigFilePath());
             return 0;
+        case IDM_SHOW_LOG_FILE:
+            openTextFile(charon.getLogFilePath());
+            break;
         case IDM_EXIT:
             window.destroyWindow();
-            stop();
+            charon.stop();
             return 0;
         default:
             return ::DefWindowProcW(windowHandle, message, wParam, lParam);
@@ -50,6 +53,8 @@ LRESULT DaemonUserInterfaceWindows::windowProcImpl(HWND windowHandle, UINT messa
     }
 }
 
-void DaemonUserInterfaceWindows::openConfigFile() {
-    ShellExecuteW(0, 0, L"D:/Desktop/a.txt", 0, 0, SW_SHOW); // TODO
+void DaemonUserInterfaceWindows::openTextFile(const fs::path &path) {
+    if (!path.empty()) {
+        ShellExecuteW(0, 0, path.c_str(), 0, 0, SW_SHOW);
+    }
 }

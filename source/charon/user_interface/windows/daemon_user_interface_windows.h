@@ -14,7 +14,7 @@ public:
     constexpr static UINT WMAPP_Init = WM_APP + 2;
     LRESULT windowProcImpl(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam); // actual procedure, called by windowProcNative
 private:
-    void openConfigFile();
+    void openTextFile(const fs::path &path);
 
     const HINSTANCE instanceHandle;
     const WindowClass windowClass;

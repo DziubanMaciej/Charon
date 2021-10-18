@@ -21,6 +21,7 @@ IDC_TRAY_CONTEXT_MENU MENU BEGIN
     POPUP "&Test"
     BEGIN
 	    MENUITEM "Open config file",  IDM_SHOW_CONFIG_FILE
+	    MENUITEM "Open log file",  IDM_SHOW_LOG_FILE
 		MENUITEM SEPARATOR
         MENUITEM "E&xit",          IDM_EXIT
     END

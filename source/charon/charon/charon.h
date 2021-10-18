@@ -18,6 +18,11 @@ public:
     bool start();
     bool stop();
 
+    void setLogFilePath(const fs::path &path) { logFilePath = path; }
+    void setConfigFilePath(const fs::path &path) { configFilePath = path; }
+    auto &getLogFilePath() const { return logFilePath; }
+    auto &getConfigFilePath() const { return configFilePath; }
+
     void readUserConsoleInput();
 
 private:
@@ -25,6 +30,10 @@ private:
     Processor processor;
     DeferredFileLocker deferredFileLocker;
     std::vector<std::unique_ptr<DirectoryWatcher>> directoryWatchers{};
+
+    // Saved file paths
+    fs::path logFilePath;
+    fs::path configFilePath;
 
     // Threads for running the components
     std::unique_ptr<std::thread> processorThread{};

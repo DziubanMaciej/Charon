@@ -2,7 +2,8 @@
 #define IDR_MAINFRAME           128
 
 #define IDM_SHOW_CONFIG_FILE      121
-#define IDM_EXIT               122
+#define IDM_SHOW_LOG_FILE      122
+#define IDM_EXIT               123
 
 #define IDI_ICON 207
 #define IDC_TRAY_CONTEXT_MENU        208

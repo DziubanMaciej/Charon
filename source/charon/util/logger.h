@@ -79,12 +79,17 @@ struct ConsoleLogger : Logger {
 };
 
 struct FileLogger : Logger {
-    FileLogger(const fs::path &logFile) : file(logFile, std::ios::out) {}
+    FileLogger(const fs::path &logFile) : logFile(logFile), file(logFile, std::ios::out) {}
 
     void log(LogLevel level, const std::string &message) override {
         file << getPreamble(level) << message << '\n';
         file.flush();
     }
+
+    auto &getPath() const { return logFile; }
+
+private:
+    const fs::path logFile;
 
 private:
     std::ofstream file{};
