@@ -19,7 +19,7 @@ private:
     bool parseProcessorActionMatcher(ProcessorActionMatcher &outActionMatcher, const nlohmann::json &node);
     bool parseProcessorAction(ProcessorAction &outAction, const nlohmann::json &node);
 
-    static std::string readFile(const std::filesystem::path &jsonFile);
+    static bool readFile(const std::filesystem::path &jsonFile, std::string &outContent);
 
     Logger &logger;
 };

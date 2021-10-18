@@ -11,7 +11,12 @@ ProcessConfigReader::ProcessConfigReader(Logger &logger)
     : logger(logger) {}
 
 bool ProcessConfigReader::read(ProcessorConfig &outConfig, const std::filesystem::path &jsonFile) {
-    return read(outConfig, readFile(jsonFile));
+    std::string json{};
+    if (!readFile(jsonFile, json)) {
+        log(logger, LogLevel::Error) << "Could not read config file";
+        return false;
+    }
+    return read(outConfig, json);
 }
 
 bool ProcessConfigReader::read(ProcessorConfig &outConfig, const std::string &json) {
@@ -23,11 +28,16 @@ bool ProcessConfigReader::read(ProcessorConfig &outConfig, const std::string &js
     return parseProcessorConfig(outConfig, rootNode);
 }
 
-std::string ProcessConfigReader::readFile(const std::filesystem::path &jsonFile) {
+bool ProcessConfigReader::readFile(const std::filesystem::path &jsonFile, std::string &outContent) {
     std::ifstream stream{jsonFile};
+    if (!stream) {
+        return false;
+    }
+
     std::stringstream buffer;
     buffer << stream.rdbuf();
-    return buffer.str();
+    outContent = buffer.str();
+    return true;
 }
 
 bool ProcessConfigReader::parseProcessorConfig(ProcessorConfig &outConfig, const nlohmann::json &node) {

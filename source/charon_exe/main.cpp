@@ -23,6 +23,12 @@ int main(int argc, char **argv) {
         logger.add(&consoleLogger);
     }
 
+    // Log arguments
+    log(logger, LogLevel::Info) << "Arguments:";
+    log(logger, LogLevel::Info) << "    logPath = " << logPath;
+    log(logger, LogLevel::Info) << "    configPath = " << configPath;
+    log(logger, LogLevel::Info) << "    runAsDaemon = " << runAsDaemon;
+
     // Read config
     ProcessConfigReader reader{logger};
     ProcessorConfig config{};
