@@ -1,0 +1,14 @@
+[{
+    "watchedFolder" : "D:/Desktop/Test/Src",
+    "extensions" : ["jpg"],
+    "actions" : [
+        {
+            "type" : "print"
+        },
+        {
+            "type" : "move",
+            "destinationDir" : "D:/Desktop/Test/Dst",
+            "destinationName" : "file_###"
+        }
+    ]
+}]

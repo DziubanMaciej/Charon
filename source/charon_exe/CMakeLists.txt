@@ -1,10 +1,14 @@
 file(GLOB_RECURSE SOURCE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/*.json
 )
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_FILES})
 
 set(TARGET_NAME Charon)
 add_executable(${TARGET_NAME} ${SOURCE_FILES})
 target_link_libraries(${TARGET_NAME} PUBLIC CharonLib CharonResources)
-set_target_properties(Charon PROPERTIES FOLDER Charon)
+set_target_properties(${TARGET_NAME} PROPERTIES 
+    FOLDER Charon
+    VS_DEBUGGER_COMMAND_ARGUMENTS "--config ${CMAKE_CURRENT_SOURCE_DIR}/tmp_test_config.json "
+)

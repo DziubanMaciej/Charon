@@ -79,17 +79,12 @@ struct ConsoleLogger : Logger {
 };
 
 struct FileLogger : Logger {
-    FileLogger(const fs::path &logFile) : logFile(logFile), file(logFile, std::ios::out) {}
+    FileLogger(const fs::path &logFile) : file(logFile, std::ios::out) {}
 
     void log(LogLevel level, const std::string &message) override {
         file << getPreamble(level) << message << '\n';
         file.flush();
     }
-
-    auto &getPath() const { return logFile; }
-
-private:
-    const fs::path logFile;
 
 private:
     std::ofstream file{};
@@ -102,6 +97,11 @@ struct NullLogger : Logger {
 struct MultiplexedLogger : Logger {
     template <typename... LoggerTypes>
     MultiplexedLogger(LoggerTypes... args) {
+        add(std::forward<LoggerTypes>(args)...);
+    }
+
+    template <typename... LoggerTypes>
+    void add(LoggerTypes... args) {
         std::array<Logger *, sizeof...(args)> pointers = {args...};
         for (Logger *logger : pointers) {
             this->loggers.push_back(logger);
