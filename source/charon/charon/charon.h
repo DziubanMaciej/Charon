@@ -23,8 +23,6 @@ public:
     auto &getLogFilePath() const { return logFilePath; }
     auto &getConfigFilePath() const { return configFilePath; }
 
-    void readUserConsoleInput();
-
 private:
     // Components
     Processor processor;

@@ -1,5 +1,6 @@
 #include "charon/charon/charon.h"
 #include "charon/processor/processor_config_reader.h"
+#include "charon/user_interface/console_user_interface.h"
 #include "charon/user_interface/daemon_user_interface.h"
 #include "charon/util/filesystem_impl.h"
 #include "charon/util/logger.h"
@@ -47,8 +48,12 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    auto ui = DaemonUserInterface::create(charon);
-    ui->run();
-
-    //  charon.readUserConsoleInput();
+    bool runInConsole = true;
+    std::unique_ptr<UserInterface> userInterface{};
+    if (runInConsole) {
+        userInterface = std::make_unique<ConsoleUserInterface>(charon);
+    } else {
+        userInterface = DaemonUserInterface::create(charon);
+    }
+    userInterface->run();
 }

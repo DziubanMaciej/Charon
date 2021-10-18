@@ -86,15 +86,3 @@ bool Charon::stop() {
     log(logger, LogLevel::Info) << "Charon stopped";
     return true;
 }
-
-void Charon::readUserConsoleInput() {
-    std::string line{};
-    while (true) {
-        std::getline(std::cin, line);
-
-        if (line == "q") {
-            stop();
-            break;
-        }
-    }
-}
