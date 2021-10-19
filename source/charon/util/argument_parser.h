@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -33,6 +34,24 @@ public:
     ResultType getArgumentValue(const ArgNames &names, const ResultType &defaultValue);
     template <typename ResultType>
     std::vector<ResultType> getArgumentValues(const ArgNames &names);
+
+    // Manipulation of the arguments
+    void removeArgs(const ArgNames &names) {
+        const auto isForRemoval = [names](const std::string &s) {
+            return std::find(names.begin(), names.end(), s) != names.end();
+        };
+        args.erase(std::remove_if(args.begin(), args.end(), isForRemoval));
+    }
+    std::string getCommandLine() const {
+        std::ostringstream result{};
+        for (auto i = 0u; i < args.size(); i++) {
+            result << args[i];
+            if (i < args.size() - 1) {
+                result << ' ';
+            }
+        }
+        return result.str();
+    }
 
 private:
     // Conversion from string to various types

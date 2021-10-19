@@ -7,27 +7,21 @@
 #include "charon/util/logger.h"
 #include "charon/watcher/directory_watcher_factory.h"
 
-#include <iostream>
-
-int main(int argc, char **argv) {
+int charonMain(int argc, char **argv, bool isDaemon) {
     ArgumentParser argParser{argc, argv};
     const fs::path logPath = argParser.getArgumentValue<fs::path>(ArgNames{"-l", "--log"}, fs::current_path() / "log.txt");
     const fs::path configPath = argParser.getArgumentValue<fs::path>(ArgNames{"-c", "--config"}, fs::current_path() / "config.json");
-    const bool runAsDaemon = argParser.getArgumentValue<bool>(ArgNames{"-d", "--daemon"}, false);
 
     // Setup logger
     FileLogger fileLogger{logPath};
     ConsoleLogger consoleLogger{};
     MultiplexedLogger logger{&fileLogger};
-    if (!runAsDaemon) {
-        logger.add(&consoleLogger);
-    }
 
     // Log arguments
     log(logger, LogLevel::Info) << "Arguments:";
     log(logger, LogLevel::Info) << "    logPath = " << logPath;
     log(logger, LogLevel::Info) << "    configPath = " << configPath;
-    log(logger, LogLevel::Info) << "    runAsDaemon = " << runAsDaemon;
+    log(logger, LogLevel::Info) << "    isDaemon = " << isDaemon;
 
     // Read config
     ProcessConfigReader reader{logger};
@@ -49,10 +43,12 @@ int main(int argc, char **argv) {
 
     // Run user interface
     std::unique_ptr<UserInterface> userInterface{};
-    if (runAsDaemon) {
+    if (isDaemon) {
         userInterface = DaemonUserInterface::create(charon);
     } else {
         userInterface = std::make_unique<ConsoleUserInterface>(charon);
     }
     userInterface->run();
+
+    return EXIT_SUCCESS;
 }
