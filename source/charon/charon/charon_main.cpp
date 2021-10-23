@@ -16,6 +16,9 @@ int charonMain(int argc, char **argv, bool isDaemon) {
     FileLogger fileLogger{logPath};
     ConsoleLogger consoleLogger{};
     MultiplexedLogger logger{&fileLogger};
+    if (!isDaemon) {
+        logger.add(&consoleLogger);
+    }
 
     // Log arguments
     log(logger, LogLevel::Info) << "Arguments:";
