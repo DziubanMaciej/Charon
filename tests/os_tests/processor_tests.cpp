@@ -36,14 +36,13 @@ struct ProcessorTest : ::testing::Test, ProcessorConfigFixture {
     }
 
     FileEventQueue eventQueue{};
-    NullLogger nullLogger{};
     FilesystemImpl filesystem{};
 };
 
 TEST_F(ProcessorTest, givenFileMoveActionTriggeredWhenProcessorIsRunningThenMoveFile) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
     config.matchers[0].actions = {createMoveAction("niceFile")};
-    Processor processor{config, eventQueue, filesystem, nullLogger};
+    Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEventAndCreateFile(srcPath / "a");
     pushInterruptEvent();
@@ -56,7 +55,7 @@ TEST_F(ProcessorTest, givenFileMoveActionTriggeredWhenProcessorIsRunningThenMove
 TEST_F(ProcessorTest, givenFileCopyActionTriggeredWhenProcessorIsRunningThenCopyFile) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
     config.matchers[0].actions = {createCopyAction("niceFile")};
-    Processor processor{config, eventQueue, filesystem, nullLogger};
+    Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEventAndCreateFile(srcPath / "a");
     pushInterruptEvent();
@@ -69,7 +68,7 @@ TEST_F(ProcessorTest, givenFileCopyActionTriggeredWhenProcessorIsRunningThenCopy
 TEST_F(ProcessorTest, givenFileRemoveActionTriggeredWhenProcessorIsRunningThenRemoveFile) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
     config.matchers[0].actions = {createRemoveAction()};
-    Processor processor{config, eventQueue, filesystem, nullLogger};
+    Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEventAndCreateFile(srcPath / "a");
     pushInterruptEvent();
@@ -82,7 +81,7 @@ TEST_F(ProcessorTest, givenFileRemoveActionTriggeredWhenProcessorIsRunningThenRe
 TEST_F(ProcessorTest, givenFileWithExtensionWhenCopyingFileThenPreserveExtension) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
     config.matchers[0].actions = {createCopyAction("niceFile")};
-    Processor processor{config, eventQueue, filesystem, nullLogger};
+    Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEventAndCreateFile(srcPath / "a.jpg");
     pushInterruptEvent();
@@ -95,7 +94,7 @@ TEST_F(ProcessorTest, givenFileWithExtensionWhenCopyingFileThenPreserveExtension
 TEST_F(ProcessorTest, givenFileWithMultipleExtensionsWhenCopyingFileThenPreserveOnlyLastExtension) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
     config.matchers[0].actions = {createCopyAction("niceFile")};
-    Processor processor{config, eventQueue, filesystem, nullLogger};
+    Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEventAndCreateFile(srcPath / "a.gif.pdf.jpg");
     pushInterruptEvent();
@@ -108,7 +107,7 @@ TEST_F(ProcessorTest, givenFileWithMultipleExtensionsWhenCopyingFileThenPreserve
 TEST_F(ProcessorTest, givenFileCopyActionTriggeredAndNameVariableUsedWhenProcessorIsRunningThenCopyFile) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
     config.matchers[0].actions = {createCopyAction("a_${name}_c")};
-    Processor processor{config, eventQueue, filesystem, nullLogger};
+    Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEventAndCreateFile(srcPath / "b");
     pushInterruptEvent();
@@ -121,7 +120,7 @@ TEST_F(ProcessorTest, givenFileCopyActionTriggeredAndNameVariableUsedWhenProcess
 TEST_F(ProcessorTest, givenFileCopyActionTriggeredAndExtensionVariableUsedWhenProcessorIsRunningThenCopyFile) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
     config.matchers[0].actions = {createCopyAction("a_${extension}_c")};
-    Processor processor{config, eventQueue, filesystem, nullLogger};
+    Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEventAndCreateFile(srcPath / "b.jpg");
     pushInterruptEvent();
@@ -142,7 +141,7 @@ TEST_F(ProcessorTest, givenFileCopyActionTriggeredAndPreviousNameVariableUsedWhe
         createCopyAction("a_${previousName}_b"),
         createCopyAction("a_${previousName}_b"),
     };
-    Processor processor{config, eventQueue, filesystem, nullLogger};
+    Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEventAndCreateFile(srcPath / "a.png");
     pushFileCreationEventAndCreateFile(srcPath / "b.png");
@@ -174,7 +173,7 @@ TEST_F(ProcessorTest, givenFileCopyActionTriggeredAndPreviousNameVariableUsedWhe
 TEST_F(ProcessorTest, givenFileCopyActionTriggeredAndCounterIsUsedWhenProcessorIsRunningThenCopyFile) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
     config.matchers[0].actions = {createCopyAction("file_###")};
-    Processor processor{config, eventQueue, filesystem, nullLogger};
+    Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEventAndCreateFile(srcPath / "a");
     pushFileCreationEventAndCreateFile(srcPath / "b");
@@ -190,7 +189,7 @@ TEST_F(ProcessorTest, givenFileCopyActionTriggeredAndCounterIsUsedWhenProcessorI
 TEST_F(ProcessorTest, givenFilesWithMatchingExtensionsTriggeredAndCounterIsUsedWhenProcessorIsRunningThenCopyFile) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
     config.matchers[0].actions = {createCopyAction("file_###")};
-    Processor processor{config, eventQueue, filesystem, nullLogger};
+    Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEventAndCreateFile(srcPath / "a.pdf");
     pushFileCreationEventAndCreateFile(srcPath / "b.pdf");
@@ -205,7 +204,7 @@ TEST_F(ProcessorTest, givenFilesWithMatchingExtensionsTriggeredAndCounterIsUsedW
 TEST_F(ProcessorTest, givenFilesWithDifferentExtensionsTriggeredAndCounterIsUsedWhenProcessorIsRunningThenCopyFile) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
     config.matchers[0].actions = {createCopyAction("file_###")};
-    Processor processor{config, eventQueue, filesystem, nullLogger};
+    Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEventAndCreateFile(srcPath / "a.pdf");
     pushFileCreationEventAndCreateFile(srcPath / "b.gif");
@@ -219,7 +218,7 @@ TEST_F(ProcessorTest, givenFilesWithDifferentExtensionsTriggeredAndCounterIsUsed
 TEST_F(ProcessorTest, givenGapInCounterWhenCounterIsUsedThenFillTheGaps) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
     config.matchers[0].actions = {createMoveAction("file_###")};
-    Processor processor{config, eventQueue, filesystem, nullLogger};
+    Processor processor{config, eventQueue, filesystem};
 
     TestFilesHelper::createFile(dstPath / "file_000.txt");
     TestFilesHelper::createFile(dstPath / "file_001.txt");
@@ -255,7 +254,7 @@ TEST_F(ProcessorTest, givenGapInCounterWhenCounterIsUsedThenFillTheGaps) {
 TEST_F(ProcessorTest, givenGapOnZeroIndexInCounterWhenCounterIsUsedThenFillTheGap) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
     config.matchers[0].actions = {createMoveAction("file_###")};
-    Processor processor{config, eventQueue, filesystem, nullLogger};
+    Processor processor{config, eventQueue, filesystem};
 
     TestFilesHelper::createFile(dstPath / "file_001.txt");
     TestFilesHelper::createFile(dstPath / "file_002.txt");
@@ -277,7 +276,7 @@ TEST_F(ProcessorTest, givenGapOnZeroIndexInCounterWhenCounterIsUsedThenFillTheGa
 TEST_F(ProcessorTest, givenMultipleFileCopyActionsTriggeredAndCounterIsUsedWhenProcessorIsRunningThenCopyFile) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
     config.matchers[0].actions = {createCopyAction("file_###")};
-    Processor processor{config, eventQueue, filesystem, nullLogger};
+    Processor processor{config, eventQueue, filesystem};
 
     for (int i = 0; i < 16; i++) {
         auto srcFileName = std::string{"srcFile"} + std::to_string(i);
@@ -306,7 +305,7 @@ TEST_F(ProcessorTest, givenMultipleActionsTriggeredAndCounterIsUsedWhenProcessor
         createCopyAction("def"),
         createMoveAction("ghi_${extension}"),
     };
-    Processor processor{config, eventQueue, filesystem, nullLogger};
+    Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEventAndCreateFile(srcPath / "a.png");
     pushInterruptEvent();
@@ -321,12 +320,14 @@ TEST_F(ProcessorTest, givenMultipleActionsTriggeredAndCounterIsUsedWhenProcessor
 
 TEST_F(ProcessorTest, givenAllFilenamesTakenWhenCounterIsUsedThenReturnError) {
     ConsoleLogger consoleLogger{};
+    auto consoleLoggerSetup = consoleLogger.raiiSetup();
+
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
     config.matchers[0].actions = {
         createMoveAction("#"),
         createCopyAction("#"),
     };
-    Processor processor{config, eventQueue, filesystem, consoleLogger};
+    Processor processor{config, eventQueue, filesystem};
 
     for (auto i = 0u; i < 10; i++) {
         TestFilesHelper::createFile(dstPath / std::to_string(i));
@@ -350,7 +351,7 @@ TEST_F(ProcessorTest, givenDestinationDirectoryDoesNotExistWhenCopyOrMoveIsTrigg
         createCopyAction("file", dstPath / "a"),
         createMoveAction("file", dstPath / "b"),
     };
-    Processor processor{config, eventQueue, filesystem, nullLogger};
+    Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEventAndCreateFile(srcPath / "file");
     pushInterruptEvent();
@@ -367,7 +368,7 @@ TEST_F(ProcessorTest, givenDestinationDirectoryDoesNotExistAndCounterIsUsedWhenC
         createCopyAction("file###", dstPath / "a"),
         createMoveAction("file###", dstPath / "b"),
     };
-    Processor processor{config, eventQueue, filesystem, nullLogger};
+    Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEventAndCreateFile(srcPath / "file");
     pushInterruptEvent();
@@ -381,7 +382,7 @@ TEST_F(ProcessorTest, givenDestinationDirectoryDoesNotExistAndCounterIsUsedWhenC
 TEST_F(ProcessorTest, givenEmptyDirectoryCreationEventDoesWhenProcessorIsRunningThenIgnoreIt) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
     config.matchers[0].actions = {createMoveAction("${name}", dstPath)};
-    Processor processor{config, eventQueue, filesystem, nullLogger};
+    Processor processor{config, eventQueue, filesystem};
 
     auto nonEmptyDir = TestFilesHelper::createDirectory(srcPath / "dir1");
     TestFilesHelper::createFile(nonEmptyDir / "file1");
@@ -402,7 +403,7 @@ TEST_F(ProcessorTest, givenEmptyDirectoryCreationEventDoesWhenProcessorIsRunning
 TEST_F(ProcessorTest, givenFileRemovedEventWhenProcessorIsRunningThenIgnoreIt) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
     config.matchers[0].actions = {createMoveAction("${name}", dstPath)};
-    Processor processor{config, eventQueue, filesystem, nullLogger};
+    Processor processor{config, eventQueue, filesystem};
 
     eventQueue.push(FileEvent{srcPath, FileEvent::Type::Remove, srcPath / "removedFile"});
     pushInterruptEvent();
@@ -415,7 +416,7 @@ TEST_F(ProcessorTest, givenFileRemovedEventWhenProcessorIsRunningThenIgnoreIt) {
 TEST_F(ProcessorTest, givenFileRenamedFromEventWhenProcessorIsRunningThenIgnoreIt) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
     config.matchers[0].actions = {createMoveAction("${name}", dstPath)};
-    Processor processor{config, eventQueue, filesystem, nullLogger};
+    Processor processor{config, eventQueue, filesystem};
 
     eventQueue.push(FileEvent{srcPath, FileEvent::Type::RenameOld, srcPath / "renamedFromFile"});
     pushInterruptEvent();
@@ -428,7 +429,7 @@ TEST_F(ProcessorTest, givenFileRenamedFromEventWhenProcessorIsRunningThenIgnoreI
 TEST_F(ProcessorTest, givenFileModifiedEventWhenProcessorIsRunningThenIgnoreIt) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
     config.matchers[0].actions = {createMoveAction("${name}", dstPath)};
-    Processor processor{config, eventQueue, filesystem, nullLogger};
+    Processor processor{config, eventQueue, filesystem};
 
     TestFilesHelper::createFile(srcPath / "modifiedFile");
     eventQueue.push(FileEvent{srcPath, FileEvent::Type::Modify, srcPath / "modifiedFile"});
@@ -443,7 +444,7 @@ TEST_F(ProcessorTest, givenFileModifiedEventWhenProcessorIsRunningThenIgnoreIt) 
 TEST_F(ProcessorTest, givenFileRenamedToEventWhenProcessorIsRunningThenPerformAction) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
     config.matchers[0].actions = {createMoveAction("${name}", dstPath)};
-    Processor processor{config, eventQueue, filesystem, nullLogger};
+    Processor processor{config, eventQueue, filesystem};
 
     TestFilesHelper::createFile(srcPath / "renamedToFile");
     eventQueue.push(FileEvent{srcPath, FileEvent::Type::RenameNew, srcPath / "renamedToFile"});
@@ -458,7 +459,7 @@ TEST_F(ProcessorTest, givenFileRenamedToEventWhenProcessorIsRunningThenPerformAc
 TEST_F(ProcessorTest, givenFileAlreadyExistsWhenProcessorPerformsMoveActionThenOverwriteIt) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
     config.matchers[0].actions = {createMoveAction("conflictingFile", dstPath)};
-    Processor processor{config, eventQueue, filesystem, nullLogger};
+    Processor processor{config, eventQueue, filesystem};
 
     TestFilesHelper::createFile(dstPath / "conflictingFile");
     pushFileCreationEventAndCreateFile(srcPath / "myFile");
@@ -473,7 +474,7 @@ TEST_F(ProcessorTest, givenFileAlreadyExistsWhenProcessorPerformsMoveActionThenO
 TEST_F(ProcessorTest, givenLockedFileWhenProcessingEventThenUnlockFileAndProcessAction) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
     config.matchers[0].actions = {createMoveAction("niceFile")};
-    Processor processor{config, eventQueue, filesystem, nullLogger};
+    Processor processor{config, eventQueue, filesystem};
 
     auto filePath = srcPath / "a";
     {
@@ -498,7 +499,7 @@ TEST_F(ProcessorTest, givenLockedFileWithIgnoredExtensionWhenProcessingEventThen
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
     config.matchers[0].actions = {createMoveAction("niceFile")};
     config.matchers[0].watchedExtensions = {"png"};
-    Processor processor{config, eventQueue, filesystem, nullLogger};
+    Processor processor{config, eventQueue, filesystem};
 
     auto filePath = srcPath / "a";
     {

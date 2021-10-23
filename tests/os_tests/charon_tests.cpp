@@ -50,7 +50,6 @@ struct CharonOsTests : ::testing::Test,
     }
 
     WhiteboxFilesystem filesystem;
-    NullLogger logger;
     DirectoryWatcherFactoryImpl watcherFactory;
 };
 
@@ -61,7 +60,7 @@ TEST_F(CharonOsTests, givenFileEventWhenCharonIsRunningThenExecuteActions) {
         createCopyAction("b"),
         createMoveAction("c"),
     };
-    Charon charon{processorConfig, filesystem, logger, watcherFactory};
+    Charon charon{processorConfig, filesystem, watcherFactory};
 
     {
         RaiiCharonRunner charonRunner{charon};
@@ -81,7 +80,7 @@ TEST_F(CharonOsTests, givenFileEventWhenCharonIsRunningThenExecuteActions) {
 TEST_F(CharonOsTests, givenRemoveActionWhenCharonIsRunningThenExecuteActions) {
     ProcessorConfig processorConfig = createProcessorConfigWithOneMatcher();
     processorConfig.matchers[0].actions = {createRemoveAction()};
-    Charon charon{processorConfig, filesystem, logger, watcherFactory};
+    Charon charon{processorConfig, filesystem, watcherFactory};
 
     {
         RaiiCharonRunner charonRunner{charon};
@@ -98,7 +97,7 @@ TEST_F(CharonOsTests, givenRemoveActionWhenCharonIsRunningThenExecuteActions) {
 TEST_F(CharonOsTests, givenMultipleFileEventsWhenCharonIsRunningThenExecuteActions) {
     ProcessorConfig processorConfig = createProcessorConfigWithOneMatcher();
     processorConfig.matchers[0].actions = {createCopyAction("a#")};
-    Charon charon{processorConfig, filesystem, logger, watcherFactory};
+    Charon charon{processorConfig, filesystem, watcherFactory};
 
     {
         RaiiCharonRunner charonRunner{charon};
@@ -123,7 +122,7 @@ TEST_F(CharonOsTests, givenMultipleFileEventsAndMultipleActionsWhenCharonIsRunni
         createCopyAction("a#"),
         createMoveAction("a${previousName}"),
     };
-    Charon charon{processorConfig, filesystem, logger, watcherFactory};
+    Charon charon{processorConfig, filesystem, watcherFactory};
 
     {
         RaiiCharonRunner charonRunner{charon};
@@ -148,7 +147,7 @@ TEST_F(CharonOsTests, givenFilesAreOpenedForSomeTimeWhenCharonIsRunningThenWaitF
 
     ProcessorConfig processorConfig = createProcessorConfigWithOneMatcher();
     processorConfig.matchers[0].actions = {createMoveAction("${name}")};
-    Charon charon{processorConfig, filesystem, logger, watcherFactory};
+    Charon charon{processorConfig, filesystem, watcherFactory};
 
     {
         RaiiCharonRunner charonRunner{charon};

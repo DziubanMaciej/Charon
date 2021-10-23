@@ -67,6 +67,10 @@ public:
         return queue.empty();
     }
 
+    bool size() const {
+        return queue.size();
+    }
+
     void interruptBlockingPop() {
         auto lock = this->lock();
         blockingPopInterrupted = true;

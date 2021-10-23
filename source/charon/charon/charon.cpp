@@ -15,10 +15,9 @@ struct hash<fs::path> {
 };
 } // namespace std
 
-Charon::Charon(const ProcessorConfig &config, Filesystem &filesystem, Logger &logger, DirectoryWatcherFactory &watcherFactory)
+Charon::Charon(const ProcessorConfig &config, Filesystem &filesystem, DirectoryWatcherFactory &watcherFactory)
     : deferredFileLocker(deferredFileLockerEventQueue, processorEventQueue, filesystem),
-      processor(config, this->processorEventQueue, filesystem, logger),
-      logger(logger) {
+      processor(config, this->processorEventQueue, filesystem) {
 
     std::unordered_set<fs::path> directoriesToWatch = {};
     for (const ProcessorActionMatcher &matcher : config.matchers) {
@@ -39,7 +38,7 @@ bool Charon::start() {
     for (auto watcherIndex = 0u; watcherIndex < directoryWatchers.size(); watcherIndex++) {
         DirectoryWatcher &currentWatcher = *directoryWatchers[watcherIndex];
         if (!currentWatcher.start()) {
-            log(logger, LogLevel::Error) << "Watcher for directory " << currentWatcher.getWatchedDirectory() << " failed to start";
+            log(LogLevel::Error) << "Watcher for directory " << currentWatcher.getWatchedDirectory() << " failed to start";
 
             // If any watcher failed to start, stop all those already running
             for (auto startedWatcherIndex = 0u; startedWatcherIndex < directoryWatchers.size(); startedWatcherIndex++) {
@@ -59,7 +58,7 @@ bool Charon::start() {
         deferredFileLocker.run();
     });
 
-    log(logger, LogLevel::Info) << "Charon started";
+    log(LogLevel::Info) << "Charon started";
     return true;
 }
 
@@ -83,6 +82,6 @@ bool Charon::stop() {
         watcher->stop();
     }
 
-    log(logger, LogLevel::Info) << "Charon stopped";
+    log(LogLevel::Info) << "Charon stopped";
     return true;
 }

@@ -5,12 +5,11 @@
 #include "charon/util/logger.h"
 #include "charon/util/string_helper.h"
 
-Processor::Processor(const ProcessorConfig &config, FileEventQueue &eventQueue, Filesystem &filesystem, Logger &logger)
+Processor::Processor(const ProcessorConfig &config, FileEventQueue &eventQueue, Filesystem &filesystem)
     : pathResolver(filesystem),
       config(config),
       eventQueue(eventQueue),
-      filesystem(filesystem),
-      logger(logger) {}
+      filesystem(filesystem) {}
 
 void Processor::run() {
     while (true) {
@@ -41,7 +40,7 @@ void Processor::processEvent(FileEvent &event) {
 
     const ProcessorActionMatcher *matcher = findActionMatcher(event);
     if (matcher == nullptr) {
-        log(logger, LogLevel::Info) << "Processor could not match file " << event.path << " to any action matcher";
+        log(LogLevel::Info) << "Processor could not match file " << event.path << " to any action matcher";
         return;
     }
 
@@ -102,12 +101,12 @@ void Processor::executeProcessorActionMoveOrCopy(const FileEvent &event, const P
     const auto dstPath = pathResolver.resolvePath(data.destinationDir, event.path, data.destinationName, actionMatcherState.lastResolvedPath);
     actionMatcherState.lastResolvedPath = dstPath;
     if (dstPath.empty()) {
-        log(logger, LogLevel::Error) << "Processor could not resolve destination filename.";
+        log(LogLevel::Error) << "Processor could not resolve destination filename.";
         return;
     }
 
     const char *verbForLog = isMove ? "moving" : "copying";
-    log(logger, LogLevel::Info) << "Processor " << verbForLog << " file " << event.path << " to " << dstPath;
+    log(LogLevel::Info) << "Processor " << verbForLog << " file " << event.path << " to " << dstPath;
 
     OptionalError error{};
     if (isMove) {
@@ -119,39 +118,39 @@ void Processor::executeProcessorActionMoveOrCopy(const FileEvent &event, const P
 
     if (error.has_value()) {
         std::error_code code = error.value();
-        log(logger, LogLevel::Error) << "Filesystem operation returned code " << code.value() << ": " << code.message();
+        log(LogLevel::Error) << "Filesystem operation returned code " << code.value() << ": " << code.message();
     }
 }
 
 void Processor::executeProcessorActionRemove(const FileEvent &event, const ProcessorAction &action, ActionMatcherState &actionMatcherState) {
     actionMatcherState.lastResolvedPath = std::filesystem::path{};
-    log(logger, LogLevel::Info) << "Processor removing file " << event.path;
+    log(LogLevel::Info) << "Processor removing file " << event.path;
 
     const OptionalError error = filesystem.remove(event.path);
     eventsToIgnore.push_back(FileEvent{event.watchedRootPath, FileEvent::Type::Remove, event.path});
 
     if (error.has_value()) {
         std::error_code code = error.value();
-        log(logger, LogLevel::Error) << "Filesystem operation returned code " << code.value() << ": " << code.message();
+        log(LogLevel::Error) << "Filesystem operation returned code " << code.value() << ": " << code.message();
     }
 }
 
 void Processor::executeProcessorActionPrint(const FileEvent &event) const {
     switch (event.type) {
     case FileEvent::Type::Add:
-        log(logger, LogLevel::Info) << "File " << event.path << " has been created";
+        log(LogLevel::Info) << "File " << event.path << " has been created";
         break;
     case FileEvent::Type::Remove:
-        log(logger, LogLevel::Info) << "File " << event.path << " has been removed";
+        log(LogLevel::Info) << "File " << event.path << " has been removed";
         break;
     case FileEvent::Type::Modify:
-        log(logger, LogLevel::Info) << "File " << event.path << " has been modified";
+        log(LogLevel::Info) << "File " << event.path << " has been modified";
         break;
     case FileEvent::Type::RenameOld:
-        log(logger, LogLevel::Info) << "A file has been moved from path " << event.path;
+        log(LogLevel::Info) << "A file has been moved from path " << event.path;
         break;
     case FileEvent::Type::RenameNew:
-        log(logger, LogLevel::Info) << "A file has been moved to " << event.path;
+        log(LogLevel::Info) << "A file has been moved to " << event.path;
         break;
     case FileEvent::Type::Interrupt:
         break;

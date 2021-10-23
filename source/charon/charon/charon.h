@@ -8,12 +8,11 @@
 
 #include <vector>
 
-class Logger;
 class DirectoryWatcherFactory;
 
 class Charon : NonCopyableAndMovable {
 public:
-    Charon(const ProcessorConfig &config, Filesystem &filesystem, Logger &logger, DirectoryWatcherFactory &watcherFactory);
+    Charon(const ProcessorConfig &config, Filesystem &filesystem, DirectoryWatcherFactory &watcherFactory);
 
     bool start();
     bool stop();
@@ -42,6 +41,5 @@ private:
     FileEventQueue deferredFileLockerEventQueue{};
 
     // Basic data
-    Logger &logger;
     std::atomic_bool isStarted = false;
 };

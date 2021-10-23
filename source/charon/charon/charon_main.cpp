@@ -19,15 +19,16 @@ int charonMain(int argc, char **argv, bool isDaemon) {
     if (!isDaemon) {
         logger.add(&consoleLogger);
     }
+    const auto loggerSetup = logger.raiiSetup();
 
     // Log arguments
-    log(logger, LogLevel::Info) << "Arguments:";
-    log(logger, LogLevel::Info) << "    logPath = " << logPath;
-    log(logger, LogLevel::Info) << "    configPath = " << configPath;
-    log(logger, LogLevel::Info) << "    isDaemon = " << isDaemon;
+    log(LogLevel::Info) << "Arguments:";
+    log(LogLevel::Info) << "    logPath = " << logPath;
+    log(LogLevel::Info) << "    configPath = " << configPath;
+    log(LogLevel::Info) << "    isDaemon = " << isDaemon;
 
     // Read config
-    ProcessConfigReader reader{logger};
+    ProcessConfigReader reader{};
     ProcessorConfig config{};
     const bool success = reader.read(config, configPath);
     if (!success) {
@@ -37,7 +38,7 @@ int charonMain(int argc, char **argv, bool isDaemon) {
     // Run Charon
     FilesystemImpl filesystem{};
     DirectoryWatcherFactoryImpl watcherFactory{};
-    Charon charon{config, filesystem, logger, watcherFactory};
+    Charon charon{config, filesystem, watcherFactory};
     charon.setLogFilePath(logPath);
     charon.setConfigFilePath(configPath);
     if (!charon.start()) {

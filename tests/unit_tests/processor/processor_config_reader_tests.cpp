@@ -7,9 +7,10 @@
 
 TEST(ProcessorConfigReaderBasicTest, givenEmptyJsonWhenReadingThenReturnError) {
     MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
     EXPECT_CALL(logger, log(LogLevel::Error, "Specified json was badly formed."));
 
-    ProcessConfigReader reader{logger};
+    ProcessConfigReader reader{};
     ProcessorConfig config{};
     std::string json = "";
     EXPECT_FALSE(reader.read(config, json));
@@ -17,9 +18,10 @@ TEST(ProcessorConfigReaderBasicTest, givenEmptyJsonWhenReadingThenReturnError) {
 
 TEST(ProcessorConfigReaderBasicTest, givenBadlyFormedJsonWhenReadingThenReturnError) {
     MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
     EXPECT_CALL(logger, log(LogLevel::Error, "Specified json was badly formed."));
 
-    ProcessConfigReader reader{logger};
+    ProcessConfigReader reader{};
     ProcessorConfig config{};
     std::string json = "[ { ]";
     EXPECT_FALSE(reader.read(config, json));
@@ -27,9 +29,10 @@ TEST(ProcessorConfigReaderBasicTest, givenBadlyFormedJsonWhenReadingThenReturnEr
 
 TEST(ProcessorConfigReaderBasicTest, givenEmptyArrayWhenReadingThenReturnEmptyConfig) {
     MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
     EXPECT_CALL(logger, log).Times(0);
 
-    ProcessConfigReader reader{logger};
+    ProcessConfigReader reader{};
     ProcessorConfig config{};
     std::string json = "[]";
     ASSERT_TRUE(reader.read(config, json));
@@ -38,9 +41,10 @@ TEST(ProcessorConfigReaderBasicTest, givenEmptyArrayWhenReadingThenReturnEmptyCo
 
 TEST(ProcessorConfigReaderBadTypeTest, givenRootNodeIsNotAnArrayWhenReadingThenReturnError) {
     MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
     EXPECT_CALL(logger, log(LogLevel::Error, "Root node must be an array")).Times(3);
 
-    ProcessConfigReader reader{logger};
+    ProcessConfigReader reader{};
     ProcessorConfig config{};
 
     std::string json = "{}";
@@ -55,9 +59,10 @@ TEST(ProcessorConfigReaderBadTypeTest, givenRootNodeIsNotAnArrayWhenReadingThenR
 
 TEST(ProcessorConfigReaderBadTypeTest, givenActionMatcherIsNotAnObjectWhenReadingThenReturnError) {
     MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
     EXPECT_CALL(logger, log(LogLevel::Error, "Action matcher node must be an object"));
 
-    ProcessConfigReader reader{logger};
+    ProcessConfigReader reader{};
     ProcessorConfig config{};
     std::string json = R"(
         [
@@ -69,9 +74,10 @@ TEST(ProcessorConfigReaderBadTypeTest, givenActionMatcherIsNotAnObjectWhenReadin
 
 TEST(ProcessorConfigReaderBadTypeTest, givenExtensionsMemberIsNotAnArrayWhenReadingThenReturnError) {
     MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
     EXPECT_CALL(logger, log(LogLevel::Error, "Action matcher \"extensions\" member must be an array."));
 
-    ProcessConfigReader reader{logger};
+    ProcessConfigReader reader{};
     ProcessorConfig config{};
     std::string json = R"(
         [
@@ -87,9 +93,10 @@ TEST(ProcessorConfigReaderBadTypeTest, givenExtensionsMemberIsNotAnArrayWhenRead
 
 TEST(ProcessorConfigReaderBadTypeTest, givenActionsMemberIsNotAnArrayWhenReadingThenReturnError) {
     MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
     EXPECT_CALL(logger, log(LogLevel::Error, "Action matcher \"actions\" member must be an array."));
 
-    ProcessConfigReader reader{logger};
+    ProcessConfigReader reader{};
     ProcessorConfig config{};
     std::string json = R"(
         [
@@ -105,9 +112,10 @@ TEST(ProcessorConfigReaderBadTypeTest, givenActionsMemberIsNotAnArrayWhenReading
 
 TEST(ProcessorConfigReaderMissingFieldTest, givenNoWatchedFoldersFieldWhenReadingThenReturnError) {
     MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
     EXPECT_CALL(logger, log(LogLevel::Error, "Action matcher node must contain \"watchedFolder\" field."));
 
-    ProcessConfigReader reader{logger};
+    ProcessConfigReader reader{};
     ProcessorConfig config{};
     std::string json = R"(
         [
@@ -122,9 +130,10 @@ TEST(ProcessorConfigReaderMissingFieldTest, givenNoWatchedFoldersFieldWhenReadin
 
 TEST(ProcessorConfigReaderMissingFieldTest, givenNoExtensionsFieldWhenReadingThenReturnSuccessAndEmptyExtensionsFilter) {
     MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
     EXPECT_CALL(logger, log).Times(0);
 
-    ProcessConfigReader reader{logger};
+    ProcessConfigReader reader{};
     ProcessorConfig config{};
     std::string json = R"(
         [
@@ -141,9 +150,10 @@ TEST(ProcessorConfigReaderMissingFieldTest, givenNoExtensionsFieldWhenReadingThe
 
 TEST(ProcessorConfigReaderMissingFieldTest, givenNoActionsFieldWhenReadingThenReturnError) {
     MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
     EXPECT_CALL(logger, log(LogLevel::Error, "Action matcher node must contain \"actions\" field."));
 
-    ProcessConfigReader reader{logger};
+    ProcessConfigReader reader{};
     ProcessorConfig config{};
     std::string json = R"(
         [
@@ -158,9 +168,10 @@ TEST(ProcessorConfigReaderMissingFieldTest, givenNoActionsFieldWhenReadingThenRe
 
 TEST(ProcessConfigReaderPositiveTest, givenCopyActionWhenReadingThenParseCorrectly) {
     MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
     EXPECT_CALL(logger, log).Times(0);
 
-    ProcessConfigReader reader{logger};
+    ProcessConfigReader reader{};
     ProcessorConfig config{};
     std::string json = R"(
         [
@@ -186,9 +197,10 @@ TEST(ProcessConfigReaderPositiveTest, givenCopyActionWhenReadingThenParseCorrect
 
 TEST(ProcessConfigReaderPositiveTest, givenMoveActionWhenReadingThenParseCorrectly) {
     MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
     EXPECT_CALL(logger, log).Times(0);
 
-    ProcessConfigReader reader{logger};
+    ProcessConfigReader reader{};
     ProcessorConfig config{};
     std::string json = R"(
         [
@@ -214,9 +226,10 @@ TEST(ProcessConfigReaderPositiveTest, givenMoveActionWhenReadingThenParseCorrect
 
 TEST(ProcessConfigReaderPositiveTest, givenRemoveActionWhenReadingThenParseCorrectly) {
     MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
     EXPECT_CALL(logger, log).Times(0);
 
-    ProcessConfigReader reader{logger};
+    ProcessConfigReader reader{};
     ProcessorConfig config{};
     std::string json = R"(
         [
@@ -238,9 +251,10 @@ TEST(ProcessConfigReaderPositiveTest, givenRemoveActionWhenReadingThenParseCorre
 
 TEST(ProcessConfigReaderPositiveTest, givenPrintActionWhenReadingThenParseCorrectly) {
     MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
     EXPECT_CALL(logger, log).Times(0);
 
-    ProcessConfigReader reader{logger};
+    ProcessConfigReader reader{};
     ProcessorConfig config{};
     std::string json = R"(
         [
@@ -262,9 +276,10 @@ TEST(ProcessConfigReaderPositiveTest, givenPrintActionWhenReadingThenParseCorrec
 
 TEST(ProcessConfigReaderPositiveTest, givenComplexConfigWhenReadingThenParseCorrectly) {
     MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
     EXPECT_CALL(logger, log).Times(0);
 
-    ProcessConfigReader reader{logger};
+    ProcessConfigReader reader{};
     ProcessorConfig config{};
     std::string json = R"(
         [

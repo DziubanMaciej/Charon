@@ -10,10 +10,32 @@ TEST(LoggerTest, givenVariousLogLevelsWhenRaiiLogIsCalledThenPrependTheLogWithLo
     EXPECT_CALL(logger, log(LogLevel::Warning, "c 1"));
     EXPECT_CALL(logger, log(LogLevel::Debug, "d 1"));
 
-    log(logger, LogLevel::Error) << "a " << 1;
-    log(logger, LogLevel::Info) << "b " << 1;
-    log(logger, LogLevel::Warning) << "c " << 1;
-    log(logger, LogLevel::Debug) << "d " << 1;
+    log(LogLevel::Error, &logger) << "a " << 1;
+    log(LogLevel::Info, &logger) << "b " << 1;
+    log(LogLevel::Warning, &logger) << "c " << 1;
+    log(LogLevel::Debug, &logger) << "d " << 1;
+}
+
+TEST(LoggerTest, givenLoggerIsSetUpWhenLogFunctionIsCalledThenUsedTheLogger) {
+    MockLogger logger1{};
+    MockLogger logger2{};
+
+    EXPECT_CALL(logger1, log(LogLevel::Error, "1"));
+    EXPECT_CALL(logger2, log(LogLevel::Error, "2"));
+    EXPECT_CALL(logger1, log(LogLevel::Error, "3"));
+
+    auto setup1 = logger1.raiiSetup();
+    log(LogLevel::Error) << "1";
+    {
+        auto setup1 = logger2.raiiSetup();
+        log(LogLevel::Error) << "2";
+    }
+    log(LogLevel::Error) << "3";
+}
+
+TEST(LoggerTest, givenNoLoggerIsPassedOrGloballySetupWhenLoggingThenThrowError) {
+    Logger::RaiiSetup setup{nullptr};
+    EXPECT_ANY_THROW((log(LogLevel::Error) << "3"));
 }
 
 TEST(LoggerTest, whenConsoleLoggerIsUsedThenPrintMessagesToConsole) {
@@ -24,7 +46,7 @@ TEST(LoggerTest, whenConsoleLoggerIsUsedThenPrintMessagesToConsole) {
     EXPECT_STREQ("[Info] Hello world\n", testing::internal::GetCapturedStdout().c_str());
 
     ::testing::internal::CaptureStdout();
-    log(logger, LogLevel::Info) << "Hello world";
+    log(LogLevel::Info, &logger) << "Hello world";
     EXPECT_STREQ("[Info] Hello world\n", testing::internal::GetCapturedStdout().c_str());
 }
 
@@ -36,7 +58,7 @@ TEST(LoggerTest, whenNullLoggerIsUsedThenDoNotPrintAnything) {
     EXPECT_TRUE(testing::internal::GetCapturedStdout().empty());
 
     ::testing::internal::CaptureStdout();
-    log(logger, LogLevel::Info) << "Hello world";
+    log(LogLevel::Info, &logger) << "Hello world";
     EXPECT_TRUE(testing::internal::GetCapturedStdout().empty());
 }
 
@@ -50,5 +72,5 @@ TEST(LoggerTest, whenMultiplexedLoggerIsUsedThenCallAllLoggers) {
     EXPECT_CALL(logger3, log(LogLevel::Error, "message"));
 
     MultiplexedLogger logger{&logger1, &logger2, &logger3};
-    log(logger, LogLevel::Error) << "message";
+    log(LogLevel::Error, &logger) << "message";
 }

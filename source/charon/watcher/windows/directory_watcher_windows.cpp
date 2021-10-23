@@ -1,4 +1,5 @@
 #include "charon/util/error.h"
+#include "charon/util/logger.h"
 #include "charon/watcher/directory_watcher_factory.h"
 #include "charon/watcher/windows/directory_watcher_windows.h"
 

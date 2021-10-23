@@ -5,11 +5,9 @@
 
 #include <nlohmann/json.hpp>
 
-struct Logger;
-
 class ProcessConfigReader : NonCopyableAndMovable {
 public:
-    ProcessConfigReader(Logger &logger);
+    ProcessConfigReader() = default;
 
     bool read(ProcessorConfig &outConfig, const std::filesystem::path &jsonFile);
     bool read(ProcessorConfig &outConfig, const std::string &json);
@@ -20,6 +18,4 @@ private:
     bool parseProcessorAction(ProcessorAction &outAction, const nlohmann::json &node);
 
     static bool readFile(const std::filesystem::path &jsonFile, std::string &outContent);
-
-    Logger &logger;
 };

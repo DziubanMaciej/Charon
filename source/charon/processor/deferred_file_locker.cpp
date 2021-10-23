@@ -1,5 +1,6 @@
 #include "charon/processor/deferred_file_locker.h"
 #include "charon/util/error.h"
+#include "charon/util/logger.h"
 
 DeferredFileLocker::DeferredFileLocker(FileEventQueue &inputQueue, FileEventQueue &outputQueue, Filesystem &filesystem)
     : inputQueue(inputQueue),

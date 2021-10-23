@@ -7,13 +7,10 @@
 #include <fstream>
 #include <sstream>
 
-ProcessConfigReader::ProcessConfigReader(Logger &logger)
-    : logger(logger) {}
-
 bool ProcessConfigReader::read(ProcessorConfig &outConfig, const std::filesystem::path &jsonFile) {
     std::string json{};
     if (!readFile(jsonFile, json)) {
-        log(logger, LogLevel::Error) << "Could not read config file";
+        log(LogLevel::Error) << "Could not read config file";
         return false;
     }
     return read(outConfig, json);
@@ -22,7 +19,7 @@ bool ProcessConfigReader::read(ProcessorConfig &outConfig, const std::filesystem
 bool ProcessConfigReader::read(ProcessorConfig &outConfig, const std::string &json) {
     const nlohmann::json rootNode = nlohmann::json::parse(json, nullptr, false);
     if (rootNode.is_discarded()) {
-        log(logger, LogLevel::Error) << "Specified json was badly formed.";
+        log(LogLevel::Error) << "Specified json was badly formed.";
         return false;
     }
     return parseProcessorConfig(outConfig, rootNode);
@@ -42,7 +39,7 @@ bool ProcessConfigReader::readFile(const std::filesystem::path &jsonFile, std::s
 
 bool ProcessConfigReader::parseProcessorConfig(ProcessorConfig &outConfig, const nlohmann::json &node) {
     if (!node.is_array()) {
-        log(logger, LogLevel::Error) << "Root node must be an array";
+        log(LogLevel::Error) << "Root node must be an array";
         return false;
     }
 
@@ -60,20 +57,20 @@ bool ProcessConfigReader::parseProcessorConfig(ProcessorConfig &outConfig, const
 
 bool ProcessConfigReader::parseProcessorActionMatcher(ProcessorActionMatcher &outActionMatcher, const nlohmann::json &node) {
     if (!node.is_object()) {
-        log(logger, LogLevel::Error) << "Action matcher node must be an object";
+        log(LogLevel::Error) << "Action matcher node must be an object";
         return false;
     }
 
     if (auto it = node.find("watchedFolder"); it != node.end()) {
         outActionMatcher.watchedFolder = it->get<std::string>();
     } else {
-        log(logger, LogLevel::Error) << "Action matcher node must contain \"watchedFolder\" field.";
+        log(LogLevel::Error) << "Action matcher node must contain \"watchedFolder\" field.";
         return false;
     }
 
     if (auto it = node.find("extensions"); it != node.end()) {
         if (!it->is_array()) {
-            log(logger, LogLevel::Error) << "Action matcher \"extensions\" member must be an array.";
+            log(LogLevel::Error) << "Action matcher \"extensions\" member must be an array.";
             return false;
         }
         outActionMatcher.watchedExtensions = it->get<std::vector<std::string>>();
@@ -81,7 +78,7 @@ bool ProcessConfigReader::parseProcessorActionMatcher(ProcessorActionMatcher &ou
 
     if (auto it = node.find("actions"); it != node.end()) {
         if (!it->is_array()) {
-            log(logger, LogLevel::Error) << "Action matcher \"actions\" member must be an array.";
+            log(LogLevel::Error) << "Action matcher \"actions\" member must be an array.";
             return false;
         }
 
@@ -94,7 +91,7 @@ bool ProcessConfigReader::parseProcessorActionMatcher(ProcessorActionMatcher &ou
             }
         }
     } else {
-        log(logger, LogLevel::Error) << "Action matcher node must contain \"actions\" field.";
+        log(LogLevel::Error) << "Action matcher node must contain \"actions\" field.";
         return false;
     }
 
@@ -112,18 +109,18 @@ NLOHMANN_JSON_SERIALIZE_ENUM(ProcessorAction::Type,
 
 bool ProcessConfigReader::parseProcessorAction(ProcessorAction &outAction, const nlohmann::json &node) {
     if (!node.is_object()) {
-        log(logger, LogLevel::Error) << "Action node must be an object";
+        log(LogLevel::Error) << "Action node must be an object";
         return false;
     }
 
     if (auto it = node.find("type"); it != node.end()) {
         outAction.type = it->get<ProcessorAction::Type>();
         if (outAction.type == ProcessorAction::Type::Invalid) {
-            log(logger, LogLevel::Error) << std::string{"Action node \"type\" field has an invalid value: "} + it->get<std::string>();
+            log(LogLevel::Error) << std::string{"Action node \"type\" field has an invalid value: "} + it->get<std::string>();
             return false;
         }
     } else {
-        log(logger, LogLevel::Error) << "Action node must contain \"type\" field.";
+        log(LogLevel::Error) << "Action node must contain \"type\" field.";
         return false;
     }
 
@@ -134,14 +131,14 @@ bool ProcessConfigReader::parseProcessorAction(ProcessorAction &outAction, const
         if (auto it = node.find("destinationDir"); it != node.end()) {
             data.destinationDir = it->get<std::string>();
         } else {
-            log(logger, LogLevel::Error) << "Action node of type \"copy\" or \"move\" must contain \"destinationDir\" field.";
+            log(LogLevel::Error) << "Action node of type \"copy\" or \"move\" must contain \"destinationDir\" field.";
             return false;
         }
 
         if (auto it = node.find("destinationName"); it != node.end()) {
             data.destinationName = it->get<std::string>();
         } else {
-            log(logger, LogLevel::Error) << "Action node of type \"copy\" or \"move\" must contain \"destinationName\" field.";
+            log(LogLevel::Error) << "Action node of type \"copy\" or \"move\" must contain \"destinationName\" field.";
             return false;
         }
 

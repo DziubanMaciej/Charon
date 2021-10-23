@@ -1,6 +1,7 @@
 #pragma once
 
 #include "charon/util/class_traits.h"
+#include "charon/util/error.h"
 
 #include <array>
 #include <filesystem>
@@ -23,6 +24,29 @@ struct Logger : NonCopyableAndMovable {
     virtual void log(LogLevel level, const std::string &message) = 0;
     std::mutex mutex;
 
+    auto raiiSetup() {
+        return RaiiSetup{*this};
+    }
+
+    static Logger *getInstance() {
+        return instance;
+    }
+
+    struct RaiiSetup {
+        RaiiSetup(Logger &logger) : RaiiSetup(&logger) {}
+        RaiiSetup(Logger *logger) {
+            previous = instance;
+            instance = logger;
+        }
+
+        ~RaiiSetup() {
+            instance = previous;
+        }
+
+    private:
+        Logger *previous{};
+    };
+
 protected:
     const static char *getPreamble(LogLevel level) {
         const static char *preambles[] = {
@@ -33,11 +57,12 @@ protected:
         };
         return preambles[static_cast<size_t>(level)];
     }
+    static inline Logger *instance = {};
 };
 
 class RaiiLog {
 public:
-    RaiiLog(Logger &logger, LogLevel logLevel)
+    RaiiLog(LogLevel logLevel, Logger &logger)
         : logger(logger),
           logLevel(logLevel) {
         lock = std::unique_lock{logger.mutex};
@@ -68,8 +93,12 @@ private:
     std::ostringstream buffer{};
 };
 
-inline RaiiLog log(Logger &logger, LogLevel logLevel) {
-    return RaiiLog{logger, logLevel};
+inline RaiiLog log(LogLevel logLevel, Logger *logger = nullptr) {
+    if (logger == nullptr) {
+        logger = Logger::getInstance();
+        FATAL_ERROR_IF(logger == nullptr, "No logger instance set");
+    }
+    return RaiiLog{logLevel, *logger};
 }
 
 struct ConsoleLogger : Logger {

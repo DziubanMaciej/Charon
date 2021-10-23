@@ -6,13 +6,12 @@
 #include "charon/watcher/file_event.h"
 
 struct Filesystem;
-struct Logger;
 class ProcessorConfig;
 class ProcessorActionMatcher;
 
 class Processor : NonCopyableAndMovable {
 public:
-    Processor(const ProcessorConfig &config, FileEventQueue &eventQueue, Filesystem &filesystem, Logger &logger);
+    Processor(const ProcessorConfig &config, FileEventQueue &eventQueue, Filesystem &filesystem);
 
     void run();
 
@@ -38,5 +37,4 @@ private:
     const ProcessorConfig &config;
     FileEventQueue &eventQueue;
     Filesystem &filesystem;
-    Logger &logger;
 };
