@@ -290,6 +290,63 @@ class SimpleTestCase(CharonAcceptanceTest):
         assert test_files.is_dir_with_n_files(src_dir2, 0)
         assert test_files.is_dir_with_n_files(dst_dir, file_count * 2)
 
+    def test_move_and_backup(self):
+        # Prepare test data
+        src_dir = "Src1"
+        dst_dir1 = "Dst1"
+        dst_dir2 = "Dst2"
+        dst_dir3 = "Dst3"
+        test_files.create_directory(src_dir)
+        file_count = 20
+        files = [(f'{test_files.generate_name_for_file(i)}.csv', test_files.generate_content_for_file(i)) for i in
+                 range(file_count)]
+
+        # Run charon
+        config = [
+            {
+                "watchedFolder": test_files.get_full_path_str(src_dir),
+                "actions": [
+                    {
+                        "type": "copy",
+                        "destinationDir": test_files.get_full_path_str(dst_dir1),
+                        "destinationName": "file_###"
+                    },
+                    {
+                        "type": "copy",
+                        "destinationDir": test_files.get_full_path_str(dst_dir2),
+                        "destinationName": "${previousName}"
+                    },
+                    {
+                        "type": "move",
+                        "destinationDir": test_files.get_full_path_str(dst_dir3),
+                        "destinationName": "${previousName}"
+                    }
+                ]
+            }
+        ]
+        self.enable_charon(config)
+
+        # Create unexpected file in backup directories. It should be overwritten be the application
+        test_files.create_file(f'{dst_dir2}/file_003.csv', test_files.generate_content_for_file(999))
+        test_files.create_file(f'{dst_dir3}/file_004.csv', test_files.generate_content_for_file(999))
+
+        # Perform file operations
+        for file in files:
+            test_files.create_file(f'{src_dir}/{file[0]}', file[1])
+
+        # Check results
+        self.disable_charon()
+        assert test_files.is_dir_with_n_files(src_dir, 0)
+        assert test_files.is_dir_with_n_files(dst_dir1, file_count)
+        assert test_files.is_dir_with_n_files(dst_dir2, file_count)
+        assert test_files.is_dir_with_n_files(dst_dir3, file_count)
+        for file1, file2, file3 in zip(test_files.get_files_in_dir(dst_dir1),
+                                       test_files.get_files_in_dir(dst_dir2),
+                                       test_files.get_files_in_dir(dst_dir3)):
+            assert test_files.are_files_equal(file1, file2)
+            assert test_files.are_files_equal(file1, file3)
+            assert test_files.are_files_equal(file2, file3)
+
 
 if __name__ == "__main__":
     unittest.main(argv=[sys.argv[0], '-v'])  # run all tests

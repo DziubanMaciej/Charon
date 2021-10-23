@@ -33,24 +33,38 @@ def create_file(path, contents):
         file.write(contents)
 
 
-def validate_file(path, contents):
+def get_file_content(path):
     full_path = get_full_path(path)
     try:
         with open(full_path, 'r') as file:
             data = file.readlines()
             data = ''.join(data)
-        return contents == data
+            return data
     except FileNotFoundError:
         pass
-    return False
+    return None
+
+
+def validate_file(path, contents):
+    actual_contents = get_file_content(path)
+    return contents == actual_contents
+
+
+def get_files_in_dir(path):
+    full_path = get_full_path(path)
+    if not full_path.is_dir():
+        return None
+    files = os.listdir(full_path)
+    files = [pathlib.Path(path, file) for file in files]
+    return files
 
 
 def is_dir_with_n_files(path, n):
-    full_path = get_full_path(path)
-    if not full_path.is_dir():
+    files = get_files_in_dir(path)
+    if files is None:
         return False
-    count = len(os.listdir(full_path))
-    return count == n
+    else:
+        return n == len(files)
 
 
 def is_empty_dir(path):
@@ -75,3 +89,12 @@ def generate_name_for_file(seed):
         return result.hexdigest()
 
     return int_to_hash(seed)
+
+
+def are_files_equal(path1, path2):
+    if pathlib.Path(path1).name != pathlib.Path(path2).name:
+        return False
+
+    content1 = get_file_content(path1)
+    content2 = get_file_content(path2)
+    return content1 == content2 and content1 is not None

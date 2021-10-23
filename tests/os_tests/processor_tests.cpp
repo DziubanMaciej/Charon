@@ -471,6 +471,22 @@ TEST_F(ProcessorTest, givenFileAlreadyExistsWhenProcessorPerformsMoveActionThenO
     EXPECT_EQ(0u, TestFilesHelper::countFilesInDirectory(srcPath));
 }
 
+TEST_F(ProcessorTest, givenFileAlreadyExistsWhenProcessorPerformsCopyActionThenOverwriteIt) {
+    ProcessorConfig config = createProcessorConfigWithOneMatcher();
+    config.matchers[0].actions = {createCopyAction("conflictingFile", dstPath)};
+    Processor processor{config, eventQueue, filesystem};
+
+    TestFilesHelper::createFile(dstPath / "conflictingFile");
+    pushFileCreationEventAndCreateFile(srcPath / "myFile");
+    pushInterruptEvent();
+    processor.run();
+
+    EXPECT_TRUE(TestFilesHelper::fileExists(srcPath / "myFile"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "conflictingFile"));
+    EXPECT_EQ(1u, TestFilesHelper::countFilesInDirectory(dstPath));
+    EXPECT_EQ(1u, TestFilesHelper::countFilesInDirectory(srcPath));
+}
+
 TEST_F(ProcessorTest, givenLockedFileWhenProcessingEventThenUnlockFileAndProcessAction) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
     config.matchers[0].actions = {createMoveAction("niceFile")};

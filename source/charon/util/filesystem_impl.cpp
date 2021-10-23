@@ -4,7 +4,8 @@ OptionalError FilesystemImpl::copy(const fs::path &src, const fs::path &dst) con
     fs::create_directories(dst.parent_path());
 
     std::error_code error{};
-    fs::copy(src, dst, error);
+    auto options = std::filesystem::copy_options::overwrite_existing;
+    fs::copy(src, dst, options, error);
     if (error.value() != 0) {
         return error;
     } else {
