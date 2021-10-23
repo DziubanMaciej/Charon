@@ -32,6 +32,7 @@ struct ProcessorTest : ::testing::Test, ProcessorConfigFixture {
             return true;
         default:
             GTEST_NONFATAL_FAILURE_("No access to test file");
+            FATAL_ERROR("Test error")
         }
     }
 
