@@ -1,0 +1,34 @@
+[
+    {
+        "watchedFolder" : "D:/Test/DumpFolder",
+        "extensions" : ["jpg", "jpeg", "gif", "png"],
+        "actions" : [
+            {
+                "type" : "move",
+                "destinationDir" : "D:/Test/Images",
+                "destinationName" : "###"
+            }
+        ]
+    },
+    {
+        "watchedFolder" : "D:/Test/DumpFolder",
+        "extensions" : ["mp4"],
+        "actions" : [
+            {
+                "type" : "move",
+                "destinationDir" : "D:/Test/Videos",
+                "destinationName" : "###"
+            }
+        ]
+    },
+    {
+        "watchedFolder" : "D:/Test/DumpFolder",
+        "actions" : [
+            {
+                "type" : "move",
+                "destinationDir" : "D:/Test/Other",
+                "destinationName" : "###"
+            }
+        ]
+    }
+]
