@@ -10,16 +10,19 @@
 
 int charonMain(int argc, char **argv, bool isDaemon) {
     ArgumentParser argParser{argc, argv};
-    const fs::path logPath = argParser.getArgumentValue<fs::path>(ArgNames{"-l", "--log"}, fs::current_path() / "log.txt");
+    const fs::path logPath = argParser.getArgumentValue<fs::path>(ArgNames{"-l", "--log"}, {});
     const fs::path configPath = argParser.getArgumentValue<fs::path>(ArgNames{"-c", "--config"}, fs::current_path() / "config.json");
 
     // Setup logger
     TimeImpl time{};
     FileLogger fileLogger{time, logPath};
     ConsoleLogger consoleLogger{time};
-    MultiplexedLogger logger{&fileLogger};
+    MultiplexedLogger logger{};
     if (!isDaemon) {
         logger.add(&consoleLogger);
+    }
+    if (!logPath.empty()) {
+        logger.add(&fileLogger);
     }
     const auto loggerSetup = logger.raiiSetup();
 
