@@ -24,6 +24,7 @@ int charonMain(int argc, char **argv, bool isDaemon) {
     const auto loggerSetup = logger.raiiSetup();
 
     // Log arguments
+    log(LogLevel::Info) << "";
     log(LogLevel::Info) << "Arguments:";
     log(LogLevel::Info) << "    logPath = " << logPath;
     log(LogLevel::Info) << "    configPath = " << configPath;

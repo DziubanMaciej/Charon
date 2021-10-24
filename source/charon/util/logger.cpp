@@ -51,6 +51,6 @@ void OstreamLogger::writeLogLevel(LogLevel level) {
 
 FileLogger::FileLogger(const Time &time, const fs::path &logFile)
     : OstreamLogger(time, file),
-      file(logFile, std::ios::out) {}
+      file(logFile, std::ios::app) {}
 
 void NullLogger::log([[maybe_unused]] LogLevel level, [[maybe_unused]] const std::string &message) {}

@@ -4,6 +4,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <string>
 
 namespace fs = std::filesystem;
 
@@ -63,5 +64,16 @@ struct TestFilesHelper {
         const auto fullPath = getTestFilePath(path);
         auto iterator = fs::directory_iterator(fullPath);
         return std::distance(fs::begin(iterator), fs::end(iterator));
+    }
+
+    static size_t countLinesInFile(const fs::path &path) {
+        const auto fullPath = getTestFilePath(path);
+        std::ifstream file{path};
+        std::string line{};
+        size_t result = 0;
+        while (std::getline(file, line)) {
+            result++;
+        }
+        return result;
     }
 };
