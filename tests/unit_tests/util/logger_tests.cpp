@@ -38,7 +38,9 @@ TEST(LoggerTest, givenLoggerIsSetUpWhenLogFunctionIsCalledThenUsedTheLogger) {
 
 TEST(LoggerTest, givenNoLoggerIsPassedOrGloballySetupWhenLoggingThenThrowError) {
     Logger::RaiiSetup setup{nullptr};
+    ::testing::internal::CaptureStderr();
     EXPECT_ANY_THROW((log(LogLevel::Error) << "3"));
+    ::testing::internal::GetCapturedStderr();
 }
 
 TEST(LoggerTest, whenConsoleLoggerIsUsedThenPrintMessagesToConsole) {
