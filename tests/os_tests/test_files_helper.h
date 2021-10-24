@@ -61,7 +61,6 @@ struct TestFilesHelper {
 
     static size_t countFilesInDirectory(const std::filesystem::path &path) {
         const auto fullPath = getTestFilePath(path);
-        size_t result = 0u;
         auto iterator = fs::directory_iterator(fullPath);
         return std::distance(fs::begin(iterator), fs::end(iterator));
     }

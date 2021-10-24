@@ -5,11 +5,11 @@
 
 struct TestDirectoryEventListener : ::testing::EmptyTestEventListener {
 public:
-    void OnTestStart(const ::testing::TestInfo &testInfo) override {
+    void OnTestStart(const ::testing::TestInfo &) override {
         TestFilesHelper::cleanupTestDirectory();
     }
 
-    void OnTestEnd(const ::testing::TestInfo &testInfo) override {
+    void OnTestEnd(const ::testing::TestInfo &) override {
         TestFilesHelper::cleanupTestDirectory();
     }
 };

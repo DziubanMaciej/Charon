@@ -120,7 +120,7 @@ private:
 };
 
 struct NullLogger : Logger {
-    void log(LogLevel level, const std::string &message) override {}
+    void log([[maybe_unused]] LogLevel level, [[maybe_unused]] const std::string &message) override {}
 };
 
 struct MultiplexedLogger : Logger {

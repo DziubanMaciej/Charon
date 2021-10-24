@@ -8,7 +8,7 @@
 
 #include <vector>
 
-class DirectoryWatcherFactory;
+struct DirectoryWatcherFactory;
 
 class Charon : NonCopyableAndMovable {
 public:

@@ -6,7 +6,7 @@
 #include <filesystem>
 #include <string>
 
-class Filesystem;
+struct Filesystem;
 
 class PathResolver : NonCopyableAndMovable {
 public:

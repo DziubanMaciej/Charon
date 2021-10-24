@@ -6,8 +6,8 @@
 #include "charon/watcher/file_event.h"
 
 struct Filesystem;
-class ProcessorConfig;
-class ProcessorActionMatcher;
+struct ProcessorConfig;
+struct ProcessorActionMatcher;
 
 class Processor : NonCopyableAndMovable {
 public:
