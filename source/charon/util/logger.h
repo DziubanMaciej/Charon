@@ -24,49 +24,27 @@ struct Logger : NonCopyableAndMovable {
     virtual void log(LogLevel level, const std::string &message) = 0;
     std::mutex mutex;
 
-    auto raiiSetup() {
-        return RaiiSetup{*this};
-    }
-
-    static Logger *getInstance() {
-        return instance;
-    }
+    auto raiiSetup() { return RaiiSetup{*this}; }
+    static Logger *getInstance() { return instance; }
 
     struct RaiiSetup {
         RaiiSetup(Logger &logger) : RaiiSetup(&logger) {}
-        RaiiSetup(Logger *logger) {
-            previous = instance;
-            instance = logger;
-        }
-
-        ~RaiiSetup() {
-            instance = previous;
-        }
+        RaiiSetup(Logger *logger);
+        ~RaiiSetup();
 
     private:
         Logger *previous{};
     };
 
 protected:
-    const static char *getPreamble(LogLevel level) {
-        const static char *preambles[] = {
-            "[Error] ",
-            "[Info] ",
-            "[Warning] ",
-            "[Debug] ",
-        };
-        return preambles[static_cast<size_t>(level)];
-    }
+    const static char *getPreamble(LogLevel level);
     static inline Logger *instance = {};
 };
 
 class RaiiLog {
 public:
-    RaiiLog(LogLevel logLevel, Logger &logger)
-        : logger(logger),
-          logLevel(logLevel) {
-        lock = std::unique_lock{logger.mutex};
-    }
+    RaiiLog(LogLevel logLevel, Logger &logger);
+    ~RaiiLog();
 
     template <typename T>
     RaiiLog &operator<<(const T &arg) {
@@ -82,10 +60,6 @@ public:
         return *this;
     }
 
-    ~RaiiLog() {
-        logger.log(logLevel, buffer.str());
-    }
-
 private:
     const LogLevel logLevel;
     Logger &logger;
@@ -93,34 +67,29 @@ private:
     std::ostringstream buffer{};
 };
 
-inline RaiiLog log(LogLevel logLevel, Logger *logger = nullptr) {
-    if (logger == nullptr) {
-        logger = Logger::getInstance();
-        FATAL_ERROR_IF(logger == nullptr, "No logger instance set");
-    }
-    return RaiiLog{logLevel, *logger};
-}
+RaiiLog log(LogLevel logLevel, Logger *logger = nullptr);
 
-struct ConsoleLogger : Logger {
-    void log(LogLevel level, const std::string &message) override {
-        std::cout << getPreamble(level) << message << '\n';
-    }
+struct OstreamLogger : Logger {
+    OstreamLogger(std::ostream &out) : out(out) {}
+    void log(LogLevel level, const std::string &message) override;
+
+private:
+    std::ostream &out;
 };
 
-struct FileLogger : Logger {
-    FileLogger(const fs::path &logFile) : file(logFile, std::ios::out) {}
+struct ConsoleLogger : OstreamLogger {
+    ConsoleLogger() : OstreamLogger(std::cout) {}
+};
 
-    void log(LogLevel level, const std::string &message) override {
-        file << getPreamble(level) << message << '\n';
-        file.flush();
-    }
+struct FileLogger : OstreamLogger {
+    FileLogger(const fs::path &logFile);
 
 private:
     std::ofstream file{};
 };
 
 struct NullLogger : Logger {
-    void log([[maybe_unused]] LogLevel level, [[maybe_unused]] const std::string &message) override {}
+    void log(LogLevel level, const std::string &message) override;
 };
 
 struct MultiplexedLogger : Logger {
