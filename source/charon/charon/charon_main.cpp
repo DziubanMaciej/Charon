@@ -5,6 +5,7 @@
 #include "charon/util/argument_parser.h"
 #include "charon/util/filesystem_impl.h"
 #include "charon/util/logger.h"
+#include "charon/util/time.h"
 #include "charon/watcher/directory_watcher_factory.h"
 
 int charonMain(int argc, char **argv, bool isDaemon) {
@@ -13,8 +14,9 @@ int charonMain(int argc, char **argv, bool isDaemon) {
     const fs::path configPath = argParser.getArgumentValue<fs::path>(ArgNames{"-c", "--config"}, fs::current_path() / "config.json");
 
     // Setup logger
-    FileLogger fileLogger{logPath};
-    ConsoleLogger consoleLogger{};
+    TimeImpl time{};
+    FileLogger fileLogger{time, logPath};
+    ConsoleLogger consoleLogger{time};
     MultiplexedLogger logger{&fileLogger};
     if (!isDaemon) {
         logger.add(&consoleLogger);

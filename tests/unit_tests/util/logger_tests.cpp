@@ -1,7 +1,10 @@
 #include "charon/util/logger.h"
 #include "unit_tests/mocks/mock_logger.h"
+#include "unit_tests/mocks/mock_time.h"
 
 #include <gtest/gtest.h>
+
+using ::testing::Ref;
 
 TEST(LoggerTest, givenVariousLogLevelsWhenRaiiLogIsCalledThenPrependTheLogWithLogLevelString) {
     MockLogger logger{};
@@ -39,15 +42,21 @@ TEST(LoggerTest, givenNoLoggerIsPassedOrGloballySetupWhenLoggingThenThrowError) 
 }
 
 TEST(LoggerTest, whenConsoleLoggerIsUsedThenPrintMessagesToConsole) {
-    ConsoleLogger logger{};
+    MockTime time{};
+    EXPECT_CALL(time, writeCurrentTime(Ref(std::cout)))
+        .Times(2)
+        .WillOnce([](std::ostream &out) { out << "date1"; })
+        .WillOnce([](std::ostream &out) { out << "date2"; });
+
+    ConsoleLogger logger{time};
 
     ::testing::internal::CaptureStdout();
     logger.log(LogLevel::Info, "Hello world");
-    EXPECT_STREQ("[Info] Hello world\n", testing::internal::GetCapturedStdout().c_str());
+    EXPECT_STREQ("[date1][Info] Hello world\n", testing::internal::GetCapturedStdout().c_str());
 
     ::testing::internal::CaptureStdout();
     log(LogLevel::Info, &logger) << "Hello world";
-    EXPECT_STREQ("[Info] Hello world\n", testing::internal::GetCapturedStdout().c_str());
+    EXPECT_STREQ("[date2][Info] Hello world\n", testing::internal::GetCapturedStdout().c_str());
 }
 
 TEST(LoggerTest, whenNullLoggerIsUsedThenDoNotPrintAnything) {

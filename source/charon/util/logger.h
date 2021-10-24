@@ -10,6 +10,8 @@
 #include <mutex>
 #include <sstream>
 
+struct Time;
+
 namespace fs = std::filesystem;
 
 enum class LogLevel {
@@ -37,7 +39,6 @@ struct Logger : NonCopyableAndMovable {
     };
 
 protected:
-    const static char *getPreamble(LogLevel level);
     static inline Logger *instance = {};
 };
 
@@ -70,19 +71,22 @@ private:
 RaiiLog log(LogLevel logLevel, Logger *logger = nullptr);
 
 struct OstreamLogger : Logger {
-    OstreamLogger(std::ostream &out) : out(out) {}
+    OstreamLogger(const Time &time, std::ostream &out) : time(time), out(out) {}
     void log(LogLevel level, const std::string &message) override;
 
 private:
+    void writeDate();
+    void writeLogLevel(LogLevel level);
+    const Time &time;
     std::ostream &out;
 };
 
 struct ConsoleLogger : OstreamLogger {
-    ConsoleLogger() : OstreamLogger(std::cout) {}
+    ConsoleLogger(const Time &time) : OstreamLogger(time, std::cout) {}
 };
 
 struct FileLogger : OstreamLogger {
-    FileLogger(const fs::path &logFile);
+    FileLogger(const Time &time, const fs::path &logFile);
 
 private:
     std::ofstream file{};

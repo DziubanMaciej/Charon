@@ -2,9 +2,11 @@
 #include "charon/processor/processor.h"
 #include "charon/util/filesystem_impl.h"
 #include "charon/util/logger.h"
+#include "charon/util/time.h"
 #include "os_tests/fixtures/processor_config_fixture.h"
 
 #include <gtest/gtest.h>
+#include <regex>
 
 struct ProcessorTest : ::testing::Test, ProcessorConfigFixture {
     void SetUp() override {
@@ -320,7 +322,8 @@ TEST_F(ProcessorTest, givenMultipleActionsTriggeredAndCounterIsUsedWhenProcessor
 }
 
 TEST_F(ProcessorTest, givenAllFilenamesTakenWhenCounterIsUsedThenReturnError) {
-    ConsoleLogger consoleLogger{};
+    TimeImpl time{};
+    ConsoleLogger consoleLogger{time};
     auto consoleLoggerSetup = consoleLogger.raiiSetup();
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
@@ -338,9 +341,10 @@ TEST_F(ProcessorTest, givenAllFilenamesTakenWhenCounterIsUsedThenReturnError) {
 
     ::testing::internal::CaptureStdout();
     processor.run();
-    EXPECT_STREQ("[Error] Processor could not resolve destination filename.\n"
-                 "[Error] Processor could not resolve destination filename.\n",
-                 testing::internal::GetCapturedStdout().c_str());
+
+    const std::regex base_regex("\\[[0-9]{2}-[0-9]{2}-[0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2}\\]\\[Error\\] Processor could not resolve destination filename.\n"
+                                "\\[[0-9]{2}-[0-9]{2}-[0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2}\\]\\[Error\\] Processor could not resolve destination filename.\n");
+    EXPECT_TRUE(std::regex_match(::testing::internal::GetCapturedStdout(), base_regex));
 
     EXPECT_TRUE(TestFilesHelper::fileExists(srcPath / "10"));
     EXPECT_FALSE(TestFilesHelper::fileExists(dstPath / "10"));

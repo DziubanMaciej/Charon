@@ -1,4 +1,5 @@
 #include "charon/util/logger.h"
+#include "charon/util/time.h"
 
 Logger::RaiiSetup::RaiiSetup(Logger *logger) {
     previous = instance;
@@ -7,16 +8,6 @@ Logger::RaiiSetup::RaiiSetup(Logger *logger) {
 
 Logger::RaiiSetup::~RaiiSetup() {
     instance = previous;
-}
-
-const char *Logger::getPreamble(LogLevel level) {
-    const static char *preambles[] = {
-        "[Error] ",
-        "[Info] ",
-        "[Warning] ",
-        "[Debug] ",
-    };
-    return preambles[static_cast<size_t>(level)];
 }
 
 RaiiLog::RaiiLog(LogLevel logLevel, Logger &logger)
@@ -37,12 +28,29 @@ RaiiLog log(LogLevel logLevel, Logger *logger) {
 }
 
 void OstreamLogger::log(LogLevel level, const std::string &message) {
-    out << getPreamble(level) << message << '\n';
-    out.flush();
+    writeDate();
+    writeLogLevel(level);
+    out << ' ' << message << std::endl;
 }
 
-FileLogger::FileLogger(const fs::path &logFile)
-    : OstreamLogger(file),
+void OstreamLogger::writeDate() {
+    out << '[';
+    time.writeCurrentTime(out);
+    out << ']';
+}
+
+void OstreamLogger::writeLogLevel(LogLevel level) {
+    const static char *preambles[] = {
+        "[Error]",
+        "[Info]",
+        "[Warning]",
+        "[Debug]",
+    };
+    out << preambles[static_cast<size_t>(level)];
+}
+
+FileLogger::FileLogger(const Time &time, const fs::path &logFile)
+    : OstreamLogger(time, file),
       file(logFile, std::ios::out) {}
 
 void NullLogger::log([[maybe_unused]] LogLevel level, [[maybe_unused]] const std::string &message) {}
