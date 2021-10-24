@@ -45,6 +45,8 @@ bool Charon::start() {
                 directoryWatchers[startedWatcherIndex]->stop();
             }
             return false;
+        } else {
+            log(LogLevel::Info) << "Watcher for directory " << currentWatcher.getWatchedDirectory() << " has started";
         }
     }
 
