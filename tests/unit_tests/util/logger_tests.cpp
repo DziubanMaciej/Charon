@@ -27,7 +27,7 @@ TEST(LoggerTest, givenLoggerIsSetUpWhenLogFunctionIsCalledThenUsedTheLogger) {
     auto setup1 = logger1.raiiSetup();
     log(LogLevel::Error) << "1";
     {
-        auto setup1 = logger2.raiiSetup();
+        auto setup2 = logger2.raiiSetup();
         log(LogLevel::Error) << "2";
     }
     log(LogLevel::Error) << "3";

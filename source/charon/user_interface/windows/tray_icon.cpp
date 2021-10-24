@@ -30,7 +30,7 @@ LRESULT TrayIcon::handleEvent(UINT message, WPARAM wParam, LPARAM lParam) {
         return 0;
 
     case WM_CONTEXTMENU:
-        showContextMenu(wParam, lParam);
+        showContextMenu(lParam);
         return 0;
     default:
         return ::DefWindowProcW(windowHandle, message, wParam, lParam);
@@ -78,7 +78,7 @@ void TrayIcon::deleteNotificationIcon() {
     FATAL_ERROR_IF(!success, "Failed to remove tray icon");
 }
 
-void TrayIcon::showContextMenu(WPARAM wParam, LPARAM lParam) {
+void TrayIcon::showContextMenu(LPARAM lParam) {
     HMENU hMenu = LoadMenu(instanceHandle, MAKEINTRESOURCE(IDC_TRAY_CONTEXT_MENU));
     if (!hMenu) {
         return;
@@ -100,7 +100,7 @@ void TrayIcon::showContextMenu(WPARAM wParam, LPARAM lParam) {
         uFlags |= TPM_LEFTALIGN;
     }
 
-    const POINT pt = {LOWORD(wParam), HIWORD(wParam)};
+    const POINT pt = {LOWORD(lParam), HIWORD(lParam)};
     TrackPopupMenuEx(hSubMenu, uFlags, pt.x, pt.y, windowHandle, NULL);
 
     DestroyMenu(hMenu);

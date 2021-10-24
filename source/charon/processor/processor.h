@@ -26,8 +26,7 @@ private:
     void executeProcessorAction(const FileEvent &event, const ProcessorAction &action, ActionMatcherState &actionMatcherState);
     void executeProcessorActionMoveOrCopy(const FileEvent &event, const ProcessorAction &action,
                                           ActionMatcherState &actionMatcherState, bool isMove);
-    void executeProcessorActionRemove(const FileEvent &event, const ProcessorAction &action,
-                                      ActionMatcherState &actionMatcherState);
+    void executeProcessorActionRemove(const FileEvent &event, ActionMatcherState &actionMatcherState);
     void executeProcessorActionPrint(const FileEvent &event) const;
 
     static bool shouldActionBeExecutedForGivenEventType(FileEvent::Type eventType, ProcessorAction::Type actionType);

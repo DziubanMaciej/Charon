@@ -17,7 +17,7 @@ private:
     void addNotificationIcon();
     void deleteNotificationIcon();
 
-    void showContextMenu(WPARAM wParam, LPARAM lParam);
+    void showContextMenu(LPARAM lParam);
 
     const HINSTANCE instanceHandle;
     const HWND windowHandle;

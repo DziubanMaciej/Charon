@@ -85,7 +85,7 @@ void Processor::executeProcessorAction(const FileEvent &event, const ProcessorAc
         executeProcessorActionMoveOrCopy(event, action, actionMatcherState, true);
         break;
     case ProcessorAction::Type::Remove:
-        executeProcessorActionRemove(event, action, actionMatcherState);
+        executeProcessorActionRemove(event, actionMatcherState);
         break;
     case ProcessorAction::Type::Print:
         executeProcessorActionPrint(event);
@@ -122,7 +122,7 @@ void Processor::executeProcessorActionMoveOrCopy(const FileEvent &event, const P
     }
 }
 
-void Processor::executeProcessorActionRemove(const FileEvent &event, const ProcessorAction &action, ActionMatcherState &actionMatcherState) {
+void Processor::executeProcessorActionRemove(const FileEvent &event, ActionMatcherState &actionMatcherState) {
     actionMatcherState.lastResolvedPath = std::filesystem::path{};
     log(LogLevel::Info) << "Processor removing file " << event.path;
 
