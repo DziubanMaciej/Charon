@@ -8,3 +8,4 @@ set_target_properties(${TARGET_NAME} PROPERTIES VS_DEBUGGER_COMMAND_ARGUMENTS "-
 add_test(NAME ${TARGET_NAME} COMMAND ${TARGET_NAME})
 target_compile_definitions(${TARGET_NAME} PRIVATE -DTEST_DIRECTORY_PATH=L"${CMAKE_BINARY_DIR}/test_files")
 add_subdirectories()
+target_setup_vs_folders(${TARGET_NAME})

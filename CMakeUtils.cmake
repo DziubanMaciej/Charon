@@ -16,8 +16,13 @@ endfunction()
 
 function(target_add_sources TARGET_NAME)
     set(SOURCE_FILES ${ARGN})
-    source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_FILES})
     target_sources(${TARGET_NAME} PRIVATE ${SOURCE_FILES})
+endfunction()
+
+function(target_setup_vs_folders TARGET_NAME)
+    get_target_property(SOURCES ${TARGET_NAME} SOURCES)
+    get_target_property(SOURCE_DIR ${TARGET_NAME} SOURCE_DIR)
+    source_group(TREE ${SOURCE_DIR} FILES ${SOURCES})
 endfunction()
 
 function(target_find_sources_and_add TARGET_NAME)
@@ -26,7 +31,6 @@ function(target_find_sources_and_add TARGET_NAME)
         ${CMAKE_CURRENT_SOURCE_DIR}/*.inl
         ${CMAKE_CURRENT_SOURCE_DIR}/*.h
     )
-    message("${TARGET_NAME}:         ${SOURCE_FILES}")
     target_add_sources(${TARGET_NAME} ${SOURCE_FILES})
 endfunction()
 

@@ -7,3 +7,4 @@ target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..
 set_target_properties(${TARGET_NAME} PROPERTIES VS_DEBUGGER_COMMAND_ARGUMENTS "--gtest_filter=*")
 add_test(NAME ${TARGET_NAME} COMMAND ${TARGET_NAME})
 add_subdirectories()
+target_setup_vs_folders(${TARGET_NAME})
