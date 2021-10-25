@@ -5,7 +5,13 @@
 
 #include <string>
 
+template <typename CharT>
 struct StringHelper : NonInstantiatable {
-    static std::string removeLeadingDot(const std::filesystem::path &path);
-    static void replace(std::string &subject, const std::string &search, const std::string &replace);
+    using StringT = std::basic_string<CharT>;
+
+    static StringT removeLeadingDot(const std::filesystem::path &path);
+
+    static void replace(StringT &subject,
+                        const StringT &search,
+                        const StringT &replace);
 };

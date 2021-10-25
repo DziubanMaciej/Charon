@@ -61,7 +61,7 @@ const ProcessorActionMatcher *Processor::findActionMatcher(const FileEvent &even
 
         // Filter by file extension
         if (!matcher.watchedExtensions.empty()) {
-            const auto extension = StringHelper::removeLeadingDot(event.path.extension());
+            const auto extension = StringHelper<PathCharType>::removeLeadingDot(event.path.extension());
             const auto it = std::find(matcher.watchedExtensions.begin(), matcher.watchedExtensions.end(), extension);
             if (it == matcher.watchedExtensions.end()) {
                 continue;

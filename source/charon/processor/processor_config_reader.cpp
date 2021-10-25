@@ -73,7 +73,10 @@ bool ProcessConfigReader::parseProcessorActionMatcher(ProcessorActionMatcher &ou
             log(LogLevel::Error) << "Action matcher \"extensions\" member must be an array.";
             return false;
         }
-        outActionMatcher.watchedExtensions = it->get<std::vector<std::string>>();
+        auto extensions = it->get<std::vector<std::string>>();
+        for (auto &extension : extensions) {
+            outActionMatcher.watchedExtensions.emplace_back(extension);
+        }
     }
 
     if (auto it = node.find("actions"); it != node.end()) {

@@ -1,6 +1,5 @@
 #include "charon/processor/path_resolver.h"
 #include "charon/util/error.h"
-#include "charon/util/filesystem.h"
 #include "charon/util/string_helper.h"
 
 #include <sstream>
@@ -8,15 +7,15 @@
 PathResolver::PathResolver(Filesystem &filesystem)
     : filesystem(filesystem) {}
 
-bool PathResolver::validateNameForResolve(const std::string &name) {
+bool PathResolver::validateNameForResolve(const std::filesystem::path &name) {
     return false;
 }
 
 std::filesystem::path PathResolver::resolvePath(const std::filesystem::path &newDir,
                                                 const std::filesystem::path &oldName,
-                                                const std::string &newName,
+                                                const std::filesystem::path &namePattern,
                                                 const std::filesystem::path &lastResolvedName) const {
-    std::string result = newName;
+    PathStringType result = namePattern.generic_string<PathCharType>();
     const std::filesystem::path extension = oldName.extension();
 
     applyVariableSubstitutions(result, oldName, extension, lastResolvedName);
@@ -29,16 +28,16 @@ std::filesystem::path PathResolver::resolvePath(const std::filesystem::path &new
     }
 }
 
-void PathResolver::applyVariableSubstitutions(std::string &name,
+void PathResolver::applyVariableSubstitutions(PathStringType &name,
                                               const std::filesystem::path &oldName,
                                               const std::filesystem::path &oldNameExtension,
                                               const std::filesystem::path &lastResolvedName) {
-    StringHelper::replace(name, "${name}", oldName.stem().string());
-    StringHelper::replace(name, "${previousName}", lastResolvedName.stem().string());
-    StringHelper::replace(name, "${extension}", StringHelper::removeLeadingDot(oldNameExtension));
+    StringHelper<PathCharType>::replace(name, L"${name}", oldName.stem().generic_string<PathCharType>());
+    StringHelper<PathCharType>::replace(name, L"${previousName}", lastResolvedName.stem().generic_string<PathCharType>());
+    StringHelper<PathCharType>::replace(name, L"${extension}", StringHelper<PathCharType>::removeLeadingDot(oldNameExtension));
 }
 
-void PathResolver::applyCounterSubstitution(std::string &name, const std::filesystem::path &newDir) const {
+void PathResolver::applyCounterSubstitution(PathStringType &name, const std::filesystem::path &newDir) const {
     // If no counter is present, then we're done
     const size_t digits = std::count(name.begin(), name.end(), '#');
     if (digits == 0) {
@@ -51,7 +50,7 @@ void PathResolver::applyCounterSubstitution(std::string &name, const std::filesy
 
     // Define a predicate, which will tell us if a filename with given counter value is already taken
     // The predicate ignores the extension.
-    const auto isNameTaken = [&name](const fs::path &p) { return name == p.stem().string(); };
+    const auto isNameTaken = [&name](const fs::path &p) { return name == p.stem().generic_string<PathCharType>(); };
 
     // Substitute counter equal to 0 to our name
     size_t counter = 0u;
@@ -88,7 +87,7 @@ size_t PathResolver::getMaxIndex(size_t digits) {
     return result - 1;
 }
 
-void PathResolver::setCounter(std::string::iterator counterAddress, size_t index, size_t digits) {
+void PathResolver::setCounter(PathStringType::iterator counterAddress, size_t index, size_t digits) {
     std::ostringstream counterStringStream{};
     counterStringStream << std::setfill('0') << std::setw(digits) << index;
     const std::string counterString = counterStringStream.str();
@@ -97,7 +96,7 @@ void PathResolver::setCounter(std::string::iterator counterAddress, size_t index
 }
 
 std::filesystem::path PathResolver::finalizePath(const std::filesystem::path &destinationDir,
-                                                 const std::filesystem::path &newName,
+                                                 const PathStringType &name,
                                                  const std::filesystem::path &extension) {
-    return (destinationDir / newName).replace_extension(extension);
+    return (destinationDir / name).replace_extension(extension);
 }

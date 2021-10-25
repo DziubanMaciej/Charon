@@ -317,7 +317,7 @@ TEST(ProcessConfigReaderPositiveTest, givenComplexConfigWhenReadingThenParseCorr
     {
         const auto &matcher = config.matchers[0];
         EXPECT_EQ("D:/Desktop/Test1", matcher.watchedFolder);
-        EXPECT_EQ((std::vector<std::string>{"png", "jpg", "gif"}), matcher.watchedExtensions);
+        EXPECT_EQ((std::vector<fs::path>{"png", "jpg", "gif"}), matcher.watchedExtensions);
         EXPECT_EQ(2u, matcher.actions.size());
         {
             const auto &action = matcher.actions[0];
@@ -338,7 +338,7 @@ TEST(ProcessConfigReaderPositiveTest, givenComplexConfigWhenReadingThenParseCorr
     {
         const auto &matcher = config.matchers[1];
         EXPECT_EQ("D:/Desktop/Test2", matcher.watchedFolder);
-        EXPECT_EQ((std::vector<std::string>{"mp4"}), matcher.watchedExtensions);
+        EXPECT_EQ((std::vector<fs::path>{"mp4"}), matcher.watchedExtensions);
         EXPECT_EQ(1u, matcher.actions.size());
         {
             const auto &action = matcher.actions[0];

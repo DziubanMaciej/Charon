@@ -15,8 +15,8 @@ struct ProcessorAction {
     };
 
     struct MoveOrCopy {
-        std::filesystem::path destinationDir;
-        std::string destinationName;
+        fs::path destinationDir;
+        fs::path destinationName;
     };
     struct Remove {};
     struct Print {};
@@ -27,7 +27,7 @@ struct ProcessorAction {
 
 struct ProcessorActionMatcher {
     std::filesystem::path watchedFolder;
-    std::vector<std::string> watchedExtensions;
+    std::vector<std::filesystem::path> watchedExtensions;
     std::vector<ProcessorAction> actions;
 };
 

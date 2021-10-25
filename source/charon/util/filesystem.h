@@ -9,7 +9,8 @@ namespace fs = std::filesystem;
 
 using OptionalError = std::optional<std::error_code>;
 
-using PathStringType = std::string; // TODO change to fs::path::string_type
+using PathStringType = fs::path::string_type;
+using PathCharType = PathStringType::value_type;
 
 struct Filesystem : NonCopyableAndMovable {
     virtual ~Filesystem() {}
