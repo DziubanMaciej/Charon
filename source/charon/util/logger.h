@@ -2,17 +2,15 @@
 
 #include "charon/util/class_traits.h"
 #include "charon/util/error.h"
+#include "charon/util/filesystem.h"
 
 #include <array>
-#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <mutex>
 #include <sstream>
 
 struct Time;
-
-namespace fs = std::filesystem;
 
 enum class LogLevel {
     Error,

@@ -1,12 +1,10 @@
 #pragma once
 
 #include "charon/util/error.h"
+#include "charon/util/filesystem.h"
 
-#include <filesystem>
 #include <fstream>
 #include <string>
-
-namespace fs = std::filesystem;
 
 struct TestFilesHelper {
     static void cleanupTestDirectory() {

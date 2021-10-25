@@ -2,8 +2,7 @@
 
 #include "charon/charon/os_handle.h"
 #include "charon/util/blocking_queue.h"
-
-#include <filesystem>
+#include "charon/util/filesystem.h"
 
 struct FileEvent {
     enum class Type {

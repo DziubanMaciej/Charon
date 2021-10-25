@@ -9,6 +9,8 @@ namespace fs = std::filesystem;
 
 using OptionalError = std::optional<std::error_code>;
 
+using PathStringType = std::string; // TODO change to fs::path::string_type
+
 struct Filesystem : NonCopyableAndMovable {
     virtual ~Filesystem() {}
     virtual OptionalError copy(const fs::path &src, const fs::path &dst) const = 0;

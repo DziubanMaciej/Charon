@@ -1,8 +1,8 @@
 #pragma once
 
 #include "charon/util/class_traits.h"
+#include "charon/util/filesystem.h"
 
-#include <filesystem>
 #include <string>
 
 struct StringHelper : NonInstantiatable {

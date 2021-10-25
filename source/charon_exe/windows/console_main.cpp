@@ -1,8 +1,8 @@
 #include "charon/charon/charon_main.h"
 #include "charon/util/argument_parser.h"
+#include "charon/util/filesystem.h"
 
 #include <Windows.h>
-#include <filesystem>
 
 int runBackgroundProcess(const std::filesystem::path &exeName, std::string &commandLine) {
     SECURITY_ATTRIBUTES security_attributes;
