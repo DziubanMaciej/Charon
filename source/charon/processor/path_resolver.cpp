@@ -50,7 +50,9 @@ void PathResolver::applyCounterSubstitution(PathStringType &name, const std::fil
 
     // Define a predicate, which will tell us if a filename with given counter value is already taken
     // The predicate ignores the extension.
-    const auto isNameTaken = [&name](const fs::path &p) { return name == p.stem().generic_string<PathCharType>(); };
+    const auto isNameTaken = [&name](const fs::path &p) {
+        return name == p.stem().generic_string<PathCharType>();
+    };
 
     // Substitute counter equal to 0 to our name
     size_t counter = 0u;

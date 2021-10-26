@@ -347,6 +347,39 @@ class SimpleTestCase(CharonAcceptanceTest):
             assert test_files.are_files_equal(file1, file3)
             assert test_files.are_files_equal(file2, file3)
 
+    def test_name_counters_polish_source_files(self):
+        # Prepare test data
+        src_dir = "Src"
+        dst_dir = "Dst"
+        filenames = [ 'file1.ź', 'file2_ą.ź', 'file3_ę.ź', 'file4.ź']
+        contents = "a\nb\nc"
+        test_files.create_directory(src_dir)
+
+        # Run charon
+        config = [
+            {
+                "watchedFolder": test_files.get_full_path_str(src_dir),
+                "actions": [
+                    {
+                        "type": "move",
+                        "destinationDir": test_files.get_full_path_str(dst_dir),
+                        "destinationName": "file_###"
+                    }
+                ]
+            }
+        ]
+        self.enable_charon(config)
+
+        # Perform file operations
+        for filename in filenames:
+            test_files.create_file(f'{src_dir}/{filename}', contents)
+
+        # Check results
+        self.disable_charon()
+        for i in range(len(filenames)):
+            assert test_files.validate_file(f'{dst_dir}/file_{i:03d}.ź', contents)
+        assert test_files.is_dir_with_n_files(src_dir, 0)
+        assert test_files.is_dir_with_n_files(dst_dir, len(filenames))
 
 if __name__ == "__main__":
     unittest.main(argv=[sys.argv[0], '-v'])  # run all tests
