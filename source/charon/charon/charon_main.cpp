@@ -1,5 +1,6 @@
 #include "charon/charon/charon.h"
 #include "charon/processor/processor_config_reader.h"
+#include "charon/processor/processor_config_validator.h"
 #include "charon/user_interface/console_user_interface.h"
 #include "charon/user_interface/daemon_user_interface.h"
 #include "charon/util/argument_parser.h"
@@ -38,6 +39,9 @@ int charonMain(int argc, char **argv, bool isDaemon) {
     ProcessorConfig config{};
     const bool success = reader.read(config, configPath);
     if (!success) {
+        return EXIT_FAILURE;
+    }
+    if (!ProcessorConfigValidator::validateConfig(config)) {
         return EXIT_FAILURE;
     }
 

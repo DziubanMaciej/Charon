@@ -1,6 +1,7 @@
 #include "charon/processor/processor.h"
 #include "charon/processor/processor_config.h"
 #include "charon/util/logger.h"
+#include "unit_tests/fixtures/processor_config_fixture.h"
 #include "unit_tests/mocks/mock_filesystem.h"
 #include "unit_tests/mocks/mock_logger.h"
 #include "unit_tests/mocks/mock_os_handle.h"
@@ -13,50 +14,7 @@ using ::testing::InSequence;
 using ::testing::Return;
 using ::testing::SetArgReferee;
 
-struct ProcessorFixture {
-    void SetUp() {
-        dummyPath1 = std::filesystem::path("dummy/path/1/");
-        dummyPath2 = std::filesystem::path("dummy/path/2/");
-        dummyPath3 = std::filesystem::path("dummy/path/3/");
-    }
-
-    ProcessorAction createCopyAction(const std::filesystem::path &destinationDir, const std::string &destinationName) {
-        ProcessorAction::MoveOrCopy data{};
-        data.destinationDir = destinationDir;
-        data.destinationName = destinationName;
-        return ProcessorAction{ProcessorAction::Type::Copy, data};
-    }
-
-    ProcessorAction createMoveAction(const std::filesystem::path &destinationDir, const std::string &destinationName) {
-        ProcessorAction::MoveOrCopy data{};
-        data.destinationDir = destinationDir;
-        data.destinationName = destinationName;
-        return ProcessorAction{ProcessorAction::Type::Move, data};
-    }
-
-    ProcessorAction createRemoveAction() {
-        ProcessorAction::Remove data{};
-        return ProcessorAction{ProcessorAction::Type::Remove, data};
-    }
-
-    ProcessorAction createPrintAction() {
-        ProcessorAction::Print data{};
-        return ProcessorAction{ProcessorAction::Type::Print, data};
-    }
-
-    ProcessorConfig createProcessorConfigWithOneMatcher(const std::filesystem::path &watchedDir) {
-        return createProcessorConfig({watchedDir});
-    }
-
-    ProcessorConfig createProcessorConfig(std::initializer_list<std::filesystem::path> watchedDirs) {
-        ProcessorConfig config{};
-        for (const std::filesystem::path &watcherDir : watchedDirs) {
-            config.matchers.emplace_back();
-            config.matchers.back().watchedFolder = watcherDir;
-        }
-        return config;
-    }
-
+struct ProcessorFixture : ProcessorConfigFixture {
     void pushFileCreationEvent(const std::filesystem::path &watchedDir, const std::filesystem::path &path) {
         pushFileEvent(watchedDir, FileEvent::Type::Add, path);
     }
@@ -69,9 +27,6 @@ struct ProcessorFixture {
         eventQueue.push(FileEvent::interruptEvent);
     }
 
-    std::filesystem::path dummyPath1{};
-    std::filesystem::path dummyPath2{};
-    std::filesystem::path dummyPath3{};
     FileEventQueue eventQueue{};
     NullLogger nullLogger{};
 };

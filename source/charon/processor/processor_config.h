@@ -23,6 +23,9 @@ struct ProcessorAction {
 
     Type type = Type::Invalid;
     std::variant<MoveOrCopy, Remove, Print> data{};
+
+    bool isRemovingFile() const { return type == Type::Remove || type == Type::Move; }
+    bool isFilesystemAction() const { return type == Type::Remove || type == Type::Move || type == Type::Copy; }
 };
 
 struct ProcessorActionMatcher {

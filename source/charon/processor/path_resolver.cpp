@@ -1,14 +1,70 @@
 #include "charon/processor/path_resolver.h"
 #include "charon/util/error.h"
+#include "charon/util/logger.h"
 #include "charon/util/string_helper.h"
 
+#include <regex>
 #include <sstream>
 
 PathResolver::PathResolver(Filesystem &filesystem)
     : filesystem(filesystem) {}
 
-bool PathResolver::validateNameForResolve(const std::filesystem::path &name) {
-    return false;
+bool PathResolver::validateNameForResolve(const std::filesystem::path &namePattern) {
+    const PathStringType namePatternStr = namePattern.generic_string<PathCharType>();
+    std::match_results<PathStringType::const_iterator> result{};
+
+    // Invalid variables
+    {
+        std::regex regex{R"(\$\{[^${]*\})"};
+        auto namePatternStrBegin = namePatternStr.begin();
+        while (namePatternStrBegin < namePatternStr.end()) {
+            bool matched = std::regex_search(namePatternStr.begin(), namePatternStr.end(), result, regex);
+            if (!matched) {
+                break;
+            }
+
+            static const PathStringType validVariables[] = {
+                L"${name}",
+                L"${previousName}",
+                L"${extension}",
+            };
+            const bool isValid = std::find(std::begin(validVariables), std::end(validVariables), result.str()) != std::end(validVariables);
+            if (!isValid) {
+                log(LogLevel::Error) << "Destination name contains illegal pseudo-variables.";
+                return false;
+            }
+
+            namePatternStrBegin += result.size();
+        }
+    }
+
+    // Unclosed variables
+    {
+        std::regex regex{R"((\$\{[^${}]*[${])|(\$\{[^}]*$))"};
+        if (std::regex_search(namePatternStr.begin(), namePatternStr.end(), result, regex)) {
+            log(LogLevel::Error) << "Destination name contains unclosed pseudo-variables.";
+            return false;
+        }
+    }
+
+    // Uncontiguous hashes
+    {
+        bool foundHash = false;
+        bool foundHashInPrevious = false;
+        for (auto c : namePatternStr) {
+            const bool foundHashInCurrent = c == '#';
+            if (foundHashInCurrent) {
+                if (foundHash && !foundHashInPrevious) {
+                    log(LogLevel::Error) << "Desination name contains uncontiguous hashes.";
+                    return false;
+                }
+                foundHash = true;
+            }
+            foundHashInPrevious = foundHashInCurrent;
+        }
+    }
+
+    return true;
 }
 
 std::filesystem::path PathResolver::resolvePath(const std::filesystem::path &newDir,
