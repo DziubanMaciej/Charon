@@ -3,11 +3,7 @@
 #include "unit_tests/mocks/mock_logger.h"
 
 struct ProcessorConfigValidatorTest : ::testing::Test, ProcessorConfigFixture {
-    void SetUp() override {
-        ProcessorConfigFixture::SetUp();
-    }
-
-    const fs::path dummyDirWithNonAsciiCharacter = "dummy/path/\206abc";
+    const static inline fs::path dummyDirWithNonAsciiCharacter = "dummy/path/\206abc";
 };
 
 TEST_F(ProcessorConfigValidatorTest, givenValidConfigWhenValidatingConfigThenReturnSuccess) {

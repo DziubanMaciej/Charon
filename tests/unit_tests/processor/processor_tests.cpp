@@ -31,11 +31,7 @@ struct ProcessorFixture : ProcessorConfigFixture {
     NullLogger nullLogger{};
 };
 
-struct ProcessorTest : ::testing::Test, ProcessorFixture {
-    void SetUp() override {
-        ProcessorFixture::SetUp();
-    }
-};
+struct ProcessorTest : ::testing::Test, ProcessorFixture {};
 
 TEST_F(ProcessorTest, whenCopyActionIsTriggeredThenRequestFileCopy) {
     MockFilesystem filesystem{};
@@ -554,10 +550,6 @@ TEST_F(ProcessorTest, adasd) {
 struct ProcessorTestWithDifferentEventsAndActions
     : ::testing::TestWithParam<std::tuple<FileEvent::Type, ProcessorAction::Type, bool>>,
       ProcessorFixture {
-    void SetUp() override {
-        ProcessorFixture::SetUp();
-    }
-
     ProcessorAction createActionOfType(ProcessorAction::Type type) {
         switch (type) {
         case ProcessorAction::Type::Copy:

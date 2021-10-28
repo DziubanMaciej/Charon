@@ -5,12 +5,6 @@
 #include <gtest/gtest.h>
 
 struct ProcessorConfigFixture {
-    void SetUp() {
-        dummyPath1 = std::filesystem::path("dummy/path/1/");
-        dummyPath2 = std::filesystem::path("dummy/path/2/");
-        dummyPath3 = std::filesystem::path("dummy/path/3/");
-    }
-
     ProcessorAction createCopyAction(const std::filesystem::path &destinationDir, const std::string &destinationName) {
         ProcessorAction::MoveOrCopy data{};
         data.destinationDir = destinationDir;
@@ -48,7 +42,7 @@ struct ProcessorConfigFixture {
         return config;
     }
 
-    std::filesystem::path dummyPath1{};
-    std::filesystem::path dummyPath2{};
-    std::filesystem::path dummyPath3{};
+    const static inline fs::path dummyPath1 = "dummy/path/1/";
+    const static inline fs::path dummyPath2 = "dummy/path/2/";
+    const static inline fs::path dummyPath3 = "dummy/path/3/";
 };
