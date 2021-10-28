@@ -3,7 +3,7 @@ function(target_common_setup TARGET_NAME VS_FOLDER)
 
     if (MSVC)
         set_target_properties(${TARGET_NAME} PROPERTIES FOLDER ${VS_FOLDER})
-        target_compile_definitions(${TARGET_NAME} PRIVATE -DNOMINMAX -DWIN32_LEAN_AND_MEAN)
+        target_compile_definitions(${TARGET_NAME} PRIVATE -DNOMINMAX -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_WARNINGS)
     endif()
 
     target_compile_features(${TARGET_NAME} PRIVATE cxx_std_17)
