@@ -328,8 +328,8 @@ TEST_F(ProcessorTest, givenAllFilenamesTakenWhenCounterIsUsedThenReturnError) {
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
     config.matchers[0].actions = {
-        createMoveAction("#"),
         createCopyAction("#"),
+        createMoveAction("#"),
     };
     Processor processor{config, eventQueue, filesystem};
 
