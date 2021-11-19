@@ -2,6 +2,7 @@
 #include "charon/util/error.h"
 #include "charon/util/logger.h"
 #include "charon/util/string_helper.h"
+#include "charon/util/string_literal.h"
 
 #include <regex>
 #include <sstream>
@@ -15,7 +16,7 @@ bool PathResolver::validateNameForResolve(const std::filesystem::path &namePatte
 
     // Invalid variables
     {
-        std::basic_regex<PathCharType> regex{R"(\$\{[^${]*\})"};
+        std::basic_regex<PathCharType> regex{CSTRING(R"(\$\{[^${]*\})")};
         auto namePatternStrBegin = namePatternStr.begin();
         while (namePatternStrBegin < namePatternStr.end()) {
             bool matched = std::regex_search(namePatternStr.begin(), namePatternStr.end(), result, regex);
@@ -24,9 +25,9 @@ bool PathResolver::validateNameForResolve(const std::filesystem::path &namePatte
             }
 
             static const PathStringType validVariables[] = {
-                "${name}",
-                "${previousName}",
-                "${extension}",
+                CSTRING("${name}"),
+                CSTRING("${previousName}"),
+                CSTRING("${extension}"),
             };
             const bool isValid = std::find(std::begin(validVariables), std::end(validVariables), result.str()) != std::end(validVariables);
             if (!isValid) {
@@ -88,9 +89,9 @@ void PathResolver::applyVariableSubstitutions(PathStringType &name,
                                               const std::filesystem::path &oldName,
                                               const std::filesystem::path &oldNameExtension,
                                               const std::filesystem::path &lastResolvedName) {
-    StringHelper<PathCharType>::replace(name, "${name}", oldName.stem().generic_string<PathCharType>());
-    StringHelper<PathCharType>::replace(name, "${previousName}", lastResolvedName.stem().generic_string<PathCharType>());
-    StringHelper<PathCharType>::replace(name, "${extension}", StringHelper<PathCharType>::removeLeadingDot(oldNameExtension));
+    StringHelper<PathCharType>::replace(name, CSTRING("${name}"), oldName.stem().generic_string<PathCharType>());
+    StringHelper<PathCharType>::replace(name, CSTRING("${previousName}"), lastResolvedName.stem().generic_string<PathCharType>());
+    StringHelper<PathCharType>::replace(name, CSTRING("${extension}"), StringHelper<PathCharType>::removeLeadingDot(oldNameExtension));
 }
 
 void PathResolver::applyCounterSubstitution(PathStringType &name, const std::filesystem::path &newDir) const {
