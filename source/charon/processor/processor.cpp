@@ -5,6 +5,8 @@
 #include "charon/util/logger.h"
 #include "charon/util/string_helper.h"
 
+#include <algorithm>
+
 Processor::Processor(const ProcessorConfig &config, FileEventQueue &eventQueue, Filesystem &filesystem)
     : pathResolver(filesystem),
       config(config),

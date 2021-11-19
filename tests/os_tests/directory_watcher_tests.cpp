@@ -104,11 +104,11 @@ TEST_F(DirectoryWatcherTest, givenMultipleFilesCreatedWhenWatcherIsActiveThenDet
 
     EXPECT_TRUE(watcher->start());
 
-    for (int i = 0; i < filesCount; i++) {
+    for (auto i = 0u; i < filesCount; i++) {
         TestFilesHelper::createFile(watchedDir / std::to_string(i));
     }
 
-    for (int i = 0; i < filesCount; i++) {
+    for (auto i = 0u; i < filesCount; i++) {
         FileEvent event{};
         EXPECT_TRUE(deferredEventQueue.blockingPop(event, popTimeoutDuration));
         EXPECT_EQ(watchedDir, event.watchedRootPath);

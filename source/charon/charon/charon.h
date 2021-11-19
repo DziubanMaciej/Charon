@@ -7,6 +7,7 @@
 #include "charon/watcher/directory_watcher.h"
 
 #include <vector>
+#include <atomic>
 
 struct DirectoryWatcherFactory;
 
@@ -24,8 +25,8 @@ public:
 
 private:
     // Components
-    Processor processor;
     DeferredFileLocker deferredFileLocker;
+    Processor processor;
     std::vector<std::unique_ptr<DirectoryWatcher>> directoryWatchers{};
 
     // Saved file paths

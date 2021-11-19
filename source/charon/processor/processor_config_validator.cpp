@@ -79,7 +79,7 @@ bool ProcessorConfigValidator::validatePath(const fs::path &path, const std::str
 
     PathStringType pathStr = path.generic_string<PathCharType>();
     for (PathCharType c : pathStr) {
-        if (c >= 128) {
+        if (static_cast<unsigned char>(c) >= 128) {
             log(LogLevel::Error) << label << " contains illegal characters.";
             return false;
         }

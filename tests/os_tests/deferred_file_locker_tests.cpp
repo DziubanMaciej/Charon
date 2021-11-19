@@ -4,6 +4,7 @@
 #include "os_tests/test_files_helper.h"
 
 #include <gtest/gtest.h>
+#include <thread>
 
 using namespace std::chrono_literals;
 

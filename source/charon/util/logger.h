@@ -51,6 +51,7 @@ public:
         return *this;
     }
 
+#if defined(WIN32)
     template <>
     RaiiLog &operator<<<std::filesystem::path>(const std::filesystem::path &arg) {
         // Convert wstring to string while ignoring diacritics
@@ -66,10 +67,11 @@ public:
         buffer << narrowString;
         return *this;
     }
+#endif
 
 private:
-    const LogLevel logLevel;
     Logger &logger;
+    const LogLevel logLevel;
     std::unique_lock<std::mutex> lock;
     std::ostringstream buffer{};
 };

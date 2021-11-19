@@ -2,6 +2,8 @@
 
 #include "charon/util/filesystem.h"
 
+#include <codecvt>
+#include <locale>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -69,12 +71,8 @@ private:
             return arg;
         }
         if constexpr (std::is_same_v<ResultType, std::wstring>) {
-            std::wstring result(arg.size() + 1, L' ');
-            const auto cap = result.capacity();
-            size_t charsConverted{};
-            const auto error = ::mbstowcs_s(&charsConverted, &result[0], result.capacity(), arg.c_str(), arg.size());
-            result.resize(charsConverted - 1);
-            return result;
+            std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
+            return converter.from_bytes(arg);
         }
         if constexpr (std::is_same_v<ResultType, std::filesystem::path>) {
             return std::filesystem::path(arg);
