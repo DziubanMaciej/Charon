@@ -17,7 +17,6 @@ public:
 
 private:
     static void watcherThreadProcedure(DirectoryWatcherLinux &watcher);
-    static void dummySignalHandler(int) {}
     bool createFileEvent(const inotify_event &inotifyEvent, FileEvent &outEvent) const;
 
     OsHandle inotifyEventQueue = defaultOsHandle;

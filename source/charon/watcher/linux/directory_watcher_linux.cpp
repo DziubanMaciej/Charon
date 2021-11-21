@@ -2,8 +2,6 @@
 #include "charon/watcher/directory_watcher_factory.h"
 #include "charon/watcher/linux/directory_watcher_linux.h"
 
-#include <pthread.h>
-#include <signal.h>
 #include <sys/inotify.h>
 #include <unistd.h>
 
@@ -49,16 +47,15 @@ bool DirectoryWatcherLinux::stop() {
         return false;
     }
 
-    // Interrupt background thread and wait for completion
-    FATAL_ERROR_IF_SYSCALL_FAILED(pthread_kill(watcherThread->native_handle(), SIGUSR1), "Failed pthread_kill");
+    // Cleanup inotify queue
+    FATAL_ERROR_IF_SYSCALL_FAILED(inotify_rm_watch(inotifyEventQueue, inotifyWatchDescriptor), "Failed inotify_rm_watch");
+    FATAL_ERROR_IF_SYSCALL_FAILED(close(inotifyEventQueue), "Failed closing inotify queue");
+
+    // Background thread should be interrupted by closing fds. Wait for its completion.
     watcherThread->join();
 
     // Verify the thread marked its end
     FATAL_ERROR_IF(isWorking(), "Watcher thread is still working after kill");
-
-    // Cleanup inotify queue
-    FATAL_ERROR_IF_SYSCALL_FAILED(inotify_rm_watch(inotifyEventQueue, inotifyWatchDescriptor), "Failed inotify_rm_watch");
-    FATAL_ERROR_IF_SYSCALL_FAILED(close(inotifyEventQueue), "Failed closing inotify queue");
 
     // Cleanup thread reference
     watcherThread = nullptr;
@@ -70,18 +67,12 @@ void DirectoryWatcherLinux::watcherThreadProcedure(DirectoryWatcherLinux &watche
     constexpr size_t bufferSize = sizeof(inotify_event) * 256;
     auto buffer = std::make_unique<std::byte[]>(bufferSize);
 
-    // We will use SIGUSR1 signal to interrupt read() operation in this thread.
-    // We have to still register a signal handler, so the thread is not killed.
-    struct sigaction h = {};
-    h.sa_handler = dummySignalHandler;
-    sigaction(SIGUSR1, &h, 0);
-
     watcher.watcherThreadWorking.store(true);
     while (true) {
         const ssize_t readResult = read(watcher.inotifyEventQueue, buffer.get(), bufferSize);
 
         // Handle thread interruption
-        if (readResult == -1 && errno == EINTR) {
+        if (readResult == -1 && errno == EBADF) {
             watcher.watcherThreadWorking.store(false);
             return;
         }
@@ -109,6 +100,9 @@ void DirectoryWatcherLinux::watcherThreadProcedure(DirectoryWatcherLinux &watche
 
 bool DirectoryWatcherLinux::createFileEvent(const inotify_event &inotifyEvent, FileEvent &outEvent) const {
     if (inotifyEvent.mask & IN_ISDIR) {
+        return false;
+    }
+    if (inotifyEvent.len == 0) {
         return false;
     }
 
