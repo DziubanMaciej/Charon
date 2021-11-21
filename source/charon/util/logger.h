@@ -51,30 +51,32 @@ public:
         return *this;
     }
 
-#if defined(WIN32)
-    template <>
-    RaiiLog &operator<<<std::filesystem::path>(const std::filesystem::path &arg) {
-        // Convert wstring to string while ignoring diacritics
-        const std::wstring &src = arg.native();
-        const int srcSize = static_cast<int>(src.size() + 1);
-        int bytes = WideCharToMultiByte(CP_ACP, 0, src.data(), srcSize, nullptr, 0, nullptr, nullptr);
-        FATAL_ERROR_IF(bytes == 0, "WideCharToMultiByte for size checking failed");
-        std::string narrowString(bytes - 1, '\0');
-        bytes = WideCharToMultiByte(CP_ACP, 0, src.data(), srcSize, narrowString.data(), bytes, nullptr, nullptr);
-        FATAL_ERROR_IF(bytes == 0, "WideCharToMultiByte for conversion checking failed");
-
-        std::replace(narrowString.begin(), narrowString.end(), '\\', '/');
-        buffer << narrowString;
-        return *this;
-    }
-#endif
-
 private:
     Logger &logger;
     const LogLevel logLevel;
     std::unique_lock<std::mutex> lock;
     std::ostringstream buffer{};
 };
+
+template <>
+inline RaiiLog &RaiiLog::operator<<<std::filesystem::path>(const std::filesystem::path &arg) {
+#if defined(WIN32)
+    // Convert wstring to string while ignoring diacritics
+    const std::wstring &src = arg.native();
+    const int srcSize = static_cast<int>(src.size() + 1);
+    int bytes = WideCharToMultiByte(CP_ACP, 0, src.data(), srcSize, nullptr, 0, nullptr, nullptr);
+    FATAL_ERROR_IF(bytes == 0, "WideCharToMultiByte for size checking failed");
+    std::string narrowString(bytes - 1, '\0');
+    bytes = WideCharToMultiByte(CP_ACP, 0, src.data(), srcSize, narrowString.data(), bytes, nullptr, nullptr);
+    FATAL_ERROR_IF(bytes == 0, "WideCharToMultiByte for conversion checking failed");
+
+    std::replace(narrowString.begin(), narrowString.end(), '\\', '/');
+    buffer << narrowString;
+#else
+    buffer << arg.native();
+#endif
+    return *this;
+}
 
 RaiiLog log(LogLevel logLevel, Logger *logger = nullptr);
 
