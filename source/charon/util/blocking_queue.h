@@ -27,7 +27,7 @@ public:
     }
 
     bool blockingPop(T &result) {
-        const auto infiniteTimeout = std::chrono::duration<double>(std::numeric_limits<double>::infinity());
+        const auto infiniteTimeout = std::chrono::hours(1000000);
         return blockingPop(result, infiniteTimeout);
     }
 
