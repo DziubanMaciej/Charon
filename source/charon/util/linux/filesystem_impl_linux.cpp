@@ -1,10 +1,11 @@
 #include "charon/util/filesystem_impl.h"
 
-std::pair<OsHandle, FilesystemImpl::LockResult> FilesystemImpl::lockFile(const fs::path &path) const {
-    ((void)path);
-    return {0, LockResult::Success};
+bool FilesystemImpl::isFileLockingSupported() const {
+    return false;
 }
 
-void FilesystemImpl::unlockFile(OsHandle &handle) const {
-    ((void)handle);
+std::pair<OsHandle, FilesystemImpl::LockResult> FilesystemImpl::lockFile([[maybe_unused]] const fs::path &path) const {
+    return {defaultOsHandle, LockResult::NotSupported};
 }
+
+void FilesystemImpl::unlockFile([[maybe_unused]] OsHandle &handle) const {}
