@@ -92,11 +92,7 @@ void DirectoryWatcherLinux::watcherThreadProcedure(DirectoryWatcherLinux &watche
 
                 FileEvent fileEvent{};
                 if (watcher.createFileEvent(inotifyEvent, fileEvent)) {
-                    if (fileEvent.needsFileLocking()) {
-                        watcher.deferredOutputQueue.push(std::move(fileEvent));
-                    } else {
-                        watcher.outputQueue.push(std::move(fileEvent));
-                    }
+                    watcher.pushEvent(std::move(fileEvent));
                 }
 
                 positionInBuffer += sizeof(inotify_event) + inotifyEvent.len;

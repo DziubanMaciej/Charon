@@ -4,3 +4,11 @@ DirectoryWatcher::DirectoryWatcher(const std::filesystem::path &directoryPath, F
     : directoryPath(directoryPath),
       outputQueue(outputQueue),
       deferredOutputQueue(deferredOutputQueue) {}
+
+void DirectoryWatcher::pushEvent(FileEvent &&fileEvent) {
+    if (fileEvent.needsFileLocking()) {
+        deferredOutputQueue.push(std::move(fileEvent));
+    } else {
+        outputQueue.push(std::move(fileEvent));
+    }
+}

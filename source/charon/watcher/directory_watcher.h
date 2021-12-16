@@ -17,7 +17,11 @@ public:
     const auto &getWatchedDirectory() const { return directoryPath; }
 
 protected:
+    void pushEvent(FileEvent &&fileEvent);
+
     const std::filesystem::path directoryPath;
+
+private:
     FileEventQueue &outputQueue;
     FileEventQueue &deferredOutputQueue;
 };

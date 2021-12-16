@@ -126,11 +126,7 @@ void DirectoryWatcherWindows::watcherThreadProcedure(DirectoryWatcherWindows &wa
         auto currentEntry = reinterpret_cast<const FILE_NOTIFY_INFORMATION *>(buffer.get());
         while (true) {
             FileEvent event = watcher.createFileEvent(*currentEntry);
-            if (event.needsFileLocking()) {
-                watcher.deferredOutputQueue.push(std::move(event));
-            } else {
-                watcher.outputQueue.push(std::move(event));
-            }
+            watcher.pushEvent(std::move(event));
 
             if (currentEntry->NextEntryOffset == 0) {
                 break;
