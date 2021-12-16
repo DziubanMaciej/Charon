@@ -21,6 +21,7 @@ private:
 
     OsHandle inotifyEventQueue = defaultOsHandle;
     OsHandle inotifyWatchDescriptor = defaultOsHandle;
+    int watcherThreadInterruptPipe[2] = {defaultOsHandle, defaultOsHandle};
     std::unique_ptr<std::thread> watcherThread = nullptr;
     std::atomic_bool watcherThreadWorking = false;
 };
