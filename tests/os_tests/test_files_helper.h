@@ -58,6 +58,16 @@ struct TestFilesHelper {
         return std::filesystem::exists(fullPath);
     }
 
+    static bool fileContains(const std::filesystem::path &path, const std::string expectedContents) {
+        const auto fullPath = getTestFilePath(path);
+
+        std::ifstream stream{fullPath};
+        std::stringstream buffer;
+        buffer << stream.rdbuf();
+
+        return buffer.str() == expectedContents;
+    }
+
     static size_t countFilesInDirectory(const std::filesystem::path &path) {
         const auto fullPath = getTestFilePath(path);
         auto iterator = fs::directory_iterator(fullPath);
