@@ -4,6 +4,7 @@
 #include "charon/util/filesystem.h"
 
 #include <fstream>
+#include <sstream>
 #include <string>
 
 struct TestFilesHelper {

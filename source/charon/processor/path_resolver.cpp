@@ -41,7 +41,7 @@ bool PathResolver::validateNameForResolve(const std::filesystem::path &namePatte
 
     // Unclosed variables
     {
-        std::basic_regex<PathCharType> regex{R"((\$\{[^${}]*[${])|(\$\{[^}]*$))"};
+        std::basic_regex<PathCharType> regex{CSTRING(R"((\$\{[^${}]*[${])|(\$\{[^}]*$))")};
         if (std::regex_search(namePatternStr.begin(), namePatternStr.end(), result, regex)) {
             log(LogLevel::Error) << "Destination name contains unclosed pseudo-variables.";
             return false;
