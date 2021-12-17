@@ -33,7 +33,7 @@ bool DirectoryWatcherLinux::start() {
     // Initialize inotify
     inotifyEventQueue = inotify_init();
     FATAL_ERROR_IF_SYSCALL_FAILED(inotifyEventQueue, "Failed inotify_init");
-    inotifyWatchDescriptor = inotify_add_watch(inotifyEventQueue, directoryPath.c_str(), IN_CREATE | IN_DELETE | IN_MOVE | IN_MODIFY);
+    inotifyWatchDescriptor = inotify_add_watch(inotifyEventQueue, directoryPath.c_str(), IN_CLOSE_WRITE | IN_DELETE | IN_MOVE);
     FATAL_ERROR_IF_SYSCALL_FAILED(inotifyWatchDescriptor, "Failed inotify_add_watch");
 
     // Initialize pipe used to interrupt watcher thread from the main thread
@@ -115,7 +115,7 @@ bool DirectoryWatcherLinux::createFileEvent(const inotify_event &inotifyEvent, F
     }
 
     FileEvent::Type type{};
-    if (inotifyEvent.mask & IN_CREATE) {
+    if (inotifyEvent.mask & IN_CLOSE_WRITE) {
         type = FileEvent::Type::Add;
     } else if (inotifyEvent.mask & IN_DELETE) {
         type = FileEvent::Type::Remove;

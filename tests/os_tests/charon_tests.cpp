@@ -142,7 +142,7 @@ TEST_F(CharonOsTests, givenMultipleFileEventsAndMultipleActionsWhenCharonIsRunni
     EXPECT_EQ(0u, filesystem.removeCount);
 }
 
-TEST_F(CharonOsTests, givenFilesAreOpenedForSomeTimeWhenCharonIsRunningThenResultsAreCorrect) {
+TEST_F(CharonOsTests, givenFilesAreOpenedForSomeTimeWhenCharonIsMovingFilesThenResultsAreCorrect) {
     constexpr auto filesCount = 100u;
 
     ProcessorConfig processorConfig = createProcessorConfigWithOneMatcher();
@@ -172,5 +172,39 @@ TEST_F(CharonOsTests, givenFilesAreOpenedForSomeTimeWhenCharonIsRunningThenResul
     }
     EXPECT_EQ(0u, filesystem.copyCount);
     EXPECT_EQ(filesCount, filesystem.moveCount);
+    EXPECT_EQ(0u, filesystem.removeCount);
+}
+
+TEST_F(CharonOsTests, givenFilesAreOpenedForSomeTimeWhenCharonIsCopyingFilesThenResultsAreCorrect) {
+    constexpr auto filesCount = 100u;
+
+    ProcessorConfig processorConfig = createProcessorConfigWithOneMatcher();
+    processorConfig.matchers[0].actions = {createCopyAction("${name}")};
+    Charon charon{processorConfig, filesystem, watcherFactory};
+
+    {
+        RaiiCharonRunner charonRunner{charon};
+
+        std::vector<std::ofstream> files{};
+        for (auto i = 0u; i < filesCount; i++) {
+            files.push_back(TestFilesHelper::openFileForWriting(srcPath / std::to_string(i)));
+        }
+        for (auto i = 0u; i < filesCount; i++) {
+            files[i] << i;
+        }
+        for (auto &file : files) {
+            file.close();
+        }
+    }
+    rerunCharon(charon);
+
+    EXPECT_EQ(filesCount, TestFilesHelper::countFilesInDirectory(srcPath));
+    EXPECT_EQ(filesCount, TestFilesHelper::countFilesInDirectory(dstPath));
+    for (auto i = 0u; i < filesCount; i++) {
+        EXPECT_TRUE(TestFilesHelper::fileContains(srcPath / std::to_string(i), std::to_string(i)));
+        EXPECT_TRUE(TestFilesHelper::fileContains(dstPath / std::to_string(i), std::to_string(i)));
+    }
+    EXPECT_EQ(filesCount, filesystem.copyCount);
+    EXPECT_EQ(0u, filesystem.moveCount);
     EXPECT_EQ(0u, filesystem.removeCount);
 }
