@@ -34,13 +34,7 @@ HANDLE DirectoryWatcherWindows::openHandle(const std::filesystem::path &director
         nullptr);
 }
 
-bool DirectoryWatcherWindows::start() {
-    if (isWorking()) {
-        return false;
-    }
-
-    fs::create_directories(directoryPath);
-
+bool DirectoryWatcherWindows::startImpl() {
     // Create handle to our directory
     directoryHandle = openHandle(directoryPath);
     if (directoryHandle == INVALID_HANDLE_VALUE) {
@@ -49,17 +43,10 @@ bool DirectoryWatcherWindows::start() {
 
     // Start background thread
     this->watcherThread = std::make_unique<std::thread>(watcherThreadProcedure, std::reference_wrapper{*this});
-    while (!isWorking())
-        ;
-
     return true;
 }
 
-bool DirectoryWatcherWindows::stop() {
-    if (!isWorking()) {
-        return false;
-    }
-
+bool DirectoryWatcherWindows::stopImpl() {
     // Interrupt background thread and wait for completion
     SetEvent(interruptEvent);
     watcherThread->join();

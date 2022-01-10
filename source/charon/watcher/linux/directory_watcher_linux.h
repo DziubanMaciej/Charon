@@ -11,8 +11,8 @@ public:
     DirectoryWatcherLinux(const std::filesystem::path &directoryPath, FileEventQueue &outputQueue, FileEventQueue &deferredOutputQueue);
     ~DirectoryWatcherLinux() override;
 
-    bool start() override;
-    bool stop() override;
+    bool startImpl() override;
+    bool stopImpl() override;
     bool isWorking() const override;
 
 private:

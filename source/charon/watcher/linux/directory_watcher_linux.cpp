@@ -25,13 +25,7 @@ bool DirectoryWatcherLinux::isWorking() const {
     return watcherThreadWorking.load();
 }
 
-bool DirectoryWatcherLinux::start() {
-    if (isWorking()) {
-        return false;
-    }
-
-    fs::create_directories(directoryPath);
-
+bool DirectoryWatcherLinux::startImpl() {
     // Initialize inotify
     inotifyEventQueue = inotify_init();
     FATAL_ERROR_IF_SYSCALL_FAILED(inotifyEventQueue, "Failed inotify_init");
@@ -43,17 +37,10 @@ bool DirectoryWatcherLinux::start() {
 
     // Start background thread
     this->watcherThread = std::make_unique<std::thread>(watcherThreadProcedure, std::reference_wrapper{*this});
-    while (!isWorking())
-        ;
-
     return true;
 }
 
-bool DirectoryWatcherLinux::stop() {
-    if (!isWorking()) {
-        return false;
-    }
-
+bool DirectoryWatcherLinux::stopImpl() {
     // Interrupt background thread and wait for completion
     FATAL_ERROR_IF_SYSCALL_FAILED(write(watcherThreadInterruptPipe[1], "\0", 1), "Failed interrupting watcher thread");
     watcherThread->join();
