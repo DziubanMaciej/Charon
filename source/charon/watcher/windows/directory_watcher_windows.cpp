@@ -39,6 +39,8 @@ bool DirectoryWatcherWindows::start() {
         return false;
     }
 
+    fs::create_directories(directoryPath);
+
     // Create handle to our directory
     directoryHandle = openHandle(directoryPath);
     if (directoryHandle == INVALID_HANDLE_VALUE) {

@@ -30,6 +30,8 @@ bool DirectoryWatcherLinux::start() {
         return false;
     }
 
+    fs::create_directories(directoryPath);
+
     // Initialize inotify
     inotifyEventQueue = inotify_init();
     FATAL_ERROR_IF_SYSCALL_FAILED(inotifyEventQueue, "Failed inotify_init");

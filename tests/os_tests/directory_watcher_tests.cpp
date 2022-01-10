@@ -116,3 +116,15 @@ TEST_F(DirectoryWatcherTest, givenMultipleFilesCreatedWhenWatcherIsActiveThenDet
         EXPECT_EQ(FileEvent::Type::Add, event.type);
     }
 }
+
+TEST_F(DirectoryWatcherTest, givenWatchedDirectoryDoesNotExistWhenWatcherIsStartedThenCreateWatchedDirectory) {
+    for (int i = 0; i < 2; i++) {
+        TestFilesHelper::removeDirectory(watchedDir);
+        ASSERT_FALSE(TestFilesHelper::directoryExists(watchedDir));
+
+        EXPECT_TRUE(watcher->start());
+        EXPECT_TRUE(TestFilesHelper::directoryExists(watchedDir));
+        EXPECT_EQ(0u, TestFilesHelper::countFilesInDirectory(watchedDir));
+        EXPECT_TRUE(watcher->stop());
+    }
+}
