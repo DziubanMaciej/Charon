@@ -1,7 +1,13 @@
 
-#include "charon/user_interface/daemon_user_interface.h"
+#include "charon/user_interface/linux/daemon_user_interface_linux.h"
 #include "charon/util/error.h"
 
-std::unique_ptr<DaemonUserInterface> DaemonUserInterface::create([[maybe_unused]] Charon &charon) {
-    FATAL_ERROR("DaemonUserInterface is not supported on Linux");
+std::unique_ptr<DaemonUserInterface> DaemonUserInterface::create(Charon &charon) {
+    return std::unique_ptr<DaemonUserInterface>(new DaemonUserInterfaceLinux(charon));
+}
+
+DaemonUserInterfaceLinux::DaemonUserInterfaceLinux(Charon &charon)
+    : DaemonUserInterface(charon) {}
+
+void DaemonUserInterfaceLinux::run() {
 }
