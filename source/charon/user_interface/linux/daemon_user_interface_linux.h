@@ -5,5 +5,9 @@
 class DaemonUserInterfaceLinux : public DaemonUserInterface {
 public:
     DaemonUserInterfaceLinux(Charon &charon);
-    void run() override;
+    void runImpl() override;
+    void kill() override;
+
+private:
+    static void sigintHandler(int dummy);
 };

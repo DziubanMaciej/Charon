@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 
-void ConsoleUserInterface::run() {
+void ConsoleUserInterface::runImpl() {
     std::string line{};
     while (true) {
         std::getline(std::cin, line);

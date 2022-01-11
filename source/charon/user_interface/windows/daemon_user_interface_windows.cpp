@@ -14,7 +14,7 @@ DaemonUserInterfaceWindows::DaemonUserInterfaceWindows(Charon &charon)
       windowClass(instanceHandle, Window::windowProcNative<DaemonUserInterfaceWindows>, L"CharonClassName"),
       window(instanceHandle, windowClass, this, WMAPP_Init) {}
 
-void DaemonUserInterfaceWindows::run() {
+void DaemonUserInterfaceWindows::runImpl() {
     MSG message{};
     while (GetMessage(&message, NULL, 0, 0)) {
         TranslateMessage(&message);
