@@ -30,7 +30,7 @@ Charon::Charon(const ProcessorConfig &config, Filesystem &filesystem, DirectoryW
 }
 
 bool Charon::start() {
-    if (isStarted.exchange(true)) {
+    if (isStarted.isSignalled()) {
         return false;
     }
 
@@ -61,11 +61,12 @@ bool Charon::start() {
     });
 
     log(LogLevel::Info) << "Charon started";
+    isStarted.signal();
     return true;
 }
 
 bool Charon::stop() {
-    if (!isStarted.exchange(false)) {
+    if (!isStarted.isSignalled()) {
         return false;
     }
 
@@ -85,5 +86,10 @@ bool Charon::stop() {
     }
 
     log(LogLevel::Info) << "Charon stopped";
+    isStarted.reset();
     return true;
+}
+
+void Charon::waitForCompletion() {
+    isStarted.wait(false);
 }

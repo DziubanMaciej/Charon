@@ -4,10 +4,10 @@
 #include "charon/processor/processor.h"
 #include "charon/util/class_traits.h"
 #include "charon/util/filesystem.h"
+#include "charon/util/notification.h"
 #include "charon/watcher/directory_watcher.h"
 
 #include <vector>
-#include <atomic>
 
 struct DirectoryWatcherFactory;
 
@@ -17,6 +17,7 @@ public:
 
     bool start();
     bool stop();
+    void waitForCompletion();
 
     void setLogFilePath(const fs::path &path) { logFilePath = path; }
     void setConfigFilePath(const fs::path &path) { configFilePath = path; }
@@ -42,5 +43,5 @@ private:
     FileEventQueue deferredFileLockerEventQueue{};
 
     // Basic data
-    std::atomic_bool isStarted = false;
+    Notification isStarted{};
 };

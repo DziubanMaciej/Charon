@@ -10,4 +10,5 @@ DaemonUserInterfaceLinux::DaemonUserInterfaceLinux(Charon &charon)
     : DaemonUserInterface(charon) {}
 
 void DaemonUserInterfaceLinux::run() {
+    charon.waitForCompletion();
 }
