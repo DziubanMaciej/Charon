@@ -113,7 +113,10 @@ void Processor::executeProcessorActionMoveOrCopy(const FileEvent &event, const P
     OptionalError error{};
     if (isMove) {
         error = filesystem.move(event.path, dstPath);
-        eventsToIgnore.push_back(FileEvent{event.watchedRootPath, FileEvent::Type::Remove, event.path});
+        executeCrossDeviceMoveFallback(event.path, dstPath, error);
+        if (!error.has_value()) {
+            eventsToIgnore.push_back(FileEvent{event.watchedRootPath, FileEvent::Type::Remove, event.path});
+        }
     } else {
         error = filesystem.copy(event.path, dstPath);
     }
@@ -121,6 +124,23 @@ void Processor::executeProcessorActionMoveOrCopy(const FileEvent &event, const P
     if (error.has_value()) {
         std::error_code code = error.value();
         log(LogLevel::Error) << "Filesystem operation returned code " << code.value() << ": " << code.message();
+    }
+}
+
+void Processor::executeCrossDeviceMoveFallback(const fs::path &src, const fs::path &dst, OptionalError &error) {
+    if (error.has_value() && error.value() == std::errc::cross_device_link) {
+        error = filesystem.copy(src, dst);
+        if (error.has_value()) {
+            return;
+        }
+
+        error = filesystem.remove(src);
+        if (error.has_value()) {
+            log(LogLevel::Error) << "Move operation had to be emulated with copy+remove. Remove operation failed";
+            return;
+        }
+
+        log(LogLevel::Info) << "Move operation had to be emulated with copy+remove.";
     }
 }
 
