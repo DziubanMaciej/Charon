@@ -104,15 +104,27 @@ TEST_F(DirectoryWatcherTest, givenMultipleFilesCreatedWhenWatcherIsActiveThenDet
 
     EXPECT_TRUE(watcher->start());
 
-    for (int i = 0; i < filesCount; i++) {
+    for (auto i = 0u; i < filesCount; i++) {
         TestFilesHelper::createFile(watchedDir / std::to_string(i));
     }
 
-    for (int i = 0; i < filesCount; i++) {
+    for (auto i = 0u; i < filesCount; i++) {
         FileEvent event{};
         EXPECT_TRUE(deferredEventQueue.blockingPop(event, popTimeoutDuration));
         EXPECT_EQ(watchedDir, event.watchedRootPath);
         EXPECT_EQ(watchedDir / std::to_string(i), event.path);
         EXPECT_EQ(FileEvent::Type::Add, event.type);
+    }
+}
+
+TEST_F(DirectoryWatcherTest, givenWatchedDirectoryDoesNotExistWhenWatcherIsStartedThenCreateWatchedDirectory) {
+    for (int i = 0; i < 2; i++) {
+        TestFilesHelper::removeDirectory(watchedDir);
+        ASSERT_FALSE(TestFilesHelper::directoryExists(watchedDir));
+
+        EXPECT_TRUE(watcher->start());
+        EXPECT_TRUE(TestFilesHelper::directoryExists(watchedDir));
+        EXPECT_EQ(0u, TestFilesHelper::countFilesInDirectory(watchedDir));
+        EXPECT_TRUE(watcher->stop());
     }
 }

@@ -8,7 +8,7 @@
 class DaemonUserInterfaceWindows : public DaemonUserInterface {
 public:
     DaemonUserInterfaceWindows(Charon &charon);
-    void run() override;
+    void runImpl() override;
 
     constexpr static UINT WMAPP_TrayIconCallback = WM_APP + 1;
     constexpr static UINT WMAPP_Init = WM_APP + 2;

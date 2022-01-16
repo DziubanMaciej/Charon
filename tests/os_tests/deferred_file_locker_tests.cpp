@@ -1,13 +1,19 @@
 #include "charon/processor/deferred_file_locker.h"
 #include "charon/util/filesystem_impl.h"
 #include "charon/util/logger.h"
+#include "os_tests/skip_macros.h"
 #include "os_tests/test_files_helper.h"
 
 #include <gtest/gtest.h>
+#include <thread>
 
 using namespace std::chrono_literals;
 
 struct DeferredFileLockerTest : ::testing::Test {
+    void SetUp() override {
+        REQUIRE_FILE_LOCKING_OR_SKIP(filesystem);
+    }
+
     void pushFileCreationEventAndCreateFile(const std::filesystem::path &path) {
         TestFilesHelper::createFile(path);
         inputQueue.push(FileEvent{testPath, FileEvent::Type::Add, path});

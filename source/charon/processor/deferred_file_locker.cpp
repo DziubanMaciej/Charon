@@ -40,6 +40,7 @@ bool DeferredFileLocker::processEvents() {
         } else {
             auto [handle, result] = filesystem.lockFile(it->path);
             switch (result) {
+            case Filesystem::LockResult::NotSupported:
             case Filesystem::LockResult::Success:
                 // We have access to the file, we can pass it to the processor
                 it->lockedFileHandle = handle;

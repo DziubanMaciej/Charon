@@ -10,14 +10,20 @@ public:
     DirectoryWatcher(const std::filesystem::path &directoryPath, FileEventQueue &outputQueue, FileEventQueue &deferredOutputQueue);
     virtual ~DirectoryWatcher() {}
 
-    virtual bool start() = 0;
-    virtual bool stop() = 0;
+    bool start();
+    bool stop();
     virtual bool isWorking() const = 0;
 
     const auto &getWatchedDirectory() const { return directoryPath; }
 
 protected:
+    virtual bool startImpl() = 0;
+    virtual bool stopImpl() = 0;
+    void pushEvent(FileEvent &&fileEvent);
+
     const std::filesystem::path directoryPath;
+
+private:
     FileEventQueue &outputQueue;
     FileEventQueue &deferredOutputQueue;
 };

@@ -4,6 +4,7 @@
 
 #include <filesystem>
 #include <optional>
+#include <vector>
 
 namespace fs = std::filesystem;
 
@@ -23,10 +24,13 @@ struct Filesystem : NonCopyableAndMovable {
     enum class LockResult {
         Unknown,
         Success,
+        NotSupported,
         DoesNotExist,
         UsedByOtherProcess,
         NoAccess,
     };
+
+    virtual bool isFileLockingSupported() const = 0;
     virtual std::pair<OsHandle, LockResult> lockFile(const fs::path &path) const = 0;
     virtual void unlockFile(OsHandle &handle) const = 0;
 };

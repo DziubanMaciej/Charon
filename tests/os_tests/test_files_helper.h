@@ -4,6 +4,7 @@
 #include "charon/util/filesystem.h"
 
 #include <fstream>
+#include <sstream>
 #include <string>
 
 struct TestFilesHelper {
@@ -56,6 +57,26 @@ struct TestFilesHelper {
     static bool fileExists(const std::filesystem::path &path) {
         const auto fullPath = getTestFilePath(path);
         return std::filesystem::exists(fullPath);
+    }
+
+    static bool directoryExists(const std::filesystem::path &path) {
+        const auto fullPath = getTestFilePath(path);
+        return std::filesystem::is_directory(path);
+    }
+
+    static bool removeDirectory(const std::filesystem::path &path) {
+        const auto fullPath = getTestFilePath(path);
+        return fs::remove_all(fullPath);
+    }
+
+    static bool fileContains(const std::filesystem::path &path, const std::string expectedContents) {
+        const auto fullPath = getTestFilePath(path);
+
+        std::ifstream stream{fullPath};
+        std::stringstream buffer;
+        buffer << stream.rdbuf();
+
+        return buffer.str() == expectedContents;
     }
 
     static size_t countFilesInDirectory(const std::filesystem::path &path) {

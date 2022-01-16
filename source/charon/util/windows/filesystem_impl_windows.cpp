@@ -1,5 +1,9 @@
 #include "charon/util/filesystem_impl.h"
 
+bool FilesystemImpl::isFileLockingSupported() const {
+    return true;
+}
+
 std::pair<OsHandle, FilesystemImpl::LockResult> FilesystemImpl::lockFile(const fs::path &path) const {
     HANDLE handle = CreateFileW(
         path.c_str(),

@@ -1,0 +1,11 @@
+file(GLOB_RECURSE SOURCE_FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/*.rc
+    ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
+)
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_FILES})
+
+set(TARGET_NAME CharonResources)
+add_library(${TARGET_NAME} OBJECT ${SOURCE_FILES})
+target_include_directories(${TARGET_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
+set_target_properties(${TARGET_NAME} PROPERTIES FOLDER Charon)

@@ -4,6 +4,7 @@
 #include "charon/processor/processor.h"
 #include "charon/util/class_traits.h"
 #include "charon/util/filesystem.h"
+#include "charon/util/notification.h"
 #include "charon/watcher/directory_watcher.h"
 
 #include <vector>
@@ -16,6 +17,7 @@ public:
 
     bool start();
     bool stop();
+    void waitForCompletion();
 
     void setLogFilePath(const fs::path &path) { logFilePath = path; }
     void setConfigFilePath(const fs::path &path) { configFilePath = path; }
@@ -24,8 +26,8 @@ public:
 
 private:
     // Components
-    Processor processor;
     DeferredFileLocker deferredFileLocker;
+    Processor processor;
     std::vector<std::unique_ptr<DirectoryWatcher>> directoryWatchers{};
 
     // Saved file paths
@@ -41,5 +43,5 @@ private:
     FileEventQueue deferredFileLockerEventQueue{};
 
     // Basic data
-    std::atomic_bool isStarted = false;
+    Notification isStarted{};
 };

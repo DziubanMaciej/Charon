@@ -642,3 +642,71 @@ INSTANTIATE_TEST_SUITE_P(
     ProcessorTestWithNonNewFileEventsAndNonFilesystemActions,
     ProcessorTestWithDifferentEventsAndActions,
     ::testing::Combine(nonNewFileEvents, nonFilesystemActions, executeAction));
+
+TEST_F(ProcessorTest, ddd_givenCrossDeviceLinkErrorWhenMoveOperationIsTriggerredThenFallbackToCopyPlusRemove) {
+    MockFilesystem filesystem{};
+    EXPECT_CALL(filesystem, move(fs::path("a/src"), fs::path("b/dst"))).WillOnce(Return(std::make_error_code(std::errc::cross_device_link)));
+    EXPECT_CALL(filesystem, copy(fs::path("a/src"), fs::path("b/dst")));
+    EXPECT_CALL(filesystem, remove(fs::path("a/src")));
+
+    MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
+    EXPECT_CALL(logger, log(LogLevel::Info, "Processor moving file a/src to b/dst"));
+    EXPECT_CALL(logger, log(LogLevel::Info, "Move operation had to be emulated with copy+remove."));
+
+    ProcessorConfig config = createProcessorConfigWithOneMatcher("a");
+    config.matchers[0].actions = {createMoveAction("b", "dst")};
+    Processor processor{config, eventQueue, filesystem};
+
+    pushFileCreationEvent("a", "a/src");
+    pushInterruptEvent();
+    processor.run();
+}
+
+TEST_F(ProcessorTest, ddd_givenCopyOperationFailsWhenPerformingCopyPlusRemoveFallbackThenReportError) {
+    const std::error_code err = std::make_error_code(std::errc::illegal_byte_sequence);
+
+    MockFilesystem filesystem{};
+    EXPECT_CALL(filesystem, move(fs::path("a/src"), fs::path("b/dst"))).WillOnce(Return(std::make_error_code(std::errc::cross_device_link)));
+    EXPECT_CALL(filesystem, copy(fs::path("a/src"), fs::path("b/dst"))).WillOnce(Return(err));
+
+    MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
+    EXPECT_CALL(logger, log(LogLevel::Info, "Processor moving file a/src to b/dst"));
+    std::ostringstream errorStringStream{};
+    errorStringStream << "Filesystem operation returned code " << err.value() << ": " << err.message();
+    EXPECT_CALL(logger, log(LogLevel::Error, errorStringStream.str().c_str()));
+
+    ProcessorConfig config = createProcessorConfigWithOneMatcher("a");
+    config.matchers[0].actions = {createMoveAction("b", "dst")};
+    Processor processor{config, eventQueue, filesystem};
+
+    pushFileCreationEvent("a", "a/src");
+    pushInterruptEvent();
+    processor.run();
+}
+
+TEST_F(ProcessorTest, ddd_givenRemoveOperationFailsWhenPerformingCopyPlusRemoveFallbackThenReportError) {
+    const std::error_code err = std::make_error_code(std::errc::permission_denied);
+
+    MockFilesystem filesystem{};
+    EXPECT_CALL(filesystem, move(fs::path("a/src"), fs::path("b/dst"))).WillOnce(Return(std::make_error_code(std::errc::cross_device_link)));
+    EXPECT_CALL(filesystem, copy(fs::path("a/src"), fs::path("b/dst")));
+    EXPECT_CALL(filesystem, remove(fs::path("a/src"))).WillOnce(Return(err));
+
+    MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
+    EXPECT_CALL(logger, log(LogLevel::Info, "Processor moving file a/src to b/dst"));
+    EXPECT_CALL(logger, log(LogLevel::Error, "Move operation had to be emulated with copy+remove. Remove operation failed"));
+    std::ostringstream errorStringStream{};
+    errorStringStream << "Filesystem operation returned code " << err.value() << ": " << err.message();
+    EXPECT_CALL(logger, log(LogLevel::Error, errorStringStream.str().c_str()));
+
+    ProcessorConfig config = createProcessorConfigWithOneMatcher("a");
+    config.matchers[0].actions = {createMoveAction("b", "dst")};
+    Processor processor{config, eventQueue, filesystem};
+
+    pushFileCreationEvent("a", "a/src");
+    pushInterruptEvent();
+    processor.run();
+}

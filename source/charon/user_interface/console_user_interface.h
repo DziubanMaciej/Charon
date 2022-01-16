@@ -5,5 +5,5 @@
 struct ConsoleUserInterface : UserInterface {
     using UserInterface::UserInterface;
 
-    void run() override;
+    void runImpl() override;
 };

@@ -9,8 +9,8 @@ public:
     DirectoryWatcherWindows(const std::filesystem::path &directoryPath, FileEventQueue &outputQueue, FileEventQueue &deferredOutputQueue);
     DirectoryWatcherWindows::~DirectoryWatcherWindows() override;
 
-    bool start() override;
-    bool stop() override;
+    bool startImpl() override;
+    bool stopImpl() override;
     bool isWorking() const override;
 
 private:

@@ -3,10 +3,11 @@
 #include "charon/charon/os_handle.h"
 
 #if defined(WIN32)
-const static inline OsHandle mockOsHandle = reinterpret_cast<HANDLE>(0x1234);
+#define WIDEN(x) L##x
+#define CSTRING(x) WIDEN(x)
 
 #elif linux
-const static inline OsHandle mockOsHandle = 0x1234;
+#define CSTRING(x) x
 
 #else
 static_assert(false, "Unsupported system");

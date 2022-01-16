@@ -26,6 +26,7 @@ private:
     void executeProcessorAction(const FileEvent &event, const ProcessorAction &action, ActionMatcherState &actionMatcherState);
     void executeProcessorActionMoveOrCopy(const FileEvent &event, const ProcessorAction &action,
                                           ActionMatcherState &actionMatcherState, bool isMove);
+    void executeCrossDeviceMoveFallback(const fs::path &src, const fs::path &dst, OptionalError &error);
     void executeProcessorActionRemove(const FileEvent &event, ActionMatcherState &actionMatcherState);
     void executeProcessorActionPrint(const FileEvent &event) const;
 

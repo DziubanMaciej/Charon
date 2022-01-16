@@ -4,6 +4,7 @@
 #include "charon/util/logger.h"
 #include "charon/util/time.h"
 #include "os_tests/fixtures/processor_config_fixture.h"
+#include "os_tests/skip_macros.h"
 
 #include <gtest/gtest.h>
 #include <regex>
@@ -493,6 +494,8 @@ TEST_F(ProcessorTest, givenFileAlreadyExistsWhenProcessorPerformsCopyActionThenO
 }
 
 TEST_F(ProcessorTest, givenLockedFileWhenProcessingEventThenUnlockFileAndProcessAction) {
+    REQUIRE_FILE_LOCKING_OR_SKIP(filesystem);
+
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
     config.matchers[0].actions = {createMoveAction("niceFile")};
     Processor processor{config, eventQueue, filesystem};
@@ -517,6 +520,8 @@ TEST_F(ProcessorTest, givenLockedFileWhenProcessingEventThenUnlockFileAndProcess
 }
 
 TEST_F(ProcessorTest, givenLockedFileWithIgnoredExtensionWhenProcessingEventThenUnlockFileAndSkipAction) {
+    REQUIRE_FILE_LOCKING_OR_SKIP(filesystem);
+
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
     config.matchers[0].actions = {createMoveAction("niceFile")};
     config.matchers[0].watchedExtensions = {"png"};
