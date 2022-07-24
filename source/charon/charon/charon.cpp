@@ -3,25 +3,18 @@
 #include "charon/util/logger.h"
 #include "charon/watcher/directory_watcher_factory.h"
 
-#include <unordered_set>
-
-namespace std {
-template <>
-struct hash<fs::path> {
-    size_t operator()(const fs::path &path) const noexcept {
-        // TODO this is not safe, path should be canonized before calculating the hash
-        return fs::hash_value(path);
-    }
-};
-} // namespace std
+#include <vector>
+#include <algorithm>
 
 Charon::Charon(const ProcessorConfig &config, Filesystem &filesystem, DirectoryWatcherFactory &watcherFactory)
     : deferredFileLocker(deferredFileLockerEventQueue, processorEventQueue, filesystem),
       processor(config, this->processorEventQueue, filesystem) {
 
-    std::unordered_set<fs::path> directoriesToWatch = {};
+    std::vector<fs::path> directoriesToWatch = {};
     for (const ProcessorActionMatcher &matcher : config.matchers) {
-        directoriesToWatch.insert(matcher.watchedFolder);
+        if (std::find(directoriesToWatch.begin(), directoriesToWatch.end(), matcher.watchedFolder) == directoriesToWatch.end()) {
+            directoriesToWatch.push_back(matcher.watchedFolder);
+        }
     }
 
     for (const fs::path &directoryToWatch : directoriesToWatch) {
