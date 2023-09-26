@@ -1,4 +1,5 @@
 #include "charon/util/logger.h"
+#include "common/oakum_gtest_event_listener.h"
 #include "os_tests/test_files_helper.h"
 
 #include <gtest/gtest.h>
@@ -22,6 +23,7 @@ int main(int argc, char *argv[]) {
 
     testing::TestEventListeners &listeners = testing::UnitTest::GetInstance()->listeners();
     listeners.Append(new TestDirectoryEventListener());
+    listeners.Append(new OakumGtestEventListener(true));
 
     return RUN_ALL_TESTS();
 }

@@ -4,3 +4,6 @@
 [submodule "third_party/json"]
 	path = third_party/json
 	url = https://github.com/nlohmann/json
+[submodule "third_party/oakum"]
+	path = third_party/oakum
+	url = https://github.com/DziubanMaciej/Oakum
