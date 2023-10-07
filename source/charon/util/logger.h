@@ -59,7 +59,7 @@ private:
 };
 
 template <>
-inline RaiiLog &RaiiLog::operator<<<std::filesystem::path>(const std::filesystem::path &arg) {
+inline RaiiLog &RaiiLog::operator<< <std::filesystem::path>(const std::filesystem::path &arg) {
 #if defined(WIN32)
     // Convert wstring to string while ignoring diacritics
     const std::wstring &src = arg.native();

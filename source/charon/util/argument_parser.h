@@ -2,12 +2,12 @@
 
 #include "charon/util/filesystem.h"
 
+#include <algorithm>
 #include <codecvt>
 #include <locale>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <algorithm>
 
 using ArgName = std::string;
 using ArgNames = std::vector<ArgName>;

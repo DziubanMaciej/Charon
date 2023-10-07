@@ -3,8 +3,8 @@
 #include "charon/util/logger.h"
 #include "charon/watcher/directory_watcher_factory.h"
 
-#include <vector>
 #include <algorithm>
+#include <vector>
 
 Charon::Charon(const ProcessorConfig &config, Filesystem &filesystem, DirectoryWatcherFactory &watcherFactory)
     : deferredFileLocker(deferredFileLockerEventQueue, processorEventQueue, filesystem),
