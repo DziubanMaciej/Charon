@@ -34,15 +34,17 @@ class CharonAcceptanceTest(unittest.TestCase):
             '--config',
             test_files.get_full_path_str("charon_config.json"),
             '--log',
-            test_files.get_full_path_str("charon_log.txt")
+            test_files.get_full_path_str("charon_log.txt"),
+            '--verbose',
         ]
         self.charon_process = subprocess.Popen(args,
                                                stdin=subprocess.PIPE,
-                                               stdout=subprocess.DEVNULL,
+                                               stdout=subprocess.PIPE,
                                                stderr=subprocess.DEVNULL)
-        time.sleep(charonTestsConfig.wait_for_charon_timeout)
+        self._wait_for_charon_output_line("Charon started", 1)
 
-    def disable_charon(self):
+    def disable_charon(self, operations_count):
+        self._wait_for_charon_output_line("Operation succeeded", operations_count)
         try:
             self.charon_process.stdin.write(b'q')
             # noinspection PyUnusedLocal
@@ -55,12 +57,25 @@ class CharonAcceptanceTest(unittest.TestCase):
             self.charon_process.terminate()
             self.charon_process = None
 
+    def _wait_for_charon_output_line(self, required_line, required_count):
+        if required_count == 0:
+            return
+
+        # TODO: use timeout 'charonTestsConfig.terminate_timeout'
+        current_count = 0
+        while True:
+            out = self.charon_process.stdout.readline().decode()
+            if required_line in out:
+                current_count += 1
+                if current_count == required_count:
+                    break
+
 
 class SimpleTestCase(CharonAcceptanceTest):
     def test_do_nothing(self):
         config = []
         self.enable_charon(config)
-        self.disable_charon()
+        self.disable_charon(0)
 
     def test_copy_one_file(self):
         # Prepare test data
@@ -89,7 +104,7 @@ class SimpleTestCase(CharonAcceptanceTest):
         test_files.create_file(f'{src_dir}/{filename}', contents)
 
         # Check results
-        self.disable_charon()
+        self.disable_charon(1)
         assert test_files.validate_file(f'{dst_dir}/{filename}', contents)
         assert test_files.validate_file(f'{src_dir}/{filename}', contents)
         assert test_files.is_dir_with_n_files(src_dir, 1)
@@ -122,7 +137,7 @@ class SimpleTestCase(CharonAcceptanceTest):
         test_files.create_file(f'{src_dir}/{filename}', contents)
 
         # Check results
-        self.disable_charon()
+        self.disable_charon(1)
         assert test_files.validate_file(f'{dst_dir}/{filename}', contents)
         assert test_files.is_dir_with_n_files(src_dir, 0)
         assert test_files.is_dir_with_n_files(dst_dir, 1)
@@ -178,7 +193,7 @@ class SimpleTestCase(CharonAcceptanceTest):
             test_files.create_file(f'{src_dir}/{file[0]}', file[1])
 
         # Check results
-        self.disable_charon()
+        self.disable_charon(file_count * 3)
         for file in files_for_copy:
             assert test_files.validate_file(f'{src_dir}/{file[0]}', file[1])
             assert test_files.validate_file(f'{dst_dir}/{file[0]}', file[1])
@@ -230,7 +245,7 @@ class SimpleTestCase(CharonAcceptanceTest):
             test_files.create_file(f'{src_dir2}/{file[0]}', file[1])
 
         # Check results
-        self.disable_charon()
+        self.disable_charon(file_count * 2)
         for file in files1:
             assert test_files.validate_file(f'{dst_dir}/{file[0]}', file[1])
         for file in files2:
@@ -282,7 +297,7 @@ class SimpleTestCase(CharonAcceptanceTest):
             test_files.create_file(f'{src_dir2}/{file}', '')
 
         # Check results
-        self.disable_charon()
+        self.disable_charon(file_count * 2)
         for i in range(file_count * 2):
             base_name = f'{dst_dir}/file_{i:03d}'
             assert test_files.validate_file(f'{base_name}.jpg', '') or test_files.validate_file(f'{base_name}.png', '')
@@ -335,7 +350,7 @@ class SimpleTestCase(CharonAcceptanceTest):
             test_files.create_file(f'{src_dir}/{file[0]}', file[1])
 
         # Check results
-        self.disable_charon()
+        self.disable_charon(file_count * 3)
         assert test_files.is_dir_with_n_files(src_dir, 0)
         assert test_files.is_dir_with_n_files(dst_dir1, file_count)
         assert test_files.is_dir_with_n_files(dst_dir2, file_count)
@@ -375,7 +390,7 @@ class SimpleTestCase(CharonAcceptanceTest):
             test_files.create_file(f'{src_dir}/{filename}', contents)
 
         # Check results
-        self.disable_charon()
+        self.disable_charon(4)
         for i in range(len(filenames)):
             assert test_files.validate_file(f'{dst_dir}/file_{i:03d}.ź', contents)
         assert test_files.is_dir_with_n_files(src_dir, 0)

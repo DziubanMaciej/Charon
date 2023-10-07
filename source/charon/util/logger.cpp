@@ -28,6 +28,10 @@ RaiiLog log(LogLevel logLevel, Logger *logger) {
 }
 
 void OstreamLogger::log(LogLevel level, const std::string &message) {
+    if ((level & allowedLogLevels) == LogLevel(0)) {
+        return;
+    }
+
     writeDate();
     writeLogLevel(level);
     out << ' ' << message << std::endl;
@@ -40,17 +44,32 @@ void OstreamLogger::writeDate() {
 }
 
 void OstreamLogger::writeLogLevel(LogLevel level) {
-    const static char *preambles[] = {
-        "[Error]",
-        "[Info]",
-        "[Warning]",
-        "[Debug]",
-    };
-    out << preambles[static_cast<size_t>(level)];
+    const char *preamble = nullptr;
+    switch (level) {
+    case LogLevel::Error:
+        preamble = "[Error]";
+        break;
+    case LogLevel::Info:
+        preamble = "[Info]";
+        break;
+    case LogLevel::Warning:
+        preamble = "[Warning]";
+        break;
+    case LogLevel::Debug:
+        preamble = "[Debug]";
+        break;
+    case LogLevel::VerboseInfo:
+        preamble = "[VerboseInfo]";
+        break;
+    default:
+        preamble = "[Unknown]";
+        break;
+    }
+    out << preamble;
 }
 
-FileLogger::FileLogger(const Time &time, const fs::path &logFile)
-    : OstreamLogger(time, file),
+FileLogger::FileLogger(const Time &time, const fs::path &logFile, LogLevel allowedLogLevels)
+    : OstreamLogger(time, file, allowedLogLevels),
       file(logFile, std::ios::app) {}
 
 void NullLogger::log([[maybe_unused]] LogLevel level, [[maybe_unused]] const std::string &message) {}

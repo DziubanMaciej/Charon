@@ -324,7 +324,7 @@ TEST_F(ProcessorTest, givenMultipleActionsTriggeredAndCounterIsUsedWhenProcessor
 
 TEST_F(ProcessorTest, givenAllFilenamesTakenWhenCounterIsUsedThenReturnError) {
     TimeImpl time{};
-    ConsoleLogger consoleLogger{time};
+    ConsoleLogger consoleLogger{time, defaultLogLevel}; // TODO create MemoryLogger to not use stdout
     auto consoleLoggerSetup = consoleLogger.raiiSetup();
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher();

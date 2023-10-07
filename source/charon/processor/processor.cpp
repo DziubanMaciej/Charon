@@ -124,6 +124,8 @@ void Processor::executeProcessorActionMoveOrCopy(const FileEvent &event, const P
     if (error.has_value()) {
         std::error_code code = error.value();
         log(LogLevel::Error) << "Filesystem operation returned code " << code.value() << ": " << code.message();
+    } else {
+        log(LogLevel::VerboseInfo) << "Operation succeeded";
     }
 }
 
@@ -154,6 +156,8 @@ void Processor::executeProcessorActionRemove(const FileEvent &event, ActionMatch
     if (error.has_value()) {
         std::error_code code = error.value();
         log(LogLevel::Error) << "Filesystem operation returned code " << code.value() << ": " << code.message();
+    } else {
+        log(LogLevel::VerboseInfo) << "Operation succeeded";
     }
 }
 

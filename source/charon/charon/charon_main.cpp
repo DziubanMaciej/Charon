@@ -13,11 +13,16 @@ int charonMain(int argc, char **argv, bool isDaemon) {
     ArgumentParser argParser{argc, argv};
     const fs::path logPath = argParser.getArgumentValue<fs::path>(ArgNames{"-l", "--log"}, {});
     const fs::path configPath = argParser.getArgumentValue<fs::path>(ArgNames{"-c", "--config"}, fs::current_path() / "config.json");
+    const bool verbose = argParser.getArgumentValue<bool>(ArgNames{"-v", "--verbose"}, false);
 
     // Setup logger
+    LogLevel allowedLogLevels = defaultLogLevel;
+    if (verbose) {
+        allowedLogLevels = allowedLogLevels | LogLevel::VerboseInfo;
+    }
     TimeImpl time{};
-    FileLogger fileLogger{time, logPath};
-    ConsoleLogger consoleLogger{time};
+    FileLogger fileLogger{time, logPath, allowedLogLevels};
+    ConsoleLogger consoleLogger{time, allowedLogLevels};
     MultiplexedLogger logger{};
     if (!isDaemon) {
         logger.add(&consoleLogger);

@@ -396,6 +396,7 @@ TEST_F(ProcessorTest, whenMoveActionIsExecutedThenLogInfo) {
     auto loggerSetup = logger.raiiSetup();
 
     EXPECT_CALL(logger, log(LogLevel::Info, "Processor moving file a/file.txt to b/file.txt"));
+    EXPECT_CALL(logger, log(LogLevel::VerboseInfo, "Operation succeeded"));
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher("a");
     config.matchers[0].actions = {createMoveAction("b", "${name}")};
@@ -412,6 +413,7 @@ TEST_F(ProcessorTest, whenCopyActionIsExecutedThenLogInfo) {
     auto loggerSetup = logger.raiiSetup();
 
     EXPECT_CALL(logger, log(LogLevel::Info, "Processor copying file a/file.txt to b/file.txt"));
+    EXPECT_CALL(logger, log(LogLevel::VerboseInfo, "Operation succeeded"));
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher("a");
     config.matchers[0].actions = {createCopyAction("b", "${name}")};
@@ -428,6 +430,7 @@ TEST_F(ProcessorTest, whenRemoveActionIsExecutedThenLogInfo) {
     auto loggerSetup = logger.raiiSetup();
 
     EXPECT_CALL(logger, log(LogLevel::Info, "Processor removing file a/file.txt"));
+    EXPECT_CALL(logger, log(LogLevel::VerboseInfo, "Operation succeeded"));
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher("a");
     config.matchers[0].actions = {createRemoveAction()};
@@ -446,6 +449,7 @@ TEST_F(ProcessorTest, givenMultipleActionsWhenTheyAreExecutedThenLogInfo) {
     EXPECT_CALL(logger, log(LogLevel::Info, "Processor copying file a/file.txt to b/file.txt"));
     EXPECT_CALL(logger, log(LogLevel::Info, "Processor moving file a/file.txt to c/file.txt"));
     EXPECT_CALL(logger, log(LogLevel::Info, "Processor removing file a/file.txt"));
+    EXPECT_CALL(logger, log(LogLevel::VerboseInfo, "Operation succeeded")).Times(3);
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher("a");
     config.matchers[0].actions = {
@@ -653,6 +657,7 @@ TEST_F(ProcessorTest, ddd_givenCrossDeviceLinkErrorWhenMoveOperationIsTriggerred
     auto loggerSetup = logger.raiiSetup();
     EXPECT_CALL(logger, log(LogLevel::Info, "Processor moving file a/src to b/dst"));
     EXPECT_CALL(logger, log(LogLevel::Info, "Move operation had to be emulated with copy+remove."));
+    EXPECT_CALL(logger, log(LogLevel::VerboseInfo, "Operation succeeded"));
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher("a");
     config.matchers[0].actions = {createMoveAction("b", "dst")};

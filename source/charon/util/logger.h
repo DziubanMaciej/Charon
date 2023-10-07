@@ -13,11 +13,19 @@
 struct Time;
 
 enum class LogLevel {
-    Error,
-    Info,
-    Warning,
-    Debug,
+    Error = 1 << 0,
+    Info = 1 << 1,
+    Warning = 1 << 2,
+    Debug = 1 << 3,
+    VerboseInfo = 1 << 4,
 };
+constexpr inline LogLevel operator|(LogLevel left, LogLevel right) {
+    return LogLevel(std::underlying_type_t<LogLevel>(left) | std::underlying_type_t<LogLevel>(right));
+}
+constexpr inline LogLevel operator&(LogLevel left, LogLevel right) {
+    return LogLevel(std::underlying_type_t<LogLevel>(left) & std::underlying_type_t<LogLevel>(right));
+}
+constexpr static inline LogLevel defaultLogLevel = LogLevel::Error | LogLevel::Info | LogLevel::Warning;
 
 struct Logger : NonCopyableAndMovable {
     virtual ~Logger() {}
@@ -81,7 +89,7 @@ inline RaiiLog &RaiiLog::operator<< <std::filesystem::path>(const std::filesyste
 RaiiLog log(LogLevel logLevel, Logger *logger = nullptr);
 
 struct OstreamLogger : Logger {
-    OstreamLogger(const Time &time, std::ostream &out) : time(time), out(out) {}
+    OstreamLogger(const Time &time, std::ostream &out, LogLevel allowedLogLevels) : time(time), out(out), allowedLogLevels(allowedLogLevels) {}
     void log(LogLevel level, const std::string &message) override;
 
 private:
@@ -89,14 +97,15 @@ private:
     void writeLogLevel(LogLevel level);
     const Time &time;
     std::ostream &out;
+    LogLevel allowedLogLevels;
 };
 
 struct ConsoleLogger : OstreamLogger {
-    ConsoleLogger(const Time &time) : OstreamLogger(time, std::cout) {}
+    ConsoleLogger(const Time &time, LogLevel allowedLogLevels) : OstreamLogger(time, std::cout, allowedLogLevels) {}
 };
 
 struct FileLogger : OstreamLogger {
-    FileLogger(const Time &time, const fs::path &logFile);
+    FileLogger(const Time &time, const fs::path &logFile, LogLevel allowedLogLevels);
 
 private:
     std::ofstream file{};

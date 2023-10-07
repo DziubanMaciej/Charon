@@ -50,7 +50,7 @@ TEST(LoggerTest, whenConsoleLoggerIsUsedThenPrintMessagesToConsole) {
         .WillOnce([](std::ostream &out) { out << "date1"; })
         .WillOnce([](std::ostream &out) { out << "date2"; });
 
-    ConsoleLogger logger{time};
+    ConsoleLogger logger{time, defaultLogLevel};
 
     ::testing::internal::CaptureStdout();
     logger.log(LogLevel::Info, "Hello world");
