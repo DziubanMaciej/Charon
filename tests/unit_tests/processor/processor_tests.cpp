@@ -33,7 +33,7 @@ struct ProcessorFixture : ProcessorConfigFixture {
 
 struct ProcessorTest : ::testing::Test, ProcessorFixture {};
 
-TEST_F(ProcessorTest, whenCopyActionIsTriggeredThenRequestFileCopy) {
+TEST_F(ProcessorTest, givenConfigWithMatchersWhenCopyActionIsTriggeredThenRequestFileCopy) {
     MockFilesystem filesystem{};
     EXPECT_CALL(filesystem, copy(dummyPath1 / "b.jpg", dummyPath2 / "aaa.jpg"));
 
@@ -46,7 +46,7 @@ TEST_F(ProcessorTest, whenCopyActionIsTriggeredThenRequestFileCopy) {
     processor.run();
 }
 
-TEST_F(ProcessorTest, whenMoveActionIsTriggeredThenRequestFileMove) {
+TEST_F(ProcessorTest, givenConfigWithMatchersWhenMoveActionIsTriggeredThenRequestFileMove) {
     MockFilesystem filesystem{};
     EXPECT_CALL(filesystem, move(dummyPath1 / "b.jpg", dummyPath2 / "aaa.jpg"));
 
@@ -59,7 +59,7 @@ TEST_F(ProcessorTest, whenMoveActionIsTriggeredThenRequestFileMove) {
     processor.run();
 }
 
-TEST_F(ProcessorTest, whenRemoveActionIsTriggeredThenRequestFileMove) {
+TEST_F(ProcessorTest, givenConfigWithMatchersWhenRemoveActionIsTriggeredThenRequestFileMove) {
     MockFilesystem filesystem{};
     EXPECT_CALL(filesystem, remove(dummyPath1 / "b.jpg"));
 
@@ -72,7 +72,7 @@ TEST_F(ProcessorTest, whenRemoveActionIsTriggeredThenRequestFileMove) {
     processor.run();
 }
 
-TEST_F(ProcessorTest, givenCounterUsedWhenCopyActionIsTriggeredThenCheckForFirstFreeFilename) {
+TEST_F(ProcessorTest, givenConfigWithMatchersAndCounterUsedWhenCopyActionIsTriggeredThenCheckForFirstFreeFilename) {
     MockFilesystem filesystem{};
     {
         InSequence seq{};
@@ -90,7 +90,7 @@ TEST_F(ProcessorTest, givenCounterUsedWhenCopyActionIsTriggeredThenCheckForFirst
     processor.run();
 }
 
-TEST_F(ProcessorTest, givenCounterUsedAndThereAreExistingFilesWhenCopyActionIsTriggeredThenCheckForFirstFreeFilename) {
+TEST_F(ProcessorTest, givenConfigWithMatchersAndCounterUsedAndThereAreExistingFilesWhenCopyActionIsTriggeredThenCheckForFirstFreeFilename) {
     MockFilesystem filesystem{};
     {
         InSequence seq{};
@@ -112,7 +112,7 @@ TEST_F(ProcessorTest, givenCounterUsedAndThereAreExistingFilesWhenCopyActionIsTr
     processor.run();
 }
 
-TEST_F(ProcessorTest, givenCounterUsedAndIndexZeroIsFreeWhenCopyActionIsTriggeredThenUseIndexZero) {
+TEST_F(ProcessorTest, givenConfigWithMatchersAndCounterUsedAndIndexZeroIsFreeWhenCopyActionIsTriggeredThenUseIndexZero) {
     MockFilesystem filesystem{};
     {
         InSequence seq{};
@@ -133,7 +133,7 @@ TEST_F(ProcessorTest, givenCounterUsedAndIndexZeroIsFreeWhenCopyActionIsTriggere
     processor.run();
 }
 
-TEST_F(ProcessorTest, givenCounterUsedAndIndexOneIsFreeWhenCopyActionIsTriggeredThenUseIndexOne) {
+TEST_F(ProcessorTest, givenConfigWithMatchersAndCounterUsedAndIndexOneIsFreeWhenCopyActionIsTriggeredThenUseIndexOne) {
     MockFilesystem filesystem{};
     {
         InSequence seq{};
@@ -154,7 +154,7 @@ TEST_F(ProcessorTest, givenCounterUsedAndIndexOneIsFreeWhenCopyActionIsTriggered
     processor.run();
 }
 
-TEST_F(ProcessorTest, givenCounterUsedAndMultipleGapsInNamesWhenCopyActionsAreTriggeredThenFillGaps) {
+TEST_F(ProcessorTest, givenConfigWithMatchersAndCounterUsedAndMultipleGapsInNamesWhenCopyActionsAreTriggeredThenFillGaps) {
     MockFilesystem filesystem{};
     {
         InSequence seq{};
@@ -206,7 +206,7 @@ TEST_F(ProcessorTest, givenCounterUsedAndMultipleGapsInNamesWhenCopyActionsAreTr
     processor.run();
 }
 
-TEST_F(ProcessorTest, givenCounterUsedAndMultipleGapsInNamesWithDifferentExtensionsWhenCopyActionsAreTriggeredThenFillGaps) {
+TEST_F(ProcessorTest, givenConfigWithMatchersAndCounterUsedAndMultipleGapsInNamesWithDifferentExtensionsWhenCopyActionsAreTriggeredThenFillGaps) {
     MockFilesystem filesystem{};
     {
         InSequence seq{};
@@ -258,7 +258,7 @@ TEST_F(ProcessorTest, givenCounterUsedAndMultipleGapsInNamesWithDifferentExtensi
     processor.run();
 }
 
-TEST_F(ProcessorTest, givenNameVariableUsedWhenCopyActionIsTriggeredThenResolveNameProperly) {
+TEST_F(ProcessorTest, givenConfigWithMatchersAndNameVariableUsedWhenCopyActionIsTriggeredThenResolveNameProperly) {
     MockFilesystem filesystem{};
     EXPECT_CALL(filesystem, copy(dummyPath1 / "b.jpg", dummyPath2 / "a_b_c.jpg"));
 
@@ -273,7 +273,7 @@ TEST_F(ProcessorTest, givenNameVariableUsedWhenCopyActionIsTriggeredThenResolveN
     processor.run();
 }
 
-TEST_F(ProcessorTest, givenPreviousNameVariableUsedWhenCopyActionIsTriggeredThenResolveNameProperly) {
+TEST_F(ProcessorTest, givenConfigWithMatchersAndPreviousNameVariableUsedWhenCopyActionIsTriggeredThenResolveNameProperly) {
     MockFilesystem filesystem{};
     EXPECT_CALL(filesystem, listFiles(dummyPath2));
     EXPECT_CALL(filesystem, copy(dummyPath1 / "b.jpg", dummyPath2 / "000.jpg"));
@@ -291,7 +291,7 @@ TEST_F(ProcessorTest, givenPreviousNameVariableUsedWhenCopyActionIsTriggeredThen
     processor.run();
 }
 
-TEST_F(ProcessorTest, givenExtensionVariableUsedWhenCopyActionIsTriggeredThenResolveNameProperly) {
+TEST_F(ProcessorTest, givenConfigWithMatchersAndExtensionVariableUsedWhenCopyActionIsTriggeredThenResolveNameProperly) {
     MockFilesystem filesystem{};
     EXPECT_CALL(filesystem, copy(dummyPath1 / "b.jpg", dummyPath2 / "a_jpg_c.jpg"));
 
@@ -304,7 +304,7 @@ TEST_F(ProcessorTest, givenExtensionVariableUsedWhenCopyActionIsTriggeredThenRes
     processor.run();
 }
 
-TEST_F(ProcessorTest, givenMultipleVariablesUsedWhenCopyActionIsTriggeredThenResolveNameProperly) {
+TEST_F(ProcessorTest, givenConfigWithMatchersAndMultipleVariablesUsedWhenCopyActionIsTriggeredThenResolveNameProperly) {
     MockFilesystem filesystem{};
     EXPECT_CALL(filesystem, copy(dummyPath1 / "b.jpg", dummyPath2 / "dst.jpg"));
     EXPECT_CALL(filesystem, copy(dummyPath1 / "b.jpg", dummyPath2 / "dst_b_jpg_b.jpg"));
@@ -321,7 +321,7 @@ TEST_F(ProcessorTest, givenMultipleVariablesUsedWhenCopyActionIsTriggeredThenRes
     processor.run();
 }
 
-TEST_F(ProcessorTest, givenEventFromDifferentDirectoryThanWatchedWhenEventIsTriggeredThenDoNotExecuteAnyActions) {
+TEST_F(ProcessorTest, givenConfigWithMatchersAndEventFromDifferentDirectoryThanWatchedWhenEventIsTriggeredThenDoNotExecuteAnyActions) {
     MockFilesystem filesystem{};
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath2);
     config.matchers()->matchers[0].actions = {createCopyAction(dummyPath2, "dst")};
@@ -332,7 +332,7 @@ TEST_F(ProcessorTest, givenEventFromDifferentDirectoryThanWatchedWhenEventIsTrig
     processor.run();
 }
 
-TEST_F(ProcessorTest, givenMultipleActionMatchersWhenEventIsTriggeredThenSelectProperActionMatcher) {
+TEST_F(ProcessorTest, givenConfigWithMatchersAndMultipleActionMatchersWhenEventIsTriggeredThenSelectProperActionMatcher) {
     MockFilesystem filesystem{};
     EXPECT_CALL(filesystem, copy(dummyPath1 / "x.jpg", dummyPath1 / "abc.jpg"));
     EXPECT_CALL(filesystem, copy(dummyPath2 / "y.jpg", dummyPath2 / "def.jpg"));
@@ -348,7 +348,7 @@ TEST_F(ProcessorTest, givenMultipleActionMatchersWhenEventIsTriggeredThenSelectP
     processor.run();
 }
 
-TEST_F(ProcessorTest, givenExtensionFiltersNotSatisfiedWhenEventIsTriggeredThenSkipIt) {
+TEST_F(ProcessorTest, givenConfigWithMatchersAndExtensionFiltersNotSatisfiedWhenEventIsTriggeredThenSkipIt) {
     MockFilesystem filesystem{};
     EXPECT_CALL(filesystem, copy(dummyPath1 / "a.jpg", dummyPath2 / "b.jpg"));
     EXPECT_CALL(filesystem, copy(dummyPath1 / "a.png", dummyPath2 / "b.png"));
@@ -366,7 +366,7 @@ TEST_F(ProcessorTest, givenExtensionFiltersNotSatisfiedWhenEventIsTriggeredThenS
     processor.run();
 }
 
-TEST_F(ProcessorTest, givenMultipleActionMatchersExtensionFiltersNotSatisfiedWhenEventIsTriggeredThenSelectNextMatcher) {
+TEST_F(ProcessorTest, givenConfigWithMatchersAndMultipleActionMatchersExtensionFiltersNotSatisfiedWhenEventIsTriggeredThenSelectNextMatcher) {
     MockFilesystem filesystem{};
     EXPECT_CALL(filesystem, copy(dummyPath1 / "a.jpg", dummyPath2 / "image.jpg"));
     EXPECT_CALL(filesystem, copy(dummyPath1 / "a.png", dummyPath2 / "image.png"));
@@ -390,7 +390,7 @@ TEST_F(ProcessorTest, givenMultipleActionMatchersExtensionFiltersNotSatisfiedWhe
     processor.run();
 }
 
-TEST_F(ProcessorTest, whenMoveActionIsExecutedThenLogInfo) {
+TEST_F(ProcessorTest, givenConfigWithMatchersWhenMoveActionIsExecutedThenLogInfo) {
     MockFilesystem filesystem{false};
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
@@ -407,7 +407,7 @@ TEST_F(ProcessorTest, whenMoveActionIsExecutedThenLogInfo) {
     processor.run();
 }
 
-TEST_F(ProcessorTest, whenCopyActionIsExecutedThenLogInfo) {
+TEST_F(ProcessorTest, givenConfigWithMathersWhenCopyActionIsExecutedThenLogInfo) {
     MockFilesystem filesystem{false};
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
@@ -424,7 +424,7 @@ TEST_F(ProcessorTest, whenCopyActionIsExecutedThenLogInfo) {
     processor.run();
 }
 
-TEST_F(ProcessorTest, whenRemoveActionIsExecutedThenLogInfo) {
+TEST_F(ProcessorTest, givenConfigWithMathersWhenRemoveActionIsExecutedThenLogInfo) {
     MockFilesystem filesystem{false};
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
@@ -441,7 +441,7 @@ TEST_F(ProcessorTest, whenRemoveActionIsExecutedThenLogInfo) {
     processor.run();
 }
 
-TEST_F(ProcessorTest, givenMultipleActionsWhenTheyAreExecutedThenLogInfo) {
+TEST_F(ProcessorTest, givenConfigWithMatchersAndMultipleActionsWhenTheyAreExecutedThenLogInfo) {
     MockFilesystem filesystem{false};
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
@@ -464,7 +464,7 @@ TEST_F(ProcessorTest, givenMultipleActionsWhenTheyAreExecutedThenLogInfo) {
     processor.run();
 }
 
-TEST_F(ProcessorTest, givenNoMatchingActionMatcherWhenEventIsProcessedThenLogInfo) {
+TEST_F(ProcessorTest, givenConfigWithMatchersAndNoMatchingActionMatcherWhenEventIsProcessedThenLogInfo) {
     MockFilesystem filesystem{};
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
@@ -481,7 +481,7 @@ TEST_F(ProcessorTest, givenNoMatchingActionMatcherWhenEventIsProcessedThenLogInf
     processor.run();
 }
 
-TEST_F(ProcessorTest, givenPrintActionWhenEventIsProcessedThenLogInfo) {
+TEST_F(ProcessorTest, givenConfigWithMatchersAndPrintActionWhenEventIsProcessedThenLogInfo) {
     MockFilesystem filesystem{};
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
@@ -508,7 +508,7 @@ TEST_F(ProcessorTest, givenPrintActionWhenEventIsProcessedThenLogInfo) {
     processor.run();
 }
 
-TEST_F(ProcessorTest, givenCreateDirectoryEventWhenProcessorIsRunningThenSkipTheEvent) {
+TEST_F(ProcessorTest, givenConfigWithMatchersAndCreateDirectoryEventWhenProcessorIsRunningThenSkipTheEvent) {
     MockFilesystem filesystem{};
     MockLogger logger{false};
     auto loggerSetup = logger.raiiSetup();
@@ -531,7 +531,7 @@ TEST_F(ProcessorTest, givenCreateDirectoryEventWhenProcessorIsRunningThenSkipThe
     processor.run();
 }
 
-TEST_F(ProcessorTest, adasd) {
+TEST_F(ProcessorTest, givenConfigWithMatchersAndEventWithLockedFileHandleWhenProcessorIsRunningThenUnlockFileAndProcessEvent) {
     MockFilesystem filesystem{};
     auto lockedFileHandle = mockOsHandle;
 
@@ -647,7 +647,7 @@ INSTANTIATE_TEST_SUITE_P(
     ProcessorTestWithDifferentEventsAndActions,
     ::testing::Combine(nonNewFileEvents, nonFilesystemActions, executeAction));
 
-TEST_F(ProcessorTest, ddd_givenCrossDeviceLinkErrorWhenMoveOperationIsTriggerredThenFallbackToCopyPlusRemove) {
+TEST_F(ProcessorTest, givenCrossDeviceLinkErrorWhenMoveOperationIsTriggerredThenFallbackToCopyPlusRemove) {
     MockFilesystem filesystem{};
     EXPECT_CALL(filesystem, move(fs::path("a/src"), fs::path("b/dst"))).WillOnce(Return(std::make_error_code(std::errc::cross_device_link)));
     EXPECT_CALL(filesystem, copy(fs::path("a/src"), fs::path("b/dst")));
@@ -668,7 +668,7 @@ TEST_F(ProcessorTest, ddd_givenCrossDeviceLinkErrorWhenMoveOperationIsTriggerred
     processor.run();
 }
 
-TEST_F(ProcessorTest, ddd_givenCopyOperationFailsWhenPerformingCopyPlusRemoveFallbackThenReportError) {
+TEST_F(ProcessorTest, givenCopyOperationFailsWhenPerformingCopyPlusRemoveFallbackThenReportError) {
     const std::error_code err = std::make_error_code(std::errc::illegal_byte_sequence);
 
     MockFilesystem filesystem{};
@@ -691,7 +691,7 @@ TEST_F(ProcessorTest, ddd_givenCopyOperationFailsWhenPerformingCopyPlusRemoveFal
     processor.run();
 }
 
-TEST_F(ProcessorTest, ddd_givenRemoveOperationFailsWhenPerformingCopyPlusRemoveFallbackThenReportError) {
+TEST_F(ProcessorTest, givenRemoveOperationFailsWhenPerformingCopyPlusRemoveFallbackThenReportError) {
     const std::error_code err = std::make_error_code(std::errc::permission_denied);
 
     MockFilesystem filesystem{};
@@ -712,6 +712,26 @@ TEST_F(ProcessorTest, ddd_givenRemoveOperationFailsWhenPerformingCopyPlusRemoveF
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEvent("a", "a/src");
+    pushInterruptEvent();
+    processor.run();
+}
+
+TEST_F(ProcessorTest, givenConfigWithMultipleActionsWhenProcessorIsRunningThenPerformAllTheActions) {
+    MockFilesystem filesystem{};
+    EXPECT_CALL(filesystem, copy(dummyPath1 / "b.jpg", dummyPath2 / "aaa.jpg"));
+    EXPECT_CALL(filesystem, copy(dummyPath1 / "b.jpg", dummyPath2 / "bbb.jpg"));
+    EXPECT_CALL(filesystem, copy(dummyPath1 / "b.jpg", dummyPath2 / "a_bbb_c.jpg"));
+    EXPECT_CALL(filesystem, move(dummyPath1 / "b.jpg", dummyPath2 / "a_bbb_c_d.jpg"));
+
+    ProcessorConfig config = createProcessorConfigWithActions({
+        createCopyAction(dummyPath2, "aaa"),
+        createCopyAction(dummyPath2, "bbb"),
+        createCopyAction(dummyPath2, "a_${previousName}_c"),
+        createMoveAction(dummyPath2, "${previousName}_d"),
+    });
+    Processor processor{config, eventQueue, filesystem};
+
+    pushFileCreationEvent(dummyPath1, dummyPath1 / "b.jpg");
     pushInterruptEvent();
     processor.run();
 }
