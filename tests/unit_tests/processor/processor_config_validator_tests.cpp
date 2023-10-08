@@ -6,7 +6,7 @@ struct ProcessorConfigValidatorTest : ::testing::Test, ProcessorConfigFixture {
     const static inline fs::path dummyDirWithNonAsciiCharacter = "dummy/path/\206abc";
 };
 
-TEST_F(ProcessorConfigValidatorTest, givenValidConfigWhenValidatingConfigThenReturnSuccess) {
+TEST_F(ProcessorConfigValidatorTest, givenValidConfigWhenValidatingConfigWithMatchersThenReturnSuccess) {
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
 
@@ -23,7 +23,7 @@ TEST_F(ProcessorConfigValidatorTest, givenValidConfigWhenValidatingConfigThenRet
     EXPECT_TRUE(ProcessorConfigValidator::validateConfig(config));
 }
 
-TEST_F(ProcessorConfigValidatorTest, givenFilesystemActionAfterMoveOrRemoveWhenValidatingConfigThenReturnError) {
+TEST_F(ProcessorConfigValidatorTest, givenFilesystemActionAfterMoveOrRemoveWhenValidatingConfigWithMatchersThenReturnError) {
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
 
@@ -44,7 +44,7 @@ TEST_F(ProcessorConfigValidatorTest, givenFilesystemActionAfterMoveOrRemoveWhenV
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 }
 
-TEST_F(ProcessorConfigValidatorTest, givenExtensionWithDotWhenValidatingConfigThenReturnError) {
+TEST_F(ProcessorConfigValidatorTest, givenExtensionWithDotWhenValidatingConfigWithMatchersThenReturnError) {
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
 
@@ -68,7 +68,7 @@ TEST_F(ProcessorConfigValidatorTest, givenExtensionWithDotWhenValidatingConfigTh
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 }
 
-TEST_F(ProcessorConfigValidatorTest, givenExtensionWithNonAsciiCharacterWhenValidatingConfigThenReturnError) {
+TEST_F(ProcessorConfigValidatorTest, givenExtensionWithNonAsciiCharacterWhenValidatingConfigWithMatchersThenReturnError) {
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
 
@@ -86,7 +86,7 @@ TEST_F(ProcessorConfigValidatorTest, givenExtensionWithNonAsciiCharacterWhenVali
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 }
 
-TEST_F(ProcessorConfigValidatorTest, givenDestinationNamePatternWithNonAsciiCharacterWhenValidatingConfigThenReturnError) {
+TEST_F(ProcessorConfigValidatorTest, givenDestinationNamePatternWithNonAsciiCharacterWhenValidatingConfigWithMatchersThenReturnError) {
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
 
@@ -101,7 +101,7 @@ TEST_F(ProcessorConfigValidatorTest, givenDestinationNamePatternWithNonAsciiChar
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 }
 
-TEST_F(ProcessorConfigValidatorTest, givenDestinationDirWithNonAsciiCharacterWhenValidatingConfigThenReturnError) {
+TEST_F(ProcessorConfigValidatorTest, givenDestinationDirWithNonAsciiCharacterWhenValidatingConfigWithMatchersThenReturnError) {
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
 
@@ -116,7 +116,7 @@ TEST_F(ProcessorConfigValidatorTest, givenDestinationDirWithNonAsciiCharacterWhe
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 }
 
-TEST_F(ProcessorConfigValidatorTest, givenEmptyDestinationDirWhenValidatingConfigThenReturnError) {
+TEST_F(ProcessorConfigValidatorTest, givenEmptyDestinationDirWhenValidatingConfigWithMatchersThenReturnError) {
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
 
@@ -131,7 +131,7 @@ TEST_F(ProcessorConfigValidatorTest, givenEmptyDestinationDirWhenValidatingConfi
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 }
 
-TEST_F(ProcessorConfigValidatorTest, givenEmptyDestinationNamePatternWhenValidatingConfigThenReturnError) {
+TEST_F(ProcessorConfigValidatorTest, givenEmptyDestinationNamePatternWhenValidatingConfigWithMatchersThenReturnError) {
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
 
@@ -146,7 +146,7 @@ TEST_F(ProcessorConfigValidatorTest, givenEmptyDestinationNamePatternWhenValidat
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 }
 
-TEST_F(ProcessorConfigValidatorTest, givenValidVariableInNamePatternWhenValidatingConfigThenReturnSuccess) {
+TEST_F(ProcessorConfigValidatorTest, givenValidVariableInNamePatternWhenValidatingConfigWithMatchersThenReturnSuccess) {
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
 
@@ -160,7 +160,7 @@ TEST_F(ProcessorConfigValidatorTest, givenValidVariableInNamePatternWhenValidati
     EXPECT_TRUE(ProcessorConfigValidator::validateConfig(config));
 }
 
-TEST_F(ProcessorConfigValidatorTest, givenInvalidVariableInNamePatternWhenValidatingConfigThenReturnError) {
+TEST_F(ProcessorConfigValidatorTest, givenInvalidVariableInNamePatternWhenValidatingConfigWithMatchersThenReturnError) {
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
 
@@ -175,7 +175,7 @@ TEST_F(ProcessorConfigValidatorTest, givenInvalidVariableInNamePatternWhenValida
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 }
 
-TEST_F(ProcessorConfigValidatorTest, givenUnclosedVariableInNamePatternWhenValidatingConfigThenReturnError) {
+TEST_F(ProcessorConfigValidatorTest, givenUnclosedVariableInNamePatternWhenValidatingConfigWithMatchersThenReturnError) {
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
 
@@ -193,7 +193,7 @@ TEST_F(ProcessorConfigValidatorTest, givenUnclosedVariableInNamePatternWhenValid
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 }
 
-TEST_F(ProcessorConfigValidatorTest, givenContiguousHashesInNamePatternWhenValidatingConfigThenReturnSuccess) {
+TEST_F(ProcessorConfigValidatorTest, givenContiguousHashesInNamePatternWhenValidatingConfigWithMatchersThenReturnSuccess) {
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
 
@@ -209,7 +209,7 @@ TEST_F(ProcessorConfigValidatorTest, givenContiguousHashesInNamePatternWhenValid
     EXPECT_TRUE(ProcessorConfigValidator::validateConfig(config));
 }
 
-TEST_F(ProcessorConfigValidatorTest, givenUncontiguousHashesInNamePatternWhenValidatingConfigThenReturnError) {
+TEST_F(ProcessorConfigValidatorTest, givenUncontiguousHashesInNamePatternWhenValidatingConfigWithMatchersThenReturnError) {
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
 
@@ -225,4 +225,60 @@ TEST_F(ProcessorConfigValidatorTest, givenUncontiguousHashesInNamePatternWhenVal
 
     config.matchers()->matchers[0].actions = {createCopyAction(dummyPath2, "abc_##_ad#aa")};
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
+}
+
+TEST_F(ProcessorConfigValidatorTest, givenValidConfigWhenValidatingConfigWithActionsThenReturnSuccess) {
+    MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
+
+    ProcessorConfig config = createProcessorConfigWithActions({
+        createCopyAction(dummyPath2, "dst"),
+        createCopyAction(dummyPath3, "dst"),
+        createMoveAction(dummyPath3, "dst"),
+        createPrintAction(),
+        createPrintAction(),
+    });
+    EXPECT_TRUE(ProcessorConfigValidator::validateConfig(config));
+}
+
+TEST_F(ProcessorConfigValidatorTest, givenFilesystemActionAfterMoveOrRemoveWhenValidatingConfigWithActionsThenReturnError) {
+    MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
+
+    EXPECT_CALL(logger, log(LogLevel::Error, "Placing actions after a move/remove action is illegal.")).Times(2);
+
+    {
+        ProcessorConfig config = createProcessorConfigWithActions({
+            createMoveAction(dummyPath3, "dst"),
+            createMoveAction(dummyPath3, "dst"),
+        });
+        EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
+    }
+    {
+        ProcessorConfig config = createProcessorConfigWithActions({
+            createRemoveAction(),
+            createCopyAction(dummyPath3, "dst"),
+        });
+        EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
+    }
+}
+
+TEST_F(ProcessorConfigValidatorTest, givenEmptyDestinationDirWhenValidatingConfigWithActionsThenReturnError) {
+    MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
+
+    EXPECT_CALL(logger, log(LogLevel::Error, "Destination directory is empty.")).Times(2);
+
+    {
+        ProcessorConfig config = createProcessorConfigWithActions({
+            createCopyAction(fs::path(), "dst"),
+        });
+        EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
+    }
+    {
+        ProcessorConfig config = createProcessorConfigWithActions({
+            createMoveAction(fs::path(), "dst"),
+        });
+        EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
+    }
 }

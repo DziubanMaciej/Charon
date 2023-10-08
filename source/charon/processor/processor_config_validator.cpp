@@ -11,13 +11,12 @@ bool ProcessorConfigValidator::validateConfig(const ProcessorConfig &config) {
                 return false;
             }
         }
+        return true;
     } else if (auto actions = config.actions(); actions != nullptr) {
-        validateActions(actions->actions);
+        return validateActions(actions->actions);
     } else {
         FATAL_ERROR("Invalid processor config type");
     }
-
-    return true;
 }
 
 bool ProcessorConfigValidator::validateActionMatcher(const ProcessorActionMatcher &actionMatcher) {
