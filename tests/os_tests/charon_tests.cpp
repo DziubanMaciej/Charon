@@ -53,7 +53,7 @@ struct CharonOsTests : ::testing::Test,
     DirectoryWatcherFactoryImpl watcherFactory;
 };
 
-TEST_F(CharonOsTests, givenFileEventWhenCharonIsRunningThenExecuteActions) {
+TEST_F(CharonOsTests, givenConfigWithMatchersAndFileEventWhenCharonIsRunningThenExecuteActions) {
     ProcessorConfig processorConfig = createProcessorConfigWithOneMatcher();
     processorConfig.matchers()->matchers[0].actions = {
         createCopyAction("a"),
@@ -77,7 +77,7 @@ TEST_F(CharonOsTests, givenFileEventWhenCharonIsRunningThenExecuteActions) {
     EXPECT_EQ(0u, filesystem.removeCount);
 }
 
-TEST_F(CharonOsTests, givenRemoveActionWhenCharonIsRunningThenExecuteActions) {
+TEST_F(CharonOsTests, givenConfigWithMatchersAndRemoveActionWhenCharonIsRunningThenExecuteActions) {
     ProcessorConfig processorConfig = createProcessorConfigWithOneMatcher();
     processorConfig.matchers()->matchers[0].actions = {createRemoveAction()};
     Charon charon{processorConfig, filesystem, watcherFactory};
@@ -94,7 +94,7 @@ TEST_F(CharonOsTests, givenRemoveActionWhenCharonIsRunningThenExecuteActions) {
     EXPECT_EQ(1u, filesystem.removeCount);
 }
 
-TEST_F(CharonOsTests, givenMultipleFileEventsWhenCharonIsRunningThenExecuteActions) {
+TEST_F(CharonOsTests, givenConfigWithMatchersAndMultipleFileEventsWhenCharonIsRunningThenExecuteActions) {
     ProcessorConfig processorConfig = createProcessorConfigWithOneMatcher();
     processorConfig.matchers()->matchers[0].actions = {createCopyAction("a#")};
     Charon charon{processorConfig, filesystem, watcherFactory};
@@ -116,7 +116,7 @@ TEST_F(CharonOsTests, givenMultipleFileEventsWhenCharonIsRunningThenExecuteActio
     EXPECT_EQ(0u, filesystem.removeCount);
 }
 
-TEST_F(CharonOsTests, givenMultipleFileEventsAndMultipleActionsWhenCharonIsRunningThenExecuteActions) {
+TEST_F(CharonOsTests, givenConfigWithMatchersAndMultipleFileEventsAndMultipleActionsWhenCharonIsRunningThenExecuteActions) {
     ProcessorConfig processorConfig = createProcessorConfigWithOneMatcher();
     processorConfig.matchers()->matchers[0].actions = {
         createCopyAction("a#"),
@@ -142,7 +142,7 @@ TEST_F(CharonOsTests, givenMultipleFileEventsAndMultipleActionsWhenCharonIsRunni
     EXPECT_EQ(0u, filesystem.removeCount);
 }
 
-TEST_F(CharonOsTests, givenFilesAreOpenedForSomeTimeWhenCharonIsMovingFilesThenResultsAreCorrect) {
+TEST_F(CharonOsTests, givenConfigWithMatchersAndFilesAreOpenedForSomeTimeWhenCharonIsMovingFilesThenResultsAreCorrect) {
     constexpr auto filesCount = 100u;
 
     ProcessorConfig processorConfig = createProcessorConfigWithOneMatcher();
@@ -175,7 +175,7 @@ TEST_F(CharonOsTests, givenFilesAreOpenedForSomeTimeWhenCharonIsMovingFilesThenR
     EXPECT_EQ(0u, filesystem.removeCount);
 }
 
-TEST_F(CharonOsTests, givenFilesAreOpenedForSomeTimeWhenCharonIsCopyingFilesThenResultsAreCorrect) {
+TEST_F(CharonOsTests, givenConfigWithMatchersAndFilesAreOpenedForSomeTimeWhenCharonIsCopyingFilesThenResultsAreCorrect) {
     constexpr auto filesCount = 100u;
 
     ProcessorConfig processorConfig = createProcessorConfigWithOneMatcher();
@@ -206,5 +206,28 @@ TEST_F(CharonOsTests, givenFilesAreOpenedForSomeTimeWhenCharonIsCopyingFilesThen
     }
     EXPECT_EQ(filesCount, filesystem.copyCount);
     EXPECT_EQ(0u, filesystem.moveCount);
+    EXPECT_EQ(0u, filesystem.removeCount);
+}
+
+TEST_F(CharonOsTests, givenConfigWithActionsAndFileToProcessWhenCharonIsRunningThenExecuteActions) {
+    ProcessorConfig processorConfig = createProcessorConfigWithActions({
+        createCopyAction("a"),
+        createCopyAction("b"),
+        createMoveAction("c"),
+    });
+    Charon charon{processorConfig, filesystem, watcherFactory};
+
+    {
+        RaiiCharonRunner charonRunner{charon};
+        TestFilesHelper::createFile(srcPath / "abc");
+        charon.processImmediate({srcPath / "abc"});
+    }
+
+    EXPECT_FALSE(TestFilesHelper::fileExists(srcPath / "abc"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "a"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "b"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "c"));
+    EXPECT_EQ(2u, filesystem.copyCount);
+    EXPECT_EQ(1u, filesystem.moveCount);
     EXPECT_EQ(0u, filesystem.removeCount);
 }

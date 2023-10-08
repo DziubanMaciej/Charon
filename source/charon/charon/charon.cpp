@@ -8,7 +8,7 @@
 
 Charon::Charon(const ProcessorConfig &config, Filesystem &filesystem, DirectoryWatcherFactory &watcherFactory)
     : deferredFileLocker(deferredFileLockerEventQueue, processorEventQueue, filesystem),
-      processor(config, this->processorEventQueue, filesystem) {
+      processor(config, processorEventQueue, filesystem) {
 
     if (auto matchers = config.matchers(); matchers != nullptr) {
         std::vector<fs::path> directoriesToWatch = {};
@@ -87,4 +87,13 @@ bool Charon::stop() {
 
 void Charon::waitForCompletion() {
     isStarted.wait(false);
+}
+
+void Charon::processImmediate(const std::vector<fs::path> &paths) {
+    for (auto &path : paths) {
+        FileEvent event = {};
+        event.type = FileEvent::Type::Add;
+        event.path = path;
+        deferredFileLockerEventQueue.push(std::move(event));
+    }
 }

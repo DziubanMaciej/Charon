@@ -113,23 +113,30 @@ inline ResultType ArgumentParser::getArgumentValue(const std::vector<std::string
 
 template <typename ResultType>
 inline std::vector<ResultType> ArgumentParser::getArgumentValues(const std::vector<std::string> &names) {
-    std::vector<ResultType> result{};
+    // Find iterator to one of the names for this argument
+    auto nameIt = this->args.end();
     for (auto &name : names) {
-        auto nameIt = this->args.begin();
-        while (true) {
-            nameIt = std::find(nameIt, this->args.end(), name);
-            if (nameIt == this->args.end()) {
-                break;
-            }
-
-            auto valueIt = nameIt + 1;
-            if (valueIt == this->args.end()) {
-                break;
-            }
-
-            result.push_back(ArgumentParser::convertFunction<ResultType>(*valueIt));
-            nameIt += 2;
+        nameIt = std::find(this->args.begin(), this->args.end(), name);
+        if (nameIt != this->args.end()) {
+            break;
         }
+    }
+    if (nameIt == this->args.end()) {
+        return {};
+    }
+
+    // Append values
+    std::vector<ResultType> result{};
+    for (auto valueIt = nameIt + 1; valueIt != this->args.end(); valueIt++) {
+        if (valueIt == this->args.end()) {
+            break;
+        }
+        const std::string &value = *valueIt;
+        if (value.empty() || value[0] == '-') {
+            break;
+        }
+
+        result.push_back(ArgumentParser::convertFunction<ResultType>(value));
     }
     return result;
 }
