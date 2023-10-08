@@ -46,6 +46,15 @@ struct ProcessorConfigFixture {
         return config;
     }
 
+    ProcessorConfig createProcessorConfigWithActions(std::initializer_list<ProcessorAction> actionsToAdd) {
+        ProcessorConfig config{};
+        ProcessorConfig::Actions &actions = config.createActions();
+        for (const ProcessorAction &action : actionsToAdd) {
+            actions.actions.push_back(action);
+        }
+        return config;
+    }
+
     std::filesystem::path srcPath{};
     std::filesystem::path dstPath{};
 };
