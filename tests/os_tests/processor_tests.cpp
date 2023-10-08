@@ -4,7 +4,7 @@
 #include "charon/util/logger.h"
 #include "charon/util/time.h"
 #include "os_tests/fixtures/processor_config_fixture.h"
-#include "os_tests/skip_macros.h"
+#include "os_tests/test_helpers.h"
 
 #include <gtest/gtest.h>
 #include <regex>

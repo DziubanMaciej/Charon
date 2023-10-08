@@ -1,6 +1,7 @@
 #include "charon/util/logger.h"
 #include "common/oakum_gtest_event_listener.h"
 #include "os_tests/test_files_helper.h"
+#include "os_tests/test_helpers.h"
 
 #include <gtest/gtest.h>
 
@@ -16,6 +17,8 @@ public:
 };
 
 int main(int argc, char *argv[]) {
+    populateCaches();
+
     ::testing::InitGoogleTest(&argc, argv);
 
     NullLogger logger{};

@@ -1,8 +1,8 @@
 #include "charon/processor/deferred_file_locker.h"
 #include "charon/util/filesystem_impl.h"
 #include "charon/util/logger.h"
-#include "os_tests/skip_macros.h"
 #include "os_tests/test_files_helper.h"
+#include "os_tests/test_helpers.h"
 
 #include <gtest/gtest.h>
 #include <thread>

@@ -17,3 +17,7 @@
     if (!filesystem.isFileLockingSupported()) {  \
         SKIP();                                  \
     }
+
+// In release config some compilers may generate some lazily populated caches for STD classes. These can be reported
+// as memory leaks. We can call them early, to populate these caches before any tests.
+void populateCaches();
