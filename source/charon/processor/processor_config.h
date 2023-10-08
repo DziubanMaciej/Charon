@@ -69,6 +69,5 @@ private:
         return std::get<T>(data);
     }
 
-    size_t version;
     std::variant<Matchers, Actions> data;
 };

@@ -16,7 +16,6 @@ private:
     bool parseProcessorConfigMatchers(ProcessorConfig &outConfig, const nlohmann::json &node);
     bool parseProcessorConfigActions(ProcessorConfig &outConfig, const nlohmann::json &node);
 
-
     bool parseProcessorActionMatcher(ProcessorActionMatcher &outActionMatcher, const nlohmann::json &node);
     bool parseProcessorActions(std::vector<ProcessorAction> &outActions, const nlohmann::json &node);
     bool parseProcessorAction(ProcessorAction &outAction, const nlohmann::json &node);
