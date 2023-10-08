@@ -43,6 +43,15 @@ struct ProcessorConfigFixture {
         return config;
     }
 
+    ProcessorConfig createProcessorConfigWithActions(std::initializer_list<ProcessorAction> actionsToAdd) {
+        ProcessorConfig config{};
+        ProcessorConfig::Actions &actions = config.createActions();
+        for (const ProcessorAction &action : actionsToAdd) {
+            actions.actions.push_back(action);
+        }
+        return config;
+    }
+
     const static inline fs::path dummyPath1 = "dummy/path/1/";
     const static inline fs::path dummyPath2 = "dummy/path/2/";
     const static inline fs::path dummyPath3 = "dummy/path/3/";
