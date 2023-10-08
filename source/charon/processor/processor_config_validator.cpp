@@ -5,11 +5,18 @@
 #include "charon/util/string_helper.h"
 
 bool ProcessorConfigValidator::validateConfig(const ProcessorConfig &config) {
-    for (const ProcessorActionMatcher &matcher : config.matchers) {
-        if (!validateActionMatcher(matcher)) {
-            return false;
+    if (auto matchers = config.matchers(); matchers != nullptr) {
+        for (const ProcessorActionMatcher &matcher : matchers->matchers) {
+            if (!validateActionMatcher(matcher)) {
+                return false;
+            }
         }
+    } else if (auto actions = config.actions(); actions != nullptr) {
+        validateActions(actions->actions);
+    } else {
+        FATAL_ERROR("Invalid processor config type");
     }
+
     return true;
 }
 
@@ -19,21 +26,13 @@ bool ProcessorConfigValidator::validateActionMatcher(const ProcessorActionMatche
             return false;
         }
     }
-
-    bool foundRemoveAction = false;
-    for (const ProcessorAction &action : actionMatcher.actions) {
-        if (!validateAction(action, foundRemoveAction)) {
-            return false;
-        }
-    }
-
-    return true;
+    return validateActions(actionMatcher.actions);
 }
 
 bool ProcessorConfigValidator::validateExtension(const fs::path &extension) {
     const auto extensionStr = extension.generic_string<PathCharType>();
 
-    if (!validatePath(extensionStr, "One of watched extensions", true)) {
+    if (!validatePath(extensionStr, "One of watched extensions", true, true)) {
         return false;
     }
 
@@ -42,6 +41,16 @@ bool ProcessorConfigValidator::validateExtension(const fs::path &extension) {
         return false;
     }
 
+    return true;
+}
+
+bool ProcessorConfigValidator::validateActions(const std::vector<ProcessorAction> &actions) {
+    bool foundRemoveAction = false;
+    for (const ProcessorAction &action : actions) {
+        if (!validateAction(action, foundRemoveAction)) {
+            return false;
+        }
+    }
     return true;
 }
 
@@ -57,10 +66,10 @@ bool ProcessorConfigValidator::validateAction(const ProcessorAction &action, boo
 
     if (action.type == ProcessorAction::Type::Move || action.type == ProcessorAction::Type::Copy) {
         const auto data = std::get<ProcessorAction::MoveOrCopy>(action.data);
-        if (!validatePath(data.destinationDir, "Destination directory", false)) {
+        if (!validatePath(data.destinationDir, "Destination directory", false, true)) {
             return false;
         }
-        if (!validatePath(data.destinationName, "Destination name", false)) {
+        if (!validatePath(data.destinationName, "Destination name", false, true)) {
             return false;
         }
         if (!PathResolver::validateNameForResolve(data.destinationName)) {
@@ -71,9 +80,14 @@ bool ProcessorConfigValidator::validateAction(const ProcessorAction &action, boo
     return true;
 }
 
-bool ProcessorConfigValidator::validatePath(const fs::path &path, const std::string &label, bool allowEmpty) {
+bool ProcessorConfigValidator::validatePath(const fs::path &path, const std::string &label, bool allowEmpty, bool allowNonExistant) {
     if (!allowEmpty && path.empty()) {
         log(LogLevel::Error) << label << " is empty.";
+        return false;
+    }
+
+    if (!allowNonExistant && !std::filesystem::exists(path)) {
+        log(LogLevel::Error) << label << " does not exist.";
         return false;
     }
 

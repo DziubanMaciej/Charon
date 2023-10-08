@@ -45,7 +45,7 @@ struct ProcessorTest : ::testing::Test, ProcessorConfigFixture {
 
 TEST_F(ProcessorTest, givenFileMoveActionTriggeredWhenProcessorIsRunningThenMoveFile) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
-    config.matchers[0].actions = {createMoveAction("niceFile")};
+    config.matchers()->matchers[0].actions = {createMoveAction("niceFile")};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEventAndCreateFile(srcPath / "a");
@@ -58,7 +58,7 @@ TEST_F(ProcessorTest, givenFileMoveActionTriggeredWhenProcessorIsRunningThenMove
 
 TEST_F(ProcessorTest, givenFileCopyActionTriggeredWhenProcessorIsRunningThenCopyFile) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
-    config.matchers[0].actions = {createCopyAction("niceFile")};
+    config.matchers()->matchers[0].actions = {createCopyAction("niceFile")};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEventAndCreateFile(srcPath / "a");
@@ -71,7 +71,7 @@ TEST_F(ProcessorTest, givenFileCopyActionTriggeredWhenProcessorIsRunningThenCopy
 
 TEST_F(ProcessorTest, givenFileRemoveActionTriggeredWhenProcessorIsRunningThenRemoveFile) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
-    config.matchers[0].actions = {createRemoveAction()};
+    config.matchers()->matchers[0].actions = {createRemoveAction()};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEventAndCreateFile(srcPath / "a");
@@ -84,7 +84,7 @@ TEST_F(ProcessorTest, givenFileRemoveActionTriggeredWhenProcessorIsRunningThenRe
 
 TEST_F(ProcessorTest, givenFileWithExtensionWhenCopyingFileThenPreserveExtension) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
-    config.matchers[0].actions = {createCopyAction("niceFile")};
+    config.matchers()->matchers[0].actions = {createCopyAction("niceFile")};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEventAndCreateFile(srcPath / "a.jpg");
@@ -97,7 +97,7 @@ TEST_F(ProcessorTest, givenFileWithExtensionWhenCopyingFileThenPreserveExtension
 
 TEST_F(ProcessorTest, givenFileWithMultipleExtensionsWhenCopyingFileThenPreserveOnlyLastExtension) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
-    config.matchers[0].actions = {createCopyAction("niceFile")};
+    config.matchers()->matchers[0].actions = {createCopyAction("niceFile")};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEventAndCreateFile(srcPath / "a.gif.pdf.jpg");
@@ -110,7 +110,7 @@ TEST_F(ProcessorTest, givenFileWithMultipleExtensionsWhenCopyingFileThenPreserve
 
 TEST_F(ProcessorTest, givenFileCopyActionTriggeredAndNameVariableUsedWhenProcessorIsRunningThenCopyFile) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
-    config.matchers[0].actions = {createCopyAction("a_${name}_c")};
+    config.matchers()->matchers[0].actions = {createCopyAction("a_${name}_c")};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEventAndCreateFile(srcPath / "b");
@@ -123,7 +123,7 @@ TEST_F(ProcessorTest, givenFileCopyActionTriggeredAndNameVariableUsedWhenProcess
 
 TEST_F(ProcessorTest, givenFileCopyActionTriggeredAndExtensionVariableUsedWhenProcessorIsRunningThenCopyFile) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
-    config.matchers[0].actions = {createCopyAction("a_${extension}_c")};
+    config.matchers()->matchers[0].actions = {createCopyAction("a_${extension}_c")};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEventAndCreateFile(srcPath / "b.jpg");
@@ -139,7 +139,7 @@ TEST_F(ProcessorTest, givenFileCopyActionTriggeredAndPreviousNameVariableUsedWhe
 
     auto dstPath2 = TestFilesHelper::createDirectory("dst2");
 
-    config.matchers[0].actions = {
+    config.matchers()->matchers[0].actions = {
         createCopyAction("###"),
         createCopyAction("${previousName}", dstPath2),
         createCopyAction("a_${previousName}_b"),
@@ -176,7 +176,7 @@ TEST_F(ProcessorTest, givenFileCopyActionTriggeredAndPreviousNameVariableUsedWhe
 
 TEST_F(ProcessorTest, givenFileCopyActionTriggeredAndCounterIsUsedWhenProcessorIsRunningThenCopyFile) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
-    config.matchers[0].actions = {createCopyAction("file_###")};
+    config.matchers()->matchers[0].actions = {createCopyAction("file_###")};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEventAndCreateFile(srcPath / "a");
@@ -192,7 +192,7 @@ TEST_F(ProcessorTest, givenFileCopyActionTriggeredAndCounterIsUsedWhenProcessorI
 
 TEST_F(ProcessorTest, givenFilesWithMatchingExtensionsTriggeredAndCounterIsUsedWhenProcessorIsRunningThenCopyFile) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
-    config.matchers[0].actions = {createCopyAction("file_###")};
+    config.matchers()->matchers[0].actions = {createCopyAction("file_###")};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEventAndCreateFile(srcPath / "a.pdf");
@@ -207,7 +207,7 @@ TEST_F(ProcessorTest, givenFilesWithMatchingExtensionsTriggeredAndCounterIsUsedW
 
 TEST_F(ProcessorTest, givenFilesWithDifferentExtensionsTriggeredAndCounterIsUsedWhenProcessorIsRunningThenCopyFile) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
-    config.matchers[0].actions = {createCopyAction("file_###")};
+    config.matchers()->matchers[0].actions = {createCopyAction("file_###")};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEventAndCreateFile(srcPath / "a.pdf");
@@ -221,7 +221,7 @@ TEST_F(ProcessorTest, givenFilesWithDifferentExtensionsTriggeredAndCounterIsUsed
 
 TEST_F(ProcessorTest, givenGapInCounterWhenCounterIsUsedThenFillTheGaps) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
-    config.matchers[0].actions = {createMoveAction("file_###")};
+    config.matchers()->matchers[0].actions = {createMoveAction("file_###")};
     Processor processor{config, eventQueue, filesystem};
 
     TestFilesHelper::createFile(dstPath / "file_000.txt");
@@ -257,7 +257,7 @@ TEST_F(ProcessorTest, givenGapInCounterWhenCounterIsUsedThenFillTheGaps) {
 
 TEST_F(ProcessorTest, givenGapOnZeroIndexInCounterWhenCounterIsUsedThenFillTheGap) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
-    config.matchers[0].actions = {createMoveAction("file_###")};
+    config.matchers()->matchers[0].actions = {createMoveAction("file_###")};
     Processor processor{config, eventQueue, filesystem};
 
     TestFilesHelper::createFile(dstPath / "file_001.txt");
@@ -279,7 +279,7 @@ TEST_F(ProcessorTest, givenGapOnZeroIndexInCounterWhenCounterIsUsedThenFillTheGa
 
 TEST_F(ProcessorTest, givenMultipleFileCopyActionsTriggeredAndCounterIsUsedWhenProcessorIsRunningThenCopyFile) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
-    config.matchers[0].actions = {createCopyAction("file_###")};
+    config.matchers()->matchers[0].actions = {createCopyAction("file_###")};
     Processor processor{config, eventQueue, filesystem};
 
     for (int i = 0; i < 16; i++) {
@@ -303,7 +303,7 @@ TEST_F(ProcessorTest, givenMultipleFileCopyActionsTriggeredAndCounterIsUsedWhenP
 
 TEST_F(ProcessorTest, givenMultipleActionsTriggeredAndCounterIsUsedWhenProcessorIsRunningThenCopyFile) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
-    config.matchers[0].actions = {
+    config.matchers()->matchers[0].actions = {
         createCopyAction("abc_#"),
         createCopyAction("abc_#"),
         createCopyAction("def"),
@@ -328,7 +328,7 @@ TEST_F(ProcessorTest, givenAllFilenamesTakenWhenCounterIsUsedThenReturnError) {
     auto consoleLoggerSetup = consoleLogger.raiiSetup();
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
-    config.matchers[0].actions = {
+    config.matchers()->matchers[0].actions = {
         createCopyAction("#"),
         createMoveAction("#"),
     };
@@ -353,7 +353,7 @@ TEST_F(ProcessorTest, givenAllFilenamesTakenWhenCounterIsUsedThenReturnError) {
 
 TEST_F(ProcessorTest, givenDestinationDirectoryDoesNotExistWhenCopyOrMoveIsTriggeredThenCreateIt) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
-    config.matchers[0].actions = {
+    config.matchers()->matchers[0].actions = {
         createCopyAction("file", dstPath / "a"),
         createMoveAction("file", dstPath / "b"),
     };
@@ -370,7 +370,7 @@ TEST_F(ProcessorTest, givenDestinationDirectoryDoesNotExistWhenCopyOrMoveIsTrigg
 
 TEST_F(ProcessorTest, givenDestinationDirectoryDoesNotExistAndCounterIsUsedWhenCopyOrMoveIsTriggeredThenCreateIt) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
-    config.matchers[0].actions = {
+    config.matchers()->matchers[0].actions = {
         createCopyAction("file###", dstPath / "a"),
         createMoveAction("file###", dstPath / "b"),
     };
@@ -387,7 +387,7 @@ TEST_F(ProcessorTest, givenDestinationDirectoryDoesNotExistAndCounterIsUsedWhenC
 
 TEST_F(ProcessorTest, givenEmptyDirectoryCreationEventDoesWhenProcessorIsRunningThenIgnoreIt) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
-    config.matchers[0].actions = {createMoveAction("${name}", dstPath)};
+    config.matchers()->matchers[0].actions = {createMoveAction("${name}", dstPath)};
     Processor processor{config, eventQueue, filesystem};
 
     auto nonEmptyDir = TestFilesHelper::createDirectory(srcPath / "dir1");
@@ -408,7 +408,7 @@ TEST_F(ProcessorTest, givenEmptyDirectoryCreationEventDoesWhenProcessorIsRunning
 
 TEST_F(ProcessorTest, givenFileRemovedEventWhenProcessorIsRunningThenIgnoreIt) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
-    config.matchers[0].actions = {createMoveAction("${name}", dstPath)};
+    config.matchers()->matchers[0].actions = {createMoveAction("${name}", dstPath)};
     Processor processor{config, eventQueue, filesystem};
 
     eventQueue.push(FileEvent{srcPath, FileEvent::Type::Remove, srcPath / "removedFile"});
@@ -421,7 +421,7 @@ TEST_F(ProcessorTest, givenFileRemovedEventWhenProcessorIsRunningThenIgnoreIt) {
 
 TEST_F(ProcessorTest, givenFileRenamedFromEventWhenProcessorIsRunningThenIgnoreIt) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
-    config.matchers[0].actions = {createMoveAction("${name}", dstPath)};
+    config.matchers()->matchers[0].actions = {createMoveAction("${name}", dstPath)};
     Processor processor{config, eventQueue, filesystem};
 
     eventQueue.push(FileEvent{srcPath, FileEvent::Type::RenameOld, srcPath / "renamedFromFile"});
@@ -434,7 +434,7 @@ TEST_F(ProcessorTest, givenFileRenamedFromEventWhenProcessorIsRunningThenIgnoreI
 
 TEST_F(ProcessorTest, givenFileModifiedEventWhenProcessorIsRunningThenIgnoreIt) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
-    config.matchers[0].actions = {createMoveAction("${name}", dstPath)};
+    config.matchers()->matchers[0].actions = {createMoveAction("${name}", dstPath)};
     Processor processor{config, eventQueue, filesystem};
 
     TestFilesHelper::createFile(srcPath / "modifiedFile");
@@ -449,7 +449,7 @@ TEST_F(ProcessorTest, givenFileModifiedEventWhenProcessorIsRunningThenIgnoreIt) 
 
 TEST_F(ProcessorTest, givenFileRenamedToEventWhenProcessorIsRunningThenPerformAction) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
-    config.matchers[0].actions = {createMoveAction("${name}", dstPath)};
+    config.matchers()->matchers[0].actions = {createMoveAction("${name}", dstPath)};
     Processor processor{config, eventQueue, filesystem};
 
     TestFilesHelper::createFile(srcPath / "renamedToFile");
@@ -464,7 +464,7 @@ TEST_F(ProcessorTest, givenFileRenamedToEventWhenProcessorIsRunningThenPerformAc
 
 TEST_F(ProcessorTest, givenFileAlreadyExistsWhenProcessorPerformsMoveActionThenOverwriteIt) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
-    config.matchers[0].actions = {createMoveAction("conflictingFile", dstPath)};
+    config.matchers()->matchers[0].actions = {createMoveAction("conflictingFile", dstPath)};
     Processor processor{config, eventQueue, filesystem};
 
     TestFilesHelper::createFile(dstPath / "conflictingFile");
@@ -479,7 +479,7 @@ TEST_F(ProcessorTest, givenFileAlreadyExistsWhenProcessorPerformsMoveActionThenO
 
 TEST_F(ProcessorTest, givenFileAlreadyExistsWhenProcessorPerformsCopyActionThenOverwriteIt) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
-    config.matchers[0].actions = {createCopyAction("conflictingFile", dstPath)};
+    config.matchers()->matchers[0].actions = {createCopyAction("conflictingFile", dstPath)};
     Processor processor{config, eventQueue, filesystem};
 
     TestFilesHelper::createFile(dstPath / "conflictingFile");
@@ -497,7 +497,7 @@ TEST_F(ProcessorTest, givenLockedFileWhenProcessingEventThenUnlockFileAndProcess
     REQUIRE_FILE_LOCKING_OR_SKIP(filesystem);
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
-    config.matchers[0].actions = {createMoveAction("niceFile")};
+    config.matchers()->matchers[0].actions = {createMoveAction("niceFile")};
     Processor processor{config, eventQueue, filesystem};
 
     auto filePath = srcPath / "a";
@@ -523,8 +523,8 @@ TEST_F(ProcessorTest, givenLockedFileWithIgnoredExtensionWhenProcessingEventThen
     REQUIRE_FILE_LOCKING_OR_SKIP(filesystem);
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
-    config.matchers[0].actions = {createMoveAction("niceFile")};
-    config.matchers[0].watchedExtensions = {"png"};
+    config.matchers()->matchers[0].actions = {createMoveAction("niceFile")};
+    config.matchers()->matchers[0].watchedExtensions = {"png"};
     Processor processor{config, eventQueue, filesystem};
 
     auto filePath = srcPath / "a";

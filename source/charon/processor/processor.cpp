@@ -40,7 +40,17 @@ void Processor::processEvent(FileEvent &event) {
         return;
     }
 
-    const ProcessorActionMatcher *matcher = findActionMatcher(event);
+    if (auto matchers = config.matchers(); matchers != nullptr) {
+        processEventMatchers(*matchers, event);
+    } else if (auto actions = config.actions(); actions != nullptr) {
+        processEventActions(*actions, event);
+    } else {
+        FATAL_ERROR("Invalid processor config type");
+    }
+}
+
+void Processor::processEventMatchers(const ProcessorConfig::Matchers &configData, FileEvent &event) {
+    const ProcessorActionMatcher *matcher = findActionMatcher(configData, event);
     if (matcher == nullptr) {
         log(LogLevel::Info) << "Processor could not match file " << event.path << " to any action matcher";
         return;
@@ -54,8 +64,15 @@ void Processor::processEvent(FileEvent &event) {
     }
 }
 
-const ProcessorActionMatcher *Processor::findActionMatcher(const FileEvent &event) const {
-    for (const ProcessorActionMatcher &matcher : this->config.matchers) {
+void Processor::processEventActions(const ProcessorConfig::Actions &configData, FileEvent &event) {
+    ActionMatcherState actionMatcherState{};
+    for (const ProcessorAction &action : configData.actions) {
+        executeProcessorAction(event, action, actionMatcherState);
+    }
+}
+
+const ProcessorActionMatcher *Processor::findActionMatcher(const ProcessorConfig::Matchers &configData, const FileEvent &event) const {
+    for (const ProcessorActionMatcher &matcher : configData.matchers) {
         // Filter by watched folder
         if (event.watchedRootPath != matcher.watchedFolder) {
             continue;

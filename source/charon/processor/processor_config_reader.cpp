@@ -7,22 +7,29 @@
 #include <fstream>
 #include <sstream>
 
-bool ProcessConfigReader::read(ProcessorConfig &outConfig, const std::filesystem::path &jsonFile) {
+bool ProcessConfigReader::read(ProcessorConfig &outConfig, const std::filesystem::path &jsonFile, ProcessorConfig::Type type) {
     std::string json{};
     if (!readFile(jsonFile, json)) {
         log(LogLevel::Error) << "Could not read config file";
         return false;
     }
-    return read(outConfig, json);
+    return read(outConfig, json, type);
 }
 
-bool ProcessConfigReader::read(ProcessorConfig &outConfig, const std::string &json) {
+bool ProcessConfigReader::read(ProcessorConfig &outConfig, const std::string &json, ProcessorConfig::Type type) {
     const nlohmann::json rootNode = nlohmann::json::parse(json, nullptr, false);
     if (rootNode.is_discarded()) {
         log(LogLevel::Error) << "Specified json was badly formed.";
         return false;
     }
-    return parseProcessorConfig(outConfig, rootNode);
+    switch (type) {
+    case ProcessorConfig::Type::Matchers:
+        return parseProcessorConfigMatchers(outConfig, rootNode);
+    case ProcessorConfig::Type::Actions:
+        return parseProcessorConfigActions(outConfig, rootNode);
+    default:
+        FATAL_ERROR("Invalid processor config type");
+    }
 }
 
 bool ProcessConfigReader::readFile(const std::filesystem::path &jsonFile, std::string &outContent) {
@@ -37,22 +44,28 @@ bool ProcessConfigReader::readFile(const std::filesystem::path &jsonFile, std::s
     return true;
 }
 
-bool ProcessConfigReader::parseProcessorConfig(ProcessorConfig &outConfig, const nlohmann::json &node) {
+bool ProcessConfigReader::parseProcessorConfigMatchers(ProcessorConfig &outConfig, const nlohmann::json &node) {
     if (!node.is_array()) {
         log(LogLevel::Error) << "Root node must be an array";
         return false;
     }
 
+    ProcessorConfig::Matchers &configData = outConfig.createMatchers();
     for (const nlohmann::json &matcherNode : node) {
         ProcessorActionMatcher matcher{};
         if (parseProcessorActionMatcher(matcher, matcherNode)) {
-            outConfig.matchers.push_back(matcher);
+            configData.matchers.push_back(matcher);
         } else {
             return false;
         }
     }
 
     return true;
+}
+
+bool ProcessConfigReader::parseProcessorConfigActions(ProcessorConfig &outConfig, const nlohmann::json &node) {
+    ProcessorConfig::Actions &configData = outConfig.createActions();
+    return parseProcessorActions(configData.actions, node);
 }
 
 bool ProcessConfigReader::parseProcessorActionMatcher(ProcessorActionMatcher &outActionMatcher, const nlohmann::json &node) {
@@ -80,25 +93,11 @@ bool ProcessConfigReader::parseProcessorActionMatcher(ProcessorActionMatcher &ou
     }
 
     if (auto it = node.find("actions"); it != node.end()) {
-        if (!it->is_array()) {
-            log(LogLevel::Error) << "Action matcher \"actions\" member must be an array.";
-            return false;
-        }
-
-        for (const nlohmann::json &actionNode : *it) {
-            ProcessorAction action{};
-            if (parseProcessorAction(action, actionNode)) {
-                outActionMatcher.actions.push_back(action);
-            } else {
-                return false;
-            }
-        }
+        return parseProcessorActions(outActionMatcher.actions, *it);
     } else {
         log(LogLevel::Error) << "Action matcher node must contain \"actions\" field.";
         return false;
     }
-
-    return true;
 }
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ProcessorAction::Type,
@@ -109,6 +108,23 @@ NLOHMANN_JSON_SERIALIZE_ENUM(ProcessorAction::Type,
                                  {ProcessorAction::Type::Remove, "remove"},
                                  {ProcessorAction::Type::Print, "print"},
                              })
+
+bool ProcessConfigReader::parseProcessorActions(std::vector<ProcessorAction> &outActions, const nlohmann::json &node) {
+    if (!node.is_array()) {
+        log(LogLevel::Error) << "Actions list must be an array.";
+        return false;
+    }
+
+    for (const nlohmann::json &actionNode : node) {
+        ProcessorAction action{};
+        if (parseProcessorAction(action, actionNode)) {
+            outActions.push_back(action);
+        } else {
+            return false;
+        }
+    }
+    return true;
+}
 
 bool ProcessConfigReader::parseProcessorAction(ProcessorAction &outAction, const nlohmann::json &node) {
     if (!node.is_object()) {

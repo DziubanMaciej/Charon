@@ -38,7 +38,7 @@ TEST_F(ProcessorTest, whenCopyActionIsTriggeredThenRequestFileCopy) {
     EXPECT_CALL(filesystem, copy(dummyPath1 / "b.jpg", dummyPath2 / "aaa.jpg"));
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
-    config.matchers[0].actions = {createCopyAction(dummyPath2, "aaa")};
+    config.matchers()->matchers[0].actions = {createCopyAction(dummyPath2, "aaa")};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEvent(dummyPath1, dummyPath1 / "b.jpg");
@@ -51,7 +51,7 @@ TEST_F(ProcessorTest, whenMoveActionIsTriggeredThenRequestFileMove) {
     EXPECT_CALL(filesystem, move(dummyPath1 / "b.jpg", dummyPath2 / "aaa.jpg"));
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
-    config.matchers[0].actions = {createMoveAction(dummyPath2, "aaa")};
+    config.matchers()->matchers[0].actions = {createMoveAction(dummyPath2, "aaa")};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEvent(dummyPath1, dummyPath1 / "b.jpg");
@@ -64,7 +64,7 @@ TEST_F(ProcessorTest, whenRemoveActionIsTriggeredThenRequestFileMove) {
     EXPECT_CALL(filesystem, remove(dummyPath1 / "b.jpg"));
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
-    config.matchers[0].actions = {createRemoveAction()};
+    config.matchers()->matchers[0].actions = {createRemoveAction()};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEvent(dummyPath1, dummyPath1 / "b.jpg");
@@ -82,7 +82,7 @@ TEST_F(ProcessorTest, givenCounterUsedWhenCopyActionIsTriggeredThenCheckForFirst
     }
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
-    config.matchers[0].actions = {createCopyAction(dummyPath2, "###")};
+    config.matchers()->matchers[0].actions = {createCopyAction(dummyPath2, "###")};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEvent(dummyPath1, dummyPath1 / "b.jpg");
@@ -104,7 +104,7 @@ TEST_F(ProcessorTest, givenCounterUsedAndThereAreExistingFilesWhenCopyActionIsTr
     }
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
-    config.matchers[0].actions = {createCopyAction(dummyPath2, "###")};
+    config.matchers()->matchers[0].actions = {createCopyAction(dummyPath2, "###")};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEvent(dummyPath1, dummyPath1 / "b.jpg");
@@ -125,7 +125,7 @@ TEST_F(ProcessorTest, givenCounterUsedAndIndexZeroIsFreeWhenCopyActionIsTriggere
     }
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
-    config.matchers[0].actions = {createCopyAction(dummyPath2, "###")};
+    config.matchers()->matchers[0].actions = {createCopyAction(dummyPath2, "###")};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEvent(dummyPath1, dummyPath1 / "b.jpg");
@@ -146,7 +146,7 @@ TEST_F(ProcessorTest, givenCounterUsedAndIndexOneIsFreeWhenCopyActionIsTriggered
     }
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
-    config.matchers[0].actions = {createCopyAction(dummyPath2, "###")};
+    config.matchers()->matchers[0].actions = {createCopyAction(dummyPath2, "###")};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEvent(dummyPath1, dummyPath1 / "b.jpg");
@@ -195,7 +195,7 @@ TEST_F(ProcessorTest, givenCounterUsedAndMultipleGapsInNamesWhenCopyActionsAreTr
     }
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
-    config.matchers[0].actions = {createCopyAction(dummyPath2, "###")};
+    config.matchers()->matchers[0].actions = {createCopyAction(dummyPath2, "###")};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEvent(dummyPath1, dummyPath1 / "a.jpg");
@@ -247,7 +247,7 @@ TEST_F(ProcessorTest, givenCounterUsedAndMultipleGapsInNamesWithDifferentExtensi
     }
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
-    config.matchers[0].actions = {createCopyAction(dummyPath2, "###")};
+    config.matchers()->matchers[0].actions = {createCopyAction(dummyPath2, "###")};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEvent(dummyPath1, dummyPath1 / "a.1");
@@ -263,7 +263,7 @@ TEST_F(ProcessorTest, givenNameVariableUsedWhenCopyActionIsTriggeredThenResolveN
     EXPECT_CALL(filesystem, copy(dummyPath1 / "b.jpg", dummyPath2 / "a_b_c.jpg"));
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
-    config.matchers[0].actions = {
+    config.matchers()->matchers[0].actions = {
         createCopyAction(dummyPath2, "a_${name}_c"),
     };
     Processor processor{config, eventQueue, filesystem};
@@ -280,7 +280,7 @@ TEST_F(ProcessorTest, givenPreviousNameVariableUsedWhenCopyActionIsTriggeredThen
     EXPECT_CALL(filesystem, copy(dummyPath1 / "b.jpg", dummyPath2 / "a_000_b.jpg"));
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
-    config.matchers[0].actions = {
+    config.matchers()->matchers[0].actions = {
         createCopyAction(dummyPath2, "###"),
         createCopyAction(dummyPath2, "a_${previousName}_b"),
     };
@@ -296,7 +296,7 @@ TEST_F(ProcessorTest, givenExtensionVariableUsedWhenCopyActionIsTriggeredThenRes
     EXPECT_CALL(filesystem, copy(dummyPath1 / "b.jpg", dummyPath2 / "a_jpg_c.jpg"));
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
-    config.matchers[0].actions = {createCopyAction(dummyPath2, "a_${extension}_c")};
+    config.matchers()->matchers[0].actions = {createCopyAction(dummyPath2, "a_${extension}_c")};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEvent(dummyPath1, dummyPath1 / "b.jpg");
@@ -310,7 +310,7 @@ TEST_F(ProcessorTest, givenMultipleVariablesUsedWhenCopyActionIsTriggeredThenRes
     EXPECT_CALL(filesystem, copy(dummyPath1 / "b.jpg", dummyPath2 / "dst_b_jpg_b.jpg"));
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
-    config.matchers[0].actions = {
+    config.matchers()->matchers[0].actions = {
         createCopyAction(dummyPath2, "dst"),
         createCopyAction(dummyPath2, "${previousName}_${name}_${extension}_${name}"),
     };
@@ -324,7 +324,7 @@ TEST_F(ProcessorTest, givenMultipleVariablesUsedWhenCopyActionIsTriggeredThenRes
 TEST_F(ProcessorTest, givenEventFromDifferentDirectoryThanWatchedWhenEventIsTriggeredThenDoNotExecuteAnyActions) {
     MockFilesystem filesystem{};
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath2);
-    config.matchers[0].actions = {createCopyAction(dummyPath2, "dst")};
+    config.matchers()->matchers[0].actions = {createCopyAction(dummyPath2, "dst")};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEvent(dummyPath1, dummyPath1 / "b.jpg");
@@ -337,9 +337,9 @@ TEST_F(ProcessorTest, givenMultipleActionMatchersWhenEventIsTriggeredThenSelectP
     EXPECT_CALL(filesystem, copy(dummyPath1 / "x.jpg", dummyPath1 / "abc.jpg"));
     EXPECT_CALL(filesystem, copy(dummyPath2 / "y.jpg", dummyPath2 / "def.jpg"));
 
-    ProcessorConfig config = createProcessorConfig({dummyPath1, dummyPath2});
-    config.matchers[0].actions = {createCopyAction(dummyPath1, "abc")};
-    config.matchers[1].actions = {createCopyAction(dummyPath2, "def")};
+    ProcessorConfig config = createProcessorConfigWithMatchers({dummyPath1, dummyPath2});
+    config.matchers()->matchers[0].actions = {createCopyAction(dummyPath1, "abc")};
+    config.matchers()->matchers[1].actions = {createCopyAction(dummyPath2, "def")};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEvent(dummyPath1, dummyPath1 / "x.jpg");
@@ -354,8 +354,8 @@ TEST_F(ProcessorTest, givenExtensionFiltersNotSatisfiedWhenEventIsTriggeredThenS
     EXPECT_CALL(filesystem, copy(dummyPath1 / "a.png", dummyPath2 / "b.png"));
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
-    config.matchers[0].actions = {createCopyAction(dummyPath2, "b")};
-    config.matchers[0].watchedExtensions = {"png", "jpg"};
+    config.matchers()->matchers[0].actions = {createCopyAction(dummyPath2, "b")};
+    config.matchers()->matchers[0].watchedExtensions = {"png", "jpg"};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEvent(dummyPath1, dummyPath1 / "a.jpg");
@@ -373,13 +373,13 @@ TEST_F(ProcessorTest, givenMultipleActionMatchersExtensionFiltersNotSatisfiedWhe
     EXPECT_CALL(filesystem, copy(dummyPath1 / "a.mp3", dummyPath2 / "song.mp3"));
     EXPECT_CALL(filesystem, copy(dummyPath1 / "a.pdf", dummyPath2 / "other.pdf"));
 
-    ProcessorConfig config = createProcessorConfig({dummyPath1, dummyPath1, dummyPath1});
-    config.matchers[0].actions = {createCopyAction(dummyPath2, "image")};
-    config.matchers[0].watchedExtensions = {"png", "jpg"};
-    config.matchers[1].actions = {createCopyAction(dummyPath2, "song")};
-    config.matchers[1].watchedExtensions = {"mp3"};
-    config.matchers[2].actions = {createCopyAction(dummyPath2, "other")};
-    config.matchers[2].watchedExtensions = {};
+    ProcessorConfig config = createProcessorConfigWithMatchers({dummyPath1, dummyPath1, dummyPath1});
+    config.matchers()->matchers[0].actions = {createCopyAction(dummyPath2, "image")};
+    config.matchers()->matchers[0].watchedExtensions = {"png", "jpg"};
+    config.matchers()->matchers[1].actions = {createCopyAction(dummyPath2, "song")};
+    config.matchers()->matchers[1].watchedExtensions = {"mp3"};
+    config.matchers()->matchers[2].actions = {createCopyAction(dummyPath2, "other")};
+    config.matchers()->matchers[2].watchedExtensions = {};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEvent(dummyPath1, dummyPath1 / "a.jpg");
@@ -399,7 +399,7 @@ TEST_F(ProcessorTest, whenMoveActionIsExecutedThenLogInfo) {
     EXPECT_CALL(logger, log(LogLevel::VerboseInfo, "Operation succeeded"));
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher("a");
-    config.matchers[0].actions = {createMoveAction("b", "${name}")};
+    config.matchers()->matchers[0].actions = {createMoveAction("b", "${name}")};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEvent("a", "a/file.txt");
@@ -416,7 +416,7 @@ TEST_F(ProcessorTest, whenCopyActionIsExecutedThenLogInfo) {
     EXPECT_CALL(logger, log(LogLevel::VerboseInfo, "Operation succeeded"));
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher("a");
-    config.matchers[0].actions = {createCopyAction("b", "${name}")};
+    config.matchers()->matchers[0].actions = {createCopyAction("b", "${name}")};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEvent("a", "a/file.txt");
@@ -433,7 +433,7 @@ TEST_F(ProcessorTest, whenRemoveActionIsExecutedThenLogInfo) {
     EXPECT_CALL(logger, log(LogLevel::VerboseInfo, "Operation succeeded"));
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher("a");
-    config.matchers[0].actions = {createRemoveAction()};
+    config.matchers()->matchers[0].actions = {createRemoveAction()};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEvent("a", "a/file.txt");
@@ -452,7 +452,7 @@ TEST_F(ProcessorTest, givenMultipleActionsWhenTheyAreExecutedThenLogInfo) {
     EXPECT_CALL(logger, log(LogLevel::VerboseInfo, "Operation succeeded")).Times(3);
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher("a");
-    config.matchers[0].actions = {
+    config.matchers()->matchers[0].actions = {
         createCopyAction("b", "${name}"),
         createMoveAction("c", "${name}"),
         createRemoveAction(),
@@ -472,8 +472,8 @@ TEST_F(ProcessorTest, givenNoMatchingActionMatcherWhenEventIsProcessedThenLogInf
     EXPECT_CALL(logger, log(LogLevel::Info, "Processor could not match file a/file.txt to any action matcher"));
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher("a");
-    config.matchers[0].actions = {createCopyAction("b", "${name}")};
-    config.matchers[0].watchedExtensions = {"png"};
+    config.matchers()->matchers[0].actions = {createCopyAction("b", "${name}")};
+    config.matchers()->matchers[0].watchedExtensions = {"png"};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEvent("a", "a/file.txt");
@@ -496,7 +496,7 @@ TEST_F(ProcessorTest, givenPrintActionWhenEventIsProcessedThenLogInfo) {
     }
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher("a");
-    config.matchers[0].actions = {createPrintAction()};
+    config.matchers()->matchers[0].actions = {createPrintAction()};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileEvent("a", FileEvent::Type::Add, "a/file.txt");
@@ -522,7 +522,7 @@ TEST_F(ProcessorTest, givenCreateDirectoryEventWhenProcessorIsRunningThenSkipThe
     EXPECT_CALL(filesystem, copy(dummyPath1 / "file", dummyPath2 / "file"));
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher("a");
-    config.matchers[0].actions = {createCopyAction(dummyPath2, "${name}")};
+    config.matchers()->matchers[0].actions = {createCopyAction(dummyPath2, "${name}")};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileEvent("a", FileEvent::Type::Add, dummyPath1 / "file");
@@ -541,7 +541,7 @@ TEST_F(ProcessorTest, adasd) {
     EXPECT_CALL(filesystem, copy(dummyPath1 / "unlocked", dummyPath2 / "dst"));
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
-    config.matchers[0].actions = {createCopyAction(dummyPath2, "dst")};
+    config.matchers()->matchers[0].actions = {createCopyAction(dummyPath2, "dst")};
     Processor processor{config, eventQueue, filesystem};
 
     eventQueue.push(FileEvent{dummyPath1, FileEvent::Type::Add, dummyPath1 / "locked", lockedFileHandle});
@@ -608,7 +608,7 @@ TEST_P(ProcessorTestWithDifferentEventsAndActions, givenNonNewEventAndFilesystem
     }
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
-    config.matchers[0].actions = {createActionOfType(actionType)};
+    config.matchers()->matchers[0].actions = {createActionOfType(actionType)};
     Processor processor{config, eventQueue, filesystem};
     pushFileEvent(dummyPath1, eventType, dummyPath1 / "file");
     pushInterruptEvent();
@@ -660,7 +660,7 @@ TEST_F(ProcessorTest, ddd_givenCrossDeviceLinkErrorWhenMoveOperationIsTriggerred
     EXPECT_CALL(logger, log(LogLevel::VerboseInfo, "Operation succeeded"));
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher("a");
-    config.matchers[0].actions = {createMoveAction("b", "dst")};
+    config.matchers()->matchers[0].actions = {createMoveAction("b", "dst")};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEvent("a", "a/src");
@@ -683,7 +683,7 @@ TEST_F(ProcessorTest, ddd_givenCopyOperationFailsWhenPerformingCopyPlusRemoveFal
     EXPECT_CALL(logger, log(LogLevel::Error, errorStringStream.str().c_str()));
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher("a");
-    config.matchers[0].actions = {createMoveAction("b", "dst")};
+    config.matchers()->matchers[0].actions = {createMoveAction("b", "dst")};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEvent("a", "a/src");
@@ -708,7 +708,7 @@ TEST_F(ProcessorTest, ddd_givenRemoveOperationFailsWhenPerformingCopyPlusRemoveF
     EXPECT_CALL(logger, log(LogLevel::Error, errorStringStream.str().c_str()));
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher("a");
-    config.matchers[0].actions = {createMoveAction("b", "dst")};
+    config.matchers()->matchers[0].actions = {createMoveAction("b", "dst")};
     Processor processor{config, eventQueue, filesystem};
 
     pushFileCreationEvent("a", "a/src");
