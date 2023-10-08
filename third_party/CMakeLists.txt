@@ -6,6 +6,7 @@ if(CHARON_TESTS)
     set_target_properties(gtest gtest_main gmock gmock_main PROPERTIES FOLDER ThirdParty)
 
     add_subdirectory(oakum)
+    set_target_properties(Oakum PROPERTIES FOLDER ThirdParty)
 endif()
 
 add_subdirectory(json)
