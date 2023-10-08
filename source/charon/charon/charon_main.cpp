@@ -42,7 +42,7 @@ int charonMain(int argc, char **argv, bool isDaemon) {
     // Read config
     ProcessConfigReader reader{};
     ProcessorConfig config{};
-    const bool success = reader.read(config, configPath);
+    const bool success = reader.read(config, configPath, ProcessorConfig::Type::Matchers);
     if (!success) {
         return EXIT_FAILURE;
     }

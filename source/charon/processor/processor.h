@@ -22,7 +22,10 @@ private:
     };
 
     void processEvent(FileEvent &event);
-    const ProcessorActionMatcher *findActionMatcher(const FileEvent &event) const;
+    void processEventMatchers(const ProcessorConfig::Matchers &configData, FileEvent &event);
+    void processEventActions(const ProcessorConfig::Actions &configData, FileEvent &event);
+
+    const ProcessorActionMatcher *findActionMatcher(const ProcessorConfig::Matchers &configData, const FileEvent &event) const;
     void executeProcessorAction(const FileEvent &event, const ProcessorAction &action, ActionMatcherState &actionMatcherState);
     void executeProcessorActionMoveOrCopy(const FileEvent &event, const ProcessorAction &action,
                                           ActionMatcherState &actionMatcherState, bool isMove);

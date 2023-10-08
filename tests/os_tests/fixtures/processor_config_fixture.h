@@ -39,10 +39,10 @@ struct ProcessorConfigFixture {
     }
 
     ProcessorConfig createProcessorConfigWithOneMatcher() {
-        ProcessorActionMatcher matcher{};
-        matcher.watchedFolder = srcPath;
         ProcessorConfig config{};
-        config.matchers = {matcher};
+        ProcessorConfig::Matchers &matchers = config.createMatchers();
+        matchers.matchers.emplace_back();
+        matchers.matchers.back().watchedFolder = srcPath;
         return config;
     }
 

@@ -30,14 +30,15 @@ struct ProcessorConfigFixture {
     }
 
     ProcessorConfig createProcessorConfigWithOneMatcher(const std::filesystem::path &watchedDir) {
-        return createProcessorConfig({watchedDir});
+        return createProcessorConfigWithMatchers({watchedDir});
     }
 
-    ProcessorConfig createProcessorConfig(std::initializer_list<std::filesystem::path> watchedDirs) {
+    ProcessorConfig createProcessorConfigWithMatchers(std::initializer_list<std::filesystem::path> watchedDirs) {
         ProcessorConfig config{};
+        ProcessorConfig::Matchers &matchers = config.createMatchers();
         for (const std::filesystem::path &watcherDir : watchedDirs) {
-            config.matchers.emplace_back();
-            config.matchers.back().watchedFolder = watcherDir;
+            matchers.matchers.emplace_back();
+            matchers.matchers.back().watchedFolder = watcherDir;
         }
         return config;
     }

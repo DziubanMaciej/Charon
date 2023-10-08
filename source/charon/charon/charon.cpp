@@ -10,15 +10,17 @@ Charon::Charon(const ProcessorConfig &config, Filesystem &filesystem, DirectoryW
     : deferredFileLocker(deferredFileLockerEventQueue, processorEventQueue, filesystem),
       processor(config, this->processorEventQueue, filesystem) {
 
-    std::vector<fs::path> directoriesToWatch = {};
-    for (const ProcessorActionMatcher &matcher : config.matchers) {
-        if (std::find(directoriesToWatch.begin(), directoriesToWatch.end(), matcher.watchedFolder) == directoriesToWatch.end()) {
-            directoriesToWatch.push_back(matcher.watchedFolder);
+    if (auto matchers = config.matchers(); matchers != nullptr) {
+        std::vector<fs::path> directoriesToWatch = {};
+        for (const ProcessorActionMatcher &matcher : matchers->matchers) {
+            if (std::find(directoriesToWatch.begin(), directoriesToWatch.end(), matcher.watchedFolder) == directoriesToWatch.end()) {
+                directoriesToWatch.push_back(matcher.watchedFolder);
+            }
         }
-    }
 
-    for (const fs::path &directoryToWatch : directoriesToWatch) {
-        this->directoryWatchers.push_back(watcherFactory.create(directoryToWatch, processorEventQueue, deferredFileLockerEventQueue));
+        for (const fs::path &directoryToWatch : directoriesToWatch) {
+            this->directoryWatchers.push_back(watcherFactory.create(directoryToWatch, processorEventQueue, deferredFileLockerEventQueue));
+        }
     }
 }
 

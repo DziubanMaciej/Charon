@@ -13,7 +13,7 @@ TEST(ProcessorConfigReaderBasicTest, givenEmptyJsonWhenReadingThenReturnError) {
     ProcessConfigReader reader{};
     ProcessorConfig config{};
     std::string json = "";
-    EXPECT_FALSE(reader.read(config, json));
+    EXPECT_FALSE(reader.read(config, json, ProcessorConfig::Type::Matchers));
 }
 
 TEST(ProcessorConfigReaderBasicTest, givenBadlyFormedJsonWhenReadingThenReturnError) {
@@ -24,7 +24,7 @@ TEST(ProcessorConfigReaderBasicTest, givenBadlyFormedJsonWhenReadingThenReturnEr
     ProcessConfigReader reader{};
     ProcessorConfig config{};
     std::string json = "[ { ]";
-    EXPECT_FALSE(reader.read(config, json));
+    EXPECT_FALSE(reader.read(config, json, ProcessorConfig::Type::Matchers));
 }
 
 TEST(ProcessorConfigReaderBasicTest, givenEmptyArrayWhenReadingThenReturnEmptyConfig) {
@@ -35,8 +35,8 @@ TEST(ProcessorConfigReaderBasicTest, givenEmptyArrayWhenReadingThenReturnEmptyCo
     ProcessConfigReader reader{};
     ProcessorConfig config{};
     std::string json = "[]";
-    ASSERT_TRUE(reader.read(config, json));
-    EXPECT_EMPTY(config.matchers);
+    ASSERT_TRUE(reader.read(config, json, ProcessorConfig::Type::Matchers));
+    EXPECT_EMPTY(config.matchers()->matchers);
 }
 
 TEST(ProcessorConfigReaderBadTypeTest, givenRootNodeIsNotAnArrayWhenReadingThenReturnError) {
@@ -48,13 +48,13 @@ TEST(ProcessorConfigReaderBadTypeTest, givenRootNodeIsNotAnArrayWhenReadingThenR
     ProcessorConfig config{};
 
     std::string json = "{}";
-    EXPECT_FALSE(reader.read(config, json));
+    EXPECT_FALSE(reader.read(config, json, ProcessorConfig::Type::Matchers));
 
     json = "1";
-    EXPECT_FALSE(reader.read(config, json));
+    EXPECT_FALSE(reader.read(config, json, ProcessorConfig::Type::Matchers));
 
     json = "\"str\"";
-    EXPECT_FALSE(reader.read(config, json));
+    EXPECT_FALSE(reader.read(config, json, ProcessorConfig::Type::Matchers));
 }
 
 TEST(ProcessorConfigReaderBadTypeTest, givenActionMatcherIsNotAnObjectWhenReadingThenReturnError) {
@@ -69,7 +69,7 @@ TEST(ProcessorConfigReaderBadTypeTest, givenActionMatcherIsNotAnObjectWhenReadin
             "foo"
         ]
     )";
-    EXPECT_FALSE(reader.read(config, json));
+    EXPECT_FALSE(reader.read(config, json, ProcessorConfig::Type::Matchers));
 }
 
 TEST(ProcessorConfigReaderBadTypeTest, givenExtensionsMemberIsNotAnArrayWhenReadingThenReturnError) {
@@ -88,13 +88,13 @@ TEST(ProcessorConfigReaderBadTypeTest, givenExtensionsMemberIsNotAnArrayWhenRead
             }
         ]
     )";
-    EXPECT_FALSE(reader.read(config, json));
+    EXPECT_FALSE(reader.read(config, json, ProcessorConfig::Type::Matchers));
 }
 
 TEST(ProcessorConfigReaderBadTypeTest, givenActionsMemberIsNotAnArrayWhenReadingThenReturnError) {
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
-    EXPECT_CALL(logger, log(LogLevel::Error, "Action matcher \"actions\" member must be an array."));
+    EXPECT_CALL(logger, log(LogLevel::Error, "Actions list must be an array."));
 
     ProcessConfigReader reader{};
     ProcessorConfig config{};
@@ -107,7 +107,7 @@ TEST(ProcessorConfigReaderBadTypeTest, givenActionsMemberIsNotAnArrayWhenReading
             }
         ]
     )";
-    EXPECT_FALSE(reader.read(config, json));
+    EXPECT_FALSE(reader.read(config, json, ProcessorConfig::Type::Matchers));
 }
 
 TEST(ProcessorConfigReaderMissingFieldTest, givenNoWatchedFoldersFieldWhenReadingThenReturnError) {
@@ -125,7 +125,7 @@ TEST(ProcessorConfigReaderMissingFieldTest, givenNoWatchedFoldersFieldWhenReadin
             }
         ]
     )";
-    EXPECT_FALSE(reader.read(config, json));
+    EXPECT_FALSE(reader.read(config, json, ProcessorConfig::Type::Matchers));
 }
 
 TEST(ProcessorConfigReaderMissingFieldTest, givenNoExtensionsFieldWhenReadingThenReturnSuccessAndEmptyExtensionsFilter) {
@@ -143,9 +143,9 @@ TEST(ProcessorConfigReaderMissingFieldTest, givenNoExtensionsFieldWhenReadingThe
             }
         ]
     )";
-    ASSERT_TRUE(reader.read(config, json));
-    EXPECT_EQ(1u, config.matchers.size());
-    EXPECT_EMPTY(config.matchers[0].watchedExtensions);
+    ASSERT_TRUE(reader.read(config, json, ProcessorConfig::Type::Matchers));
+    EXPECT_EQ(1u, config.matchers()->matchers.size());
+    EXPECT_EMPTY(config.matchers()->matchers[0].watchedExtensions);
 }
 
 TEST(ProcessorConfigReaderMissingFieldTest, givenNoActionsFieldWhenReadingThenReturnError) {
@@ -163,7 +163,7 @@ TEST(ProcessorConfigReaderMissingFieldTest, givenNoActionsFieldWhenReadingThenRe
             }
         ]
     )";
-    EXPECT_FALSE(reader.read(config, json));
+    EXPECT_FALSE(reader.read(config, json, ProcessorConfig::Type::Matchers));
 }
 
 TEST(ProcessConfigReaderPositiveTest, givenCopyActionWhenReadingThenParseCorrectly) {
@@ -188,9 +188,9 @@ TEST(ProcessConfigReaderPositiveTest, givenCopyActionWhenReadingThenParseCorrect
             }
         ]
     )";
-    ASSERT_TRUE(reader.read(config, json));
-    EXPECT_EQ(ProcessorAction::Type::Copy, config.matchers[0].actions[0].type);
-    auto data = std::get<ProcessorAction::MoveOrCopy>(config.matchers[0].actions[0].data);
+    ASSERT_TRUE(reader.read(config, json, ProcessorConfig::Type::Matchers));
+    EXPECT_EQ(ProcessorAction::Type::Copy, config.matchers()->matchers[0].actions[0].type);
+    auto data = std::get<ProcessorAction::MoveOrCopy>(config.matchers()->matchers[0].actions[0].data);
     EXPECT_EQ("D:/Desktop/Dst1", data.destinationDir);
     EXPECT_EQ("#.${ext}", data.destinationName);
 }
@@ -217,9 +217,9 @@ TEST(ProcessConfigReaderPositiveTest, givenMoveActionWhenReadingThenParseCorrect
             }
         ]
     )";
-    ASSERT_TRUE(reader.read(config, json));
-    EXPECT_EQ(ProcessorAction::Type::Move, config.matchers[0].actions[0].type);
-    auto data = std::get<ProcessorAction::MoveOrCopy>(config.matchers[0].actions[0].data);
+    ASSERT_TRUE(reader.read(config, json, ProcessorConfig::Type::Matchers));
+    EXPECT_EQ(ProcessorAction::Type::Move, config.matchers()->matchers[0].actions[0].type);
+    auto data = std::get<ProcessorAction::MoveOrCopy>(config.matchers()->matchers[0].actions[0].data);
     EXPECT_EQ("D:/Desktop/Dst1", data.destinationDir);
     EXPECT_EQ("#.${ext}", data.destinationName);
 }
@@ -244,9 +244,9 @@ TEST(ProcessConfigReaderPositiveTest, givenRemoveActionWhenReadingThenParseCorre
             }
         ]
     )";
-    ASSERT_TRUE(reader.read(config, json));
-    EXPECT_EQ(ProcessorAction::Type::Remove, config.matchers[0].actions[0].type);
-    EXPECT_TRUE(std::holds_alternative<ProcessorAction::Remove>(config.matchers[0].actions[0].data));
+    ASSERT_TRUE(reader.read(config, json, ProcessorConfig::Type::Matchers));
+    EXPECT_EQ(ProcessorAction::Type::Remove, config.matchers()->matchers[0].actions[0].type);
+    EXPECT_TRUE(std::holds_alternative<ProcessorAction::Remove>(config.matchers()->matchers[0].actions[0].data));
 }
 
 TEST(ProcessConfigReaderPositiveTest, givenPrintActionWhenReadingThenParseCorrectly) {
@@ -269,9 +269,9 @@ TEST(ProcessConfigReaderPositiveTest, givenPrintActionWhenReadingThenParseCorrec
             }
         ]
     )";
-    ASSERT_TRUE(reader.read(config, json));
-    EXPECT_EQ(ProcessorAction::Type::Print, config.matchers[0].actions[0].type);
-    EXPECT_TRUE(std::holds_alternative<ProcessorAction::Print>(config.matchers[0].actions[0].data));
+    ASSERT_TRUE(reader.read(config, json, ProcessorConfig::Type::Matchers));
+    EXPECT_EQ(ProcessorAction::Type::Print, config.matchers()->matchers[0].actions[0].type);
+    EXPECT_TRUE(std::holds_alternative<ProcessorAction::Print>(config.matchers()->matchers[0].actions[0].data));
 }
 
 TEST(ProcessConfigReaderPositiveTest, givenComplexConfigWhenReadingThenParseCorrectly) {
@@ -311,11 +311,11 @@ TEST(ProcessConfigReaderPositiveTest, givenComplexConfigWhenReadingThenParseCorr
         ]
     )";
 
-    ASSERT_TRUE(reader.read(config, json));
-    EXPECT_EQ(2u, config.matchers.size());
+    ASSERT_TRUE(reader.read(config, json, ProcessorConfig::Type::Matchers));
+    EXPECT_EQ(2u, config.matchers()->matchers.size());
 
     {
-        const auto &matcher = config.matchers[0];
+        const auto &matcher = config.matchers()->matchers[0];
         EXPECT_EQ("D:/Desktop/Test1", matcher.watchedFolder);
         EXPECT_EQ((std::vector<fs::path>{"png", "jpg", "gif"}), matcher.watchedExtensions);
         EXPECT_EQ(2u, matcher.actions.size());
@@ -336,7 +336,7 @@ TEST(ProcessConfigReaderPositiveTest, givenComplexConfigWhenReadingThenParseCorr
     }
 
     {
-        const auto &matcher = config.matchers[1];
+        const auto &matcher = config.matchers()->matchers[1];
         EXPECT_EQ("D:/Desktop/Test2", matcher.watchedFolder);
         EXPECT_EQ((std::vector<fs::path>{"mp4"}), matcher.watchedExtensions);
         EXPECT_EQ(1u, matcher.actions.size());

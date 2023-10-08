@@ -14,6 +14,7 @@ public:
 private:
     static bool validateActionMatcher(const ProcessorActionMatcher &actionMatcher);
     static bool validateExtension(const fs::path &extension);
+    static bool validateActions(const std::vector<ProcessorAction> &actions);
     static bool validateAction(const ProcessorAction &action, bool &foundRemoveAction);
-    static bool validatePath(const fs::path &path, const std::string &label, bool allowEmpty);
+    static bool validatePath(const fs::path &path, const std::string &label, bool allowEmpty, bool allowNonExistant);
 };

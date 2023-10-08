@@ -11,8 +11,8 @@ TEST_F(ProcessorConfigValidatorTest, givenValidConfigWhenValidatingConfigThenRet
     auto loggerSetup = logger.raiiSetup();
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
-    config.matchers[0].watchedExtensions = {"png", "jpg", "mp4", ""};
-    config.matchers[0].actions = {
+    config.matchers()->matchers[0].watchedExtensions = {"png", "jpg", "mp4", ""};
+    config.matchers()->matchers[0].actions = {
         createCopyAction(dummyPath2, "dst"),
         createCopyAction(dummyPath3, "dst"),
         createMoveAction(dummyPath3, "dst"),
@@ -30,14 +30,14 @@ TEST_F(ProcessorConfigValidatorTest, givenFilesystemActionAfterMoveOrRemoveWhenV
     EXPECT_CALL(logger, log(LogLevel::Error, "Placing actions after a move/remove action is illegal.")).Times(2);
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
-    config.matchers[0].watchedExtensions = {"png", "jpg", "mp4", ""};
-    config.matchers[0].actions = {
+    config.matchers()->matchers[0].watchedExtensions = {"png", "jpg", "mp4", ""};
+    config.matchers()->matchers[0].actions = {
         createMoveAction(dummyPath3, "dst"),
         createMoveAction(dummyPath3, "dst"),
     };
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 
-    config.matchers[0].actions = {
+    config.matchers()->matchers[0].actions = {
         createRemoveAction(),
         createCopyAction(dummyPath3, "dst"),
     };
@@ -51,8 +51,8 @@ TEST_F(ProcessorConfigValidatorTest, givenExtensionWithDotWhenValidatingConfigTh
     EXPECT_CALL(logger, log(LogLevel::Error, "One of watched extensions contains a dot.")).Times(3);
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
-    config.matchers[0].watchedExtensions = {"png", ".jpg", "mp4", ""};
-    config.matchers[0].actions = {
+    config.matchers()->matchers[0].watchedExtensions = {"png", ".jpg", "mp4", ""};
+    config.matchers()->matchers[0].actions = {
         createCopyAction(dummyPath2, "dst"),
         createCopyAction(dummyPath3, "dst"),
         createMoveAction(dummyPath3, "dst"),
@@ -61,10 +61,10 @@ TEST_F(ProcessorConfigValidatorTest, givenExtensionWithDotWhenValidatingConfigTh
     };
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 
-    config.matchers[0].watchedExtensions = {"so.png", "jpg", "mp4", ""};
+    config.matchers()->matchers[0].watchedExtensions = {"so.png", "jpg", "mp4", ""};
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 
-    config.matchers[0].watchedExtensions = {"png", "jpg", "mp4", "."};
+    config.matchers()->matchers[0].watchedExtensions = {"png", "jpg", "mp4", "."};
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 }
 
@@ -75,8 +75,8 @@ TEST_F(ProcessorConfigValidatorTest, givenExtensionWithNonAsciiCharacterWhenVali
     EXPECT_CALL(logger, log(LogLevel::Error, "One of watched extensions contains illegal characters."));
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
-    config.matchers[0].watchedExtensions = {"png", "jpg\206", "mp4", ""};
-    config.matchers[0].actions = {
+    config.matchers()->matchers[0].watchedExtensions = {"png", "jpg\206", "mp4", ""};
+    config.matchers()->matchers[0].actions = {
         createCopyAction(dummyPath2, "dst"),
         createCopyAction(dummyPath3, "dst"),
         createMoveAction(dummyPath3, "dst"),
@@ -93,11 +93,11 @@ TEST_F(ProcessorConfigValidatorTest, givenDestinationNamePatternWithNonAsciiChar
     EXPECT_CALL(logger, log(LogLevel::Error, "Destination name contains illegal characters.")).Times(2);
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
-    config.matchers[0].watchedExtensions = {"png", "jpg", "mp4", ""};
-    config.matchers[0].actions = {createCopyAction(dummyPath2, "dst\206")};
+    config.matchers()->matchers[0].watchedExtensions = {"png", "jpg", "mp4", ""};
+    config.matchers()->matchers[0].actions = {createCopyAction(dummyPath2, "dst\206")};
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 
-    config.matchers[0].actions = {createMoveAction(dummyPath2, "dst\206")};
+    config.matchers()->matchers[0].actions = {createMoveAction(dummyPath2, "dst\206")};
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 }
 
@@ -108,11 +108,11 @@ TEST_F(ProcessorConfigValidatorTest, givenDestinationDirWithNonAsciiCharacterWhe
     EXPECT_CALL(logger, log(LogLevel::Error, "Destination directory contains illegal characters.")).Times(2);
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
-    config.matchers[0].watchedExtensions = {"png", "jpg", "mp4", ""};
-    config.matchers[0].actions = {createCopyAction(dummyDirWithNonAsciiCharacter, "dst")};
+    config.matchers()->matchers[0].watchedExtensions = {"png", "jpg", "mp4", ""};
+    config.matchers()->matchers[0].actions = {createCopyAction(dummyDirWithNonAsciiCharacter, "dst")};
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 
-    config.matchers[0].actions = {createMoveAction(dummyDirWithNonAsciiCharacter, "dst")};
+    config.matchers()->matchers[0].actions = {createMoveAction(dummyDirWithNonAsciiCharacter, "dst")};
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 }
 
@@ -123,11 +123,11 @@ TEST_F(ProcessorConfigValidatorTest, givenEmptyDestinationDirWhenValidatingConfi
     EXPECT_CALL(logger, log(LogLevel::Error, "Destination directory is empty.")).Times(2);
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
-    config.matchers[0].watchedExtensions = {"png", "jpg", "mp4", ""};
-    config.matchers[0].actions = {createCopyAction(fs::path(), "dst")};
+    config.matchers()->matchers[0].watchedExtensions = {"png", "jpg", "mp4", ""};
+    config.matchers()->matchers[0].actions = {createCopyAction(fs::path(), "dst")};
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 
-    config.matchers[0].actions = {createMoveAction(fs::path(), "dst")};
+    config.matchers()->matchers[0].actions = {createMoveAction(fs::path(), "dst")};
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 }
 
@@ -138,11 +138,11 @@ TEST_F(ProcessorConfigValidatorTest, givenEmptyDestinationNamePatternWhenValidat
     EXPECT_CALL(logger, log(LogLevel::Error, "Destination name is empty.")).Times(2);
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
-    config.matchers[0].watchedExtensions = {"png", "jpg", "mp4", ""};
-    config.matchers[0].actions = {createCopyAction(dummyPath1, "")};
+    config.matchers()->matchers[0].watchedExtensions = {"png", "jpg", "mp4", ""};
+    config.matchers()->matchers[0].actions = {createCopyAction(dummyPath1, "")};
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 
-    config.matchers[0].actions = {createMoveAction(dummyPath1, "")};
+    config.matchers()->matchers[0].actions = {createMoveAction(dummyPath1, "")};
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 }
 
@@ -151,8 +151,8 @@ TEST_F(ProcessorConfigValidatorTest, givenValidVariableInNamePatternWhenValidati
     auto loggerSetup = logger.raiiSetup();
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
-    config.matchers[0].watchedExtensions = {"png", "jpg", "mp4", ""};
-    config.matchers[0].actions = {
+    config.matchers()->matchers[0].watchedExtensions = {"png", "jpg", "mp4", ""};
+    config.matchers()->matchers[0].actions = {
         createCopyAction(dummyPath2, "dst ${name}"),
         createCopyAction(dummyPath2, "dst ${previousName}"),
         createCopyAction(dummyPath2, "dst ${extension}"),
@@ -167,11 +167,11 @@ TEST_F(ProcessorConfigValidatorTest, givenInvalidVariableInNamePatternWhenValida
     EXPECT_CALL(logger, log(LogLevel::Error, "Destination name contains illegal pseudo-variables.")).Times(2);
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
-    config.matchers[0].watchedExtensions = {"png", "jpg", "mp4", ""};
-    config.matchers[0].actions = {createCopyAction(dummyPath2, "dst${weirdVariable}")};
+    config.matchers()->matchers[0].watchedExtensions = {"png", "jpg", "mp4", ""};
+    config.matchers()->matchers[0].actions = {createCopyAction(dummyPath2, "dst${weirdVariable}")};
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 
-    config.matchers[0].actions = {createMoveAction(dummyPath2, "dst${one} ${two}")};
+    config.matchers()->matchers[0].actions = {createMoveAction(dummyPath2, "dst${one} ${two}")};
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 }
 
@@ -182,14 +182,14 @@ TEST_F(ProcessorConfigValidatorTest, givenUnclosedVariableInNamePatternWhenValid
     EXPECT_CALL(logger, log(LogLevel::Error, "Destination name contains unclosed pseudo-variables.")).Times(3);
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
-    config.matchers[0].watchedExtensions = {"png", "jpg", "mp4", ""};
-    config.matchers[0].actions = {createCopyAction(dummyPath2, "dst ${")}; // unclosed and end of string
+    config.matchers()->matchers[0].watchedExtensions = {"png", "jpg", "mp4", ""};
+    config.matchers()->matchers[0].actions = {createCopyAction(dummyPath2, "dst ${")}; // unclosed and end of string
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 
-    config.matchers[0].actions = {createCopyAction(dummyPath2, "dst ${aaa")}; // unclosed and some characters
+    config.matchers()->matchers[0].actions = {createCopyAction(dummyPath2, "dst ${aaa")}; // unclosed and some characters
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 
-    config.matchers[0].actions = {createMoveAction(dummyPath2, "dst ${ ${name}")}; // unclosed and valid name after
+    config.matchers()->matchers[0].actions = {createMoveAction(dummyPath2, "dst ${ ${name}")}; // unclosed and valid name after
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 }
 
@@ -198,8 +198,8 @@ TEST_F(ProcessorConfigValidatorTest, givenContiguousHashesInNamePatternWhenValid
     auto loggerSetup = logger.raiiSetup();
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
-    config.matchers[0].watchedExtensions = {"png", "jpg", "mp4", ""};
-    config.matchers[0].actions = {
+    config.matchers()->matchers[0].watchedExtensions = {"png", "jpg", "mp4", ""};
+    config.matchers()->matchers[0].actions = {
         createCopyAction(dummyPath2, "dst #"),
         createCopyAction(dummyPath2, "dst ###"),
         createCopyAction(dummyPath2, "###"),
@@ -216,13 +216,13 @@ TEST_F(ProcessorConfigValidatorTest, givenUncontiguousHashesInNamePatternWhenVal
     EXPECT_CALL(logger, log(LogLevel::Error, "Desination name contains uncontiguous hashes.")).Times(3);
 
     ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
-    config.matchers[0].watchedExtensions = {"png", "jpg", "mp4", ""};
-    config.matchers[0].actions = {createCopyAction(dummyPath2, "#_#")};
+    config.matchers()->matchers[0].watchedExtensions = {"png", "jpg", "mp4", ""};
+    config.matchers()->matchers[0].actions = {createCopyAction(dummyPath2, "#_#")};
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 
-    config.matchers[0].actions = {createCopyAction(dummyPath2, "abc_##_ad#")};
+    config.matchers()->matchers[0].actions = {createCopyAction(dummyPath2, "abc_##_ad#")};
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 
-    config.matchers[0].actions = {createCopyAction(dummyPath2, "abc_##_ad#aa")};
+    config.matchers()->matchers[0].actions = {createCopyAction(dummyPath2, "abc_##_ad#aa")};
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 }

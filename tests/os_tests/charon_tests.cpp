@@ -55,7 +55,7 @@ struct CharonOsTests : ::testing::Test,
 
 TEST_F(CharonOsTests, givenFileEventWhenCharonIsRunningThenExecuteActions) {
     ProcessorConfig processorConfig = createProcessorConfigWithOneMatcher();
-    processorConfig.matchers[0].actions = {
+    processorConfig.matchers()->matchers[0].actions = {
         createCopyAction("a"),
         createCopyAction("b"),
         createMoveAction("c"),
@@ -79,7 +79,7 @@ TEST_F(CharonOsTests, givenFileEventWhenCharonIsRunningThenExecuteActions) {
 
 TEST_F(CharonOsTests, givenRemoveActionWhenCharonIsRunningThenExecuteActions) {
     ProcessorConfig processorConfig = createProcessorConfigWithOneMatcher();
-    processorConfig.matchers[0].actions = {createRemoveAction()};
+    processorConfig.matchers()->matchers[0].actions = {createRemoveAction()};
     Charon charon{processorConfig, filesystem, watcherFactory};
 
     {
@@ -96,7 +96,7 @@ TEST_F(CharonOsTests, givenRemoveActionWhenCharonIsRunningThenExecuteActions) {
 
 TEST_F(CharonOsTests, givenMultipleFileEventsWhenCharonIsRunningThenExecuteActions) {
     ProcessorConfig processorConfig = createProcessorConfigWithOneMatcher();
-    processorConfig.matchers[0].actions = {createCopyAction("a#")};
+    processorConfig.matchers()->matchers[0].actions = {createCopyAction("a#")};
     Charon charon{processorConfig, filesystem, watcherFactory};
 
     {
@@ -118,7 +118,7 @@ TEST_F(CharonOsTests, givenMultipleFileEventsWhenCharonIsRunningThenExecuteActio
 
 TEST_F(CharonOsTests, givenMultipleFileEventsAndMultipleActionsWhenCharonIsRunningThenExecuteActions) {
     ProcessorConfig processorConfig = createProcessorConfigWithOneMatcher();
-    processorConfig.matchers[0].actions = {
+    processorConfig.matchers()->matchers[0].actions = {
         createCopyAction("a#"),
         createMoveAction("a${previousName}"),
     };
@@ -146,7 +146,7 @@ TEST_F(CharonOsTests, givenFilesAreOpenedForSomeTimeWhenCharonIsMovingFilesThenR
     constexpr auto filesCount = 100u;
 
     ProcessorConfig processorConfig = createProcessorConfigWithOneMatcher();
-    processorConfig.matchers[0].actions = {createMoveAction("${name}")};
+    processorConfig.matchers()->matchers[0].actions = {createMoveAction("${name}")};
     Charon charon{processorConfig, filesystem, watcherFactory};
 
     {
@@ -179,7 +179,7 @@ TEST_F(CharonOsTests, givenFilesAreOpenedForSomeTimeWhenCharonIsCopyingFilesThen
     constexpr auto filesCount = 100u;
 
     ProcessorConfig processorConfig = createProcessorConfigWithOneMatcher();
-    processorConfig.matchers[0].actions = {createCopyAction("${name}")};
+    processorConfig.matchers()->matchers[0].actions = {createCopyAction("${name}")};
     Charon charon{processorConfig, filesystem, watcherFactory};
 
     {
