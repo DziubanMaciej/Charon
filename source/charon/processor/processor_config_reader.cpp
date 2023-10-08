@@ -46,7 +46,7 @@ bool ProcessConfigReader::readFile(const std::filesystem::path &jsonFile, std::s
 
 bool ProcessConfigReader::parseProcessorConfigMatchers(ProcessorConfig &outConfig, const nlohmann::json &node) {
     if (!node.is_array()) {
-        log(LogLevel::Error) << "Root node must be an array";
+        log(LogLevel::Error) << "Root node must be an array.";
         return false;
     }
 

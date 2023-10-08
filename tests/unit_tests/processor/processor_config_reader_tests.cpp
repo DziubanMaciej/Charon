@@ -5,29 +5,60 @@
 
 #define EXPECT_EMPTY(container) EXPECT_EQ(0u, container.size())
 
-TEST(ProcessorConfigReaderBasicTest, givenEmptyJsonWhenReadingThenReturnError) {
+constexpr static inline ProcessorConfig::Type allProcessorConfigTypes[] = {
+    ProcessorConfig::Type::Actions,
+    ProcessorConfig::Type::Matchers,
+};
+constexpr static inline size_t processorConfigTypesCount = sizeof(allProcessorConfigTypes) / sizeof(allProcessorConfigTypes[0]);
+
+TEST(ProcessorConfigReaderBasicTest, givenEmptyJsonWhenReadingConfigThenReturnError) {
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
-    EXPECT_CALL(logger, log(LogLevel::Error, "Specified json was badly formed."));
+    EXPECT_CALL(logger, log(LogLevel::Error, "Specified json was badly formed.")).Times(processorConfigTypesCount);
 
-    ProcessConfigReader reader{};
-    ProcessorConfig config{};
-    std::string json = "";
-    EXPECT_FALSE(reader.read(config, json, ProcessorConfig::Type::Matchers));
+    for (auto type : allProcessorConfigTypes) {
+        ProcessConfigReader reader{};
+        ProcessorConfig config{};
+        std::string json = "";
+        EXPECT_FALSE(reader.read(config, json, type));
+    }
 }
 
-TEST(ProcessorConfigReaderBasicTest, givenBadlyFormedJsonWhenReadingThenReturnError) {
+TEST(ProcessorConfigReaderBasicTest, givenBadlyFormedJsonWhenReadingConfigThenReturnError) {
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
-    EXPECT_CALL(logger, log(LogLevel::Error, "Specified json was badly formed."));
+    EXPECT_CALL(logger, log(LogLevel::Error, "Specified json was badly formed.")).Times(processorConfigTypesCount);
 
-    ProcessConfigReader reader{};
-    ProcessorConfig config{};
-    std::string json = "[ { ]";
-    EXPECT_FALSE(reader.read(config, json, ProcessorConfig::Type::Matchers));
+    for (auto type : allProcessorConfigTypes) {
+        ProcessConfigReader reader{};
+        ProcessorConfig config{};
+        std::string json = "[ { ]";
+        EXPECT_FALSE(reader.read(config, json, type));
+    }
 }
 
-TEST(ProcessorConfigReaderBasicTest, givenEmptyArrayWhenReadingThenReturnEmptyConfig) {
+TEST(ProcessorConfigReaderBadTypeTest, givenRootNodeIsNotAnArrayWhenReadingConfigThenReturnError) {
+    MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
+    EXPECT_CALL(logger, log(LogLevel::Error, "Root node must be an array.")).Times(3);
+    EXPECT_CALL(logger, log(LogLevel::Error, "Actions list must be an array.")).Times(3);
+
+    for (auto type : allProcessorConfigTypes) {
+        ProcessConfigReader reader{};
+        ProcessorConfig config{};
+
+        std::string json = "{}";
+        EXPECT_FALSE(reader.read(config, json, type));
+
+        json = "1";
+        EXPECT_FALSE(reader.read(config, json, type));
+
+        json = "\"str\"";
+        EXPECT_FALSE(reader.read(config, json, type));
+    }
+}
+
+TEST(ProcessorConfigReaderBasicTest, givenEmptyArrayWhenReadingConfigWithMatchersThenReturnEmptyConfig) {
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
     EXPECT_CALL(logger, log).Times(0);
@@ -39,25 +70,7 @@ TEST(ProcessorConfigReaderBasicTest, givenEmptyArrayWhenReadingThenReturnEmptyCo
     EXPECT_EMPTY(config.matchers()->matchers);
 }
 
-TEST(ProcessorConfigReaderBadTypeTest, givenRootNodeIsNotAnArrayWhenReadingThenReturnError) {
-    MockLogger logger{};
-    auto loggerSetup = logger.raiiSetup();
-    EXPECT_CALL(logger, log(LogLevel::Error, "Root node must be an array")).Times(3);
-
-    ProcessConfigReader reader{};
-    ProcessorConfig config{};
-
-    std::string json = "{}";
-    EXPECT_FALSE(reader.read(config, json, ProcessorConfig::Type::Matchers));
-
-    json = "1";
-    EXPECT_FALSE(reader.read(config, json, ProcessorConfig::Type::Matchers));
-
-    json = "\"str\"";
-    EXPECT_FALSE(reader.read(config, json, ProcessorConfig::Type::Matchers));
-}
-
-TEST(ProcessorConfigReaderBadTypeTest, givenActionMatcherIsNotAnObjectWhenReadingThenReturnError) {
+TEST(ProcessorConfigReaderBadTypeTest, givenActionMatcherIsNotAnObjectWhenReadingConfigWithMatchersThenReturnError) {
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
     EXPECT_CALL(logger, log(LogLevel::Error, "Action matcher node must be an object"));
@@ -72,7 +85,7 @@ TEST(ProcessorConfigReaderBadTypeTest, givenActionMatcherIsNotAnObjectWhenReadin
     EXPECT_FALSE(reader.read(config, json, ProcessorConfig::Type::Matchers));
 }
 
-TEST(ProcessorConfigReaderBadTypeTest, givenExtensionsMemberIsNotAnArrayWhenReadingThenReturnError) {
+TEST(ProcessorConfigReaderBadTypeTest, givenExtensionsMemberIsNotAnArrayWhenReadingConfigWithMatchersThenReturnError) {
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
     EXPECT_CALL(logger, log(LogLevel::Error, "Action matcher \"extensions\" member must be an array."));
@@ -91,7 +104,7 @@ TEST(ProcessorConfigReaderBadTypeTest, givenExtensionsMemberIsNotAnArrayWhenRead
     EXPECT_FALSE(reader.read(config, json, ProcessorConfig::Type::Matchers));
 }
 
-TEST(ProcessorConfigReaderBadTypeTest, givenActionsMemberIsNotAnArrayWhenReadingThenReturnError) {
+TEST(ProcessorConfigReaderBadTypeTest, givenActionsMemberIsNotAnArrayWhenReadingConfigWithMatchersThenReturnError) {
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
     EXPECT_CALL(logger, log(LogLevel::Error, "Actions list must be an array."));
@@ -110,7 +123,7 @@ TEST(ProcessorConfigReaderBadTypeTest, givenActionsMemberIsNotAnArrayWhenReading
     EXPECT_FALSE(reader.read(config, json, ProcessorConfig::Type::Matchers));
 }
 
-TEST(ProcessorConfigReaderMissingFieldTest, givenNoWatchedFoldersFieldWhenReadingThenReturnError) {
+TEST(ProcessorConfigReaderMissingFieldTest, givenNoWatchedFoldersFieldWhenReadingConfigWithMatchersThenReturnError) {
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
     EXPECT_CALL(logger, log(LogLevel::Error, "Action matcher node must contain \"watchedFolder\" field."));
@@ -128,7 +141,7 @@ TEST(ProcessorConfigReaderMissingFieldTest, givenNoWatchedFoldersFieldWhenReadin
     EXPECT_FALSE(reader.read(config, json, ProcessorConfig::Type::Matchers));
 }
 
-TEST(ProcessorConfigReaderMissingFieldTest, givenNoExtensionsFieldWhenReadingThenReturnSuccessAndEmptyExtensionsFilter) {
+TEST(ProcessorConfigReaderMissingFieldTest, givenNoExtensionsFieldWhenReadingConfigWithMatchersThenReturnSuccessAndEmptyExtensionsFilter) {
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
     EXPECT_CALL(logger, log).Times(0);
@@ -148,7 +161,7 @@ TEST(ProcessorConfigReaderMissingFieldTest, givenNoExtensionsFieldWhenReadingThe
     EXPECT_EMPTY(config.matchers()->matchers[0].watchedExtensions);
 }
 
-TEST(ProcessorConfigReaderMissingFieldTest, givenNoActionsFieldWhenReadingThenReturnError) {
+TEST(ProcessorConfigReaderMissingFieldTest, givenNoActionsFieldWhenReadingConfigWithMatchersThenReturnError) {
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
     EXPECT_CALL(logger, log(LogLevel::Error, "Action matcher node must contain \"actions\" field."));
@@ -166,7 +179,7 @@ TEST(ProcessorConfigReaderMissingFieldTest, givenNoActionsFieldWhenReadingThenRe
     EXPECT_FALSE(reader.read(config, json, ProcessorConfig::Type::Matchers));
 }
 
-TEST(ProcessConfigReaderPositiveTest, givenCopyActionWhenReadingThenParseCorrectly) {
+TEST(ProcessConfigReaderPositiveTest, givenCopyActionWhenReadingConfigWithMatchersThenParseCorrectly) {
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
     EXPECT_CALL(logger, log).Times(0);
@@ -195,7 +208,7 @@ TEST(ProcessConfigReaderPositiveTest, givenCopyActionWhenReadingThenParseCorrect
     EXPECT_EQ("#.${ext}", data.destinationName);
 }
 
-TEST(ProcessConfigReaderPositiveTest, givenMoveActionWhenReadingThenParseCorrectly) {
+TEST(ProcessConfigReaderPositiveTest, givenMoveActionWhenReadingConfigWithMatchersThenParseCorrectly) {
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
     EXPECT_CALL(logger, log).Times(0);
@@ -224,7 +237,7 @@ TEST(ProcessConfigReaderPositiveTest, givenMoveActionWhenReadingThenParseCorrect
     EXPECT_EQ("#.${ext}", data.destinationName);
 }
 
-TEST(ProcessConfigReaderPositiveTest, givenRemoveActionWhenReadingThenParseCorrectly) {
+TEST(ProcessConfigReaderPositiveTest, givenRemoveActionWhenReadingConfigWithMatchersThenParseCorrectly) {
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
     EXPECT_CALL(logger, log).Times(0);
@@ -249,7 +262,7 @@ TEST(ProcessConfigReaderPositiveTest, givenRemoveActionWhenReadingThenParseCorre
     EXPECT_TRUE(std::holds_alternative<ProcessorAction::Remove>(config.matchers()->matchers[0].actions[0].data));
 }
 
-TEST(ProcessConfigReaderPositiveTest, givenPrintActionWhenReadingThenParseCorrectly) {
+TEST(ProcessConfigReaderPositiveTest, givenPrintActionWhenReadingConfigWithMatchersThenParseCorrectly) {
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
     EXPECT_CALL(logger, log).Times(0);
@@ -274,7 +287,7 @@ TEST(ProcessConfigReaderPositiveTest, givenPrintActionWhenReadingThenParseCorrec
     EXPECT_TRUE(std::holds_alternative<ProcessorAction::Print>(config.matchers()->matchers[0].actions[0].data));
 }
 
-TEST(ProcessConfigReaderPositiveTest, givenComplexConfigWhenReadingThenParseCorrectly) {
+TEST(ProcessConfigReaderPositiveTest, givenComplexConfigWhenReadingConfigWithMatchersThenParseCorrectly) {
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();
     EXPECT_CALL(logger, log).Times(0);
@@ -345,5 +358,95 @@ TEST(ProcessConfigReaderPositiveTest, givenComplexConfigWhenReadingThenParseCorr
             EXPECT_TRUE(std::holds_alternative<ProcessorAction::Remove>(action.data));
             EXPECT_EQ(ProcessorAction::Type::Remove, action.type);
         }
+    }
+}
+
+TEST(ProcessorConfigReaderBasicTest, givenEmptyArrayWhenReadingConfigWithActionsThenReturnEmptyConfig) {
+    MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
+    EXPECT_CALL(logger, log).Times(0);
+
+    ProcessConfigReader reader{};
+    ProcessorConfig config{};
+    std::string json = "[]";
+    ASSERT_TRUE(reader.read(config, json, ProcessorConfig::Type::Actions));
+    EXPECT_EMPTY(config.actions()->actions);
+}
+
+TEST(ProcessConfigReaderPositiveTest, givenCopyActionWhenReadingConfigWithActionsThenParseCorrectly) {
+    MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
+    EXPECT_CALL(logger, log).Times(0);
+
+    ProcessConfigReader reader{};
+    ProcessorConfig config{};
+    std::string json = R"(
+        [
+            {
+                "type": "copy",
+                "destinationDir": "D:/Desktop/Dst1",
+                "destinationName": "#.${ext}"
+            }
+        ]
+    )";
+    ASSERT_TRUE(reader.read(config, json, ProcessorConfig::Type::Actions));
+    ProcessorAction &action = config.actions()->actions[0];
+    EXPECT_EQ(ProcessorAction::Type::Copy, action.type);
+    auto data = std::get<ProcessorAction::MoveOrCopy>(action.data);
+    EXPECT_EQ("D:/Desktop/Dst1", data.destinationDir);
+    EXPECT_EQ("#.${ext}", data.destinationName);
+}
+
+TEST(ProcessConfigReaderPositiveTest, givenMultipleActionsWhenReadingConfigWithActionsThenParseCorrectly) {
+    MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
+    EXPECT_CALL(logger, log).Times(0);
+
+    ProcessConfigReader reader{};
+    ProcessorConfig config{};
+    std::string json = R"(
+        [
+            {
+                "type": "copy",
+                "destinationDir": "D:/Desktop/Dst1",
+                "destinationName": "#.${ext}"
+            },
+            {
+                "type": "move",
+                "destinationDir": "D:/Desktop/Dst2",
+                "destinationName": "##.${ext}"
+            },
+            {
+                "type": "remove"
+            },
+            {
+                "type": "print"
+            }
+        ]
+    )";
+    ASSERT_TRUE(reader.read(config, json, ProcessorConfig::Type::Actions));
+    {
+        ProcessorAction &action = config.actions()->actions[0];
+        EXPECT_EQ(ProcessorAction::Type::Copy, action.type);
+        auto data = std::get<ProcessorAction::MoveOrCopy>(action.data);
+        EXPECT_EQ("D:/Desktop/Dst1", data.destinationDir);
+        EXPECT_EQ("#.${ext}", data.destinationName);
+    }
+    {
+        ProcessorAction &action = config.actions()->actions[1];
+        EXPECT_EQ(ProcessorAction::Type::Move, action.type);
+        auto data = std::get<ProcessorAction::MoveOrCopy>(action.data);
+        EXPECT_EQ("D:/Desktop/Dst2", data.destinationDir);
+        EXPECT_EQ("##.${ext}", data.destinationName);
+    }
+    {
+        ProcessorAction &action = config.actions()->actions[2];
+        EXPECT_EQ(ProcessorAction::Type::Remove, action.type);
+        EXPECT_TRUE(std::holds_alternative<ProcessorAction::Remove>(action.data));
+    }
+    {
+        ProcessorAction &action = config.actions()->actions[3];
+        EXPECT_EQ(ProcessorAction::Type::Print, action.type);
+        EXPECT_TRUE(std::holds_alternative<ProcessorAction::Print>(action.data));
     }
 }
