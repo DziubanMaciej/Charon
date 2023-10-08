@@ -19,6 +19,7 @@ std::pair<OsHandle, FilesystemImpl::LockResult> FilesystemImpl::lockFile(const f
         const DWORD error = GetLastError();
         switch (error) {
         case ERROR_FILE_NOT_FOUND:
+        case ERROR_PATH_NOT_FOUND:
             lockResult = LockResult::DoesNotExist;
             break;
         case ERROR_SHARING_VIOLATION:

@@ -25,6 +25,28 @@ class CharonAcceptanceTest(unittest.TestCase):
             file.write(content)
         return path
 
+    def run_charon_immediate(self, charon_config, files):
+        charon_config = json.dumps(charon_config)
+        test_files.create_file("charon_config.json", charon_config)
+
+        args = [
+            charonTestsConfig.charon_exe,
+            '--config',
+            test_files.get_full_path_str("charon_config.json"),
+            '--log',
+            test_files.get_full_path_str("charon_log.txt"),
+            '--immediate',
+            '--immediate-files',
+        ]
+        args += list(files)
+        charon_process = subprocess.Popen(args,
+                                          stdin=subprocess.DEVNULL,
+                                          stdout=subprocess.PIPE,
+                                          stderr=subprocess.PIPE)
+        charon_process.communicate(timeout=charonTestsConfig.terminate_timeout)
+        return_value = charon_process.wait(timeout=charonTestsConfig.terminate_timeout)
+        assert return_value == 0
+
     def enable_charon(self, charon_config):
         charon_config = json.dumps(charon_config)
         test_files.create_file("charon_config.json", charon_config)
@@ -395,6 +417,93 @@ class SimpleTestCase(CharonAcceptanceTest):
             assert test_files.validate_file(f'{dst_dir}/file_{i:03d}.ź', contents)
         assert test_files.is_dir_with_n_files(src_dir, 0)
         assert test_files.is_dir_with_n_files(dst_dir, len(filenames))
+
+
+    def test_immediate_move_one_file(self):
+        # Prepare test data
+        src_dir = test_files.get_full_path("Src")
+        dst_dir = test_files.get_full_path("Dst")
+        filename = f'myFile'
+        contents = "a\nb\nc"
+        test_files.create_directory(src_dir)
+        test_files.create_file(f'{src_dir}/{filename}', contents)
+
+        # Run charon
+        config =  [
+            {
+                "type": "move",
+                "destinationDir": test_files.get_full_path_str(dst_dir),
+                "destinationName": "${name}"
+            }
+        ]
+        self.run_charon_immediate(config, [f'{src_dir}/{filename}'])
+
+        # Check results
+        assert test_files.validate_file(f'{dst_dir}/{filename}', contents)
+        assert test_files.is_dir_with_n_files(src_dir, 0)
+        assert test_files.is_dir_with_n_files(dst_dir, 1)
+
+    def test_immediate_multiple_actions(self):
+        # Prepare test data
+        src_dir = test_files.get_full_path("Src")
+        dst_dir = test_files.get_full_path("Dst")
+        filename = f'myFile'
+        contents = "a\nb\nc"
+        test_files.create_directory(src_dir)
+        test_files.create_file(f'{src_dir}/{filename}', contents)
+
+        # Run charon
+        config =  [
+            {
+                "type": "copy",
+                "destinationDir": test_files.get_full_path_str(dst_dir),
+                "destinationName": "${name}_a"
+            },
+            {
+                "type": "copy",
+                "destinationDir": test_files.get_full_path_str(dst_dir),
+                "destinationName": "${name}_b"
+            },
+            {
+                "type": "move",
+                "destinationDir": test_files.get_full_path_str(dst_dir),
+                "destinationName": "${name}_c"
+            }
+        ]
+        self.run_charon_immediate(config, [f'{src_dir}/{filename}'])
+
+        # Check results
+        assert test_files.validate_file(f'{dst_dir}/{filename}_a', contents)
+        assert test_files.validate_file(f'{dst_dir}/{filename}_b', contents)
+        assert test_files.validate_file(f'{dst_dir}/{filename}_c', contents)
+        assert test_files.is_dir_with_n_files(src_dir, 0)
+        assert test_files.is_dir_with_n_files(dst_dir, 3)
+
+    def test_immediate_move_multiple_files(self):
+        # Prepare test data
+        src_dir = test_files.get_full_path("Src")
+        dst_dir = test_files.get_full_path("Dst")
+        file_count = 20
+        files = [(f'file{i}', test_files.generate_content_for_file(i)) for i in range(file_count)]
+        test_files.create_directory(src_dir)
+        for filename, contents in files:
+            test_files.create_file(f'{src_dir}/{filename}', contents)
+
+        # Run charon
+        config =  [
+            {
+                "type": "move",
+                "destinationDir": test_files.get_full_path_str(dst_dir),
+                "destinationName": "${name}"
+            }
+        ]
+        self.run_charon_immediate(config, [src_dir / name for name, _ in files])
+
+        # Check results
+        assert test_files.is_dir_with_n_files(src_dir, 0)
+        assert test_files.is_dir_with_n_files(dst_dir, file_count)
+        for filename, contents in files:
+            assert test_files.validate_file(f'{dst_dir}/{filename}', contents)
 
 if __name__ == "__main__":
     unittest.main(argv=[sys.argv[0], '-v'])  # run all tests

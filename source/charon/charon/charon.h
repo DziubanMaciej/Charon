@@ -19,6 +19,8 @@ public:
     bool stop();
     void waitForCompletion();
 
+    void processImmediate(const std::vector<fs::path> &paths);
+
     void setLogFilePath(const fs::path &path) { logFilePath = path; }
     void setConfigFilePath(const fs::path &path) { configFilePath = path; }
     auto &getLogFilePath() const { return logFilePath; }
