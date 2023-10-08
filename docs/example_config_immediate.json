@@ -1,0 +1,12 @@
+[
+    {
+        "type" : "copy",
+        "destinationDir" : "D:/Test/Images1",
+        "destinationName" : "###"
+    },
+    {
+        "type" : "move",
+        "destinationDir" : "D:/Test/Images2",
+        "destinationName" : "${previousName}"
+    }
+]
