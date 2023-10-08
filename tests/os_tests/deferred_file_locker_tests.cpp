@@ -99,20 +99,24 @@ TEST_F(DeferredFileLockerTest, givenInterruptEventBeforeRegularEventsWhenDeferre
 }
 
 TEST_F(DeferredFileLockerTest, givenFileIsLockedWhenFileLockerProcessesEventThenDeferLockingUntilFileIsAvailable) {
+    // Create two files and add events about them to the input queue
+    pushFileCreationEventAndCreateFile(testPath / "0");
+    pushFileCreationEventAndCreateFile(testPath / "1");
+
+    // Lock file "0"
+    auto [lockedFileHandle, lockResult] = filesystem.lockFile(testPath / "0");
+    ASSERT_EQ(lockResult, Filesystem::LockResult::Success);
+    ASSERT_NE(lockedFileHandle, defaultOsHandle);
+
+    // Run file locker
     DeferredFileLocker fileLocker{inputQueue, outputQueue, filesystem};
     std::thread thread{[&]() {
         fileLocker.run();
     }};
 
-    pushFileCreationEventAndCreateFile(testPath / "0");
-    auto [lockedFileHandle, lockResult] = filesystem.lockFile(testPath / "0");
-    ASSERT_EQ(lockResult, Filesystem::LockResult::Success);
-    ASSERT_NE(lockedFileHandle, defaultOsHandle);
-    pushFileCreationEventAndCreateFile(testPath / "1");
-
     // fileLocker should skip file "0", because it's locked and go to file "1"
     FileEvent event{};
-    EXPECT_TRUE(outputQueue.blockingPop(event));
+    ASSERT_TRUE(outputQueue.blockingPop(event));
     EXPECT_EQ(event.path, testPath / "1");
     filesystem.unlockFile(event.lockedFileHandle);
 
@@ -122,10 +126,10 @@ TEST_F(DeferredFileLockerTest, givenFileIsLockedWhenFileLockerProcessesEventThen
     // After unlocking, fileLocker can proceed. Let's push another event to wake the locker from sleep
     filesystem.unlockFile(lockedFileHandle);
     pushFileCreationEventAndCreateFile(testPath / "2");
-    EXPECT_TRUE(outputQueue.blockingPop(event));
+    ASSERT_TRUE(outputQueue.blockingPop(event));
     EXPECT_EQ(event.path, testPath / "0");
     filesystem.unlockFile(event.lockedFileHandle);
-    EXPECT_TRUE(outputQueue.blockingPop(event, zeroTimeout));
+    ASSERT_TRUE(outputQueue.blockingPop(event, hangTimeout));
     EXPECT_EQ(event.path, testPath / "2");
     filesystem.unlockFile(event.lockedFileHandle);
 
