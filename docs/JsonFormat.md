@@ -5,8 +5,8 @@ First we'll describe json objects defined for the purpose of *Charon* config.
 
 ### Action
 An action object defines a filesystem operation to perform on files. Every action object must contain a `type` field containing a valid action type and all the required type-specific fields. Supported action types:
-- `copy` - copy the file. Additional fields: `destinationDir`, `destinationName`. Destination name should be written without extension. The original extension will be preserved.
-- `move` - move the file. Aditional fields: `destinationDir`, `destinationName`. Destination name should be written without extension. The original extension will be preserved.
+- `copy` - copy the file. Required fields: `destinationDir`, `destinationName`. Destination name should be written without extension. The original extension will be preserved. Optional fields: `counterStart`.
+- `move` - move the file. Required fields: `destinationDir`, `destinationName`. Destination name should be written without extension. The original extension will be preserved. Optional fields: `counterStart`.
 - `remove` - remove the file.
 - `print` - print matched file event to logs.
 
@@ -19,12 +19,13 @@ An example of action, which copies a file to `D:\Deskop` directory and names it 
 }
 ```
 
-The `destinationName` for `copy` and `move` can leverage a functionality named counters. Counters tell Charon to assign incrementing numbers to filenames and insert them in place of hash characters (`#`). For example, below action will cause subsequent copy operations to resolve to following names: `foo_00`, `foo_01`, `foo_02`, and so on. The action will fail, if all the counter values are already taken.
+The `destinationName` for `copy` and `move` can leverage a functionality named counters. Counters tell Charon to assign incrementing numbers to filenames and insert them in place of hash characters (`#`). For example, below action will cause subsequent copy operations to resolve to following names: `foo_00`, `foo_01`, `foo_02`, and so on. The action will fail, if all the counter values are already taken. Optional field `counterStart` can also be specified to offset first counter. Default value is 0.
 ```json
 {
     "type": "copy",
     "destinationDir": "D:/Desktop",
-    "destinationName": "foo_##"
+    "destinationName": "foo_##",
+    "counterStart": 0
 }
 ```
 

@@ -161,6 +161,14 @@ bool ProcessConfigReader::parseProcessorAction(ProcessorAction &outAction, const
             return false;
         }
 
+        if (auto it = node.find("counterStart"); it != node.end()) {
+            if (!it->is_number_unsigned()) {
+                log(LogLevel::Error) << "Field \"counterStart\" must be an unsigned integer.";
+                return false;
+            }
+            data.counterStart = it->get<size_t>();
+        }
+
         outAction.data = data;
         break;
     }

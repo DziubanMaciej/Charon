@@ -12,12 +12,14 @@ class PathResolver : NonCopyableAndMovable {
 public:
     PathResolver(Filesystem &filesystem);
 
+    static bool validateCounterStartForResolve(const std::filesystem::path &namePattern, size_t counterStart);
     static bool validateNameForResolve(const std::filesystem::path &namePattern);
 
     std::filesystem::path resolvePath(const std::filesystem::path &newDir,
                                       const std::filesystem::path &oldName,
                                       const std::filesystem::path &namePattern,
-                                      const std::filesystem::path &lastResolvedName) const;
+                                      const std::filesystem::path &lastResolvedName,
+                                      size_t counterStart) const;
 
 private:
     static void applyVariableSubstitutions(PathStringType &name,
@@ -25,7 +27,8 @@ private:
                                            const std::filesystem::path &oldNameExtension,
                                            const std::filesystem::path &lastResolvedName);
     void applyCounterSubstitution(PathStringType &name,
-                                  const std::filesystem::path &newDir) const;
+                                  const std::filesystem::path &newDir,
+                                  size_t counterStart) const;
 
     static size_t getMaxIndex(size_t digits);
 

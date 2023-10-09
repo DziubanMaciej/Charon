@@ -10,6 +10,24 @@
 PathResolver::PathResolver(Filesystem &filesystem)
     : filesystem(filesystem) {}
 
+bool PathResolver::validateCounterStartForResolve(const std::filesystem::path &namePattern, size_t counterStart) {
+    const PathStringType namePatternStr = namePattern.generic_string<PathCharType>();
+
+    const size_t counterDigits = std::count(namePatternStr.begin(), namePatternStr.end(), '#');
+    if (counterDigits > 0) {
+        const size_t maxCounterStart = getMaxIndex(counterDigits);
+        if (counterStart > maxCounterStart) {
+            log(LogLevel::Error) << "counterStart " << counterStart << " is too large for \"" << namePattern << "\". Max is " << maxCounterStart << ".";
+            return false;
+        }
+    } else if (counterStart != 0) {
+        log(LogLevel::Error) << "counterStart cannot be specified when counter are not used.";
+        return false;
+    }
+
+    return true;
+}
+
 bool PathResolver::validateNameForResolve(const std::filesystem::path &namePattern) {
     const PathStringType namePatternStr = namePattern.generic_string<PathCharType>();
     std::match_results<PathStringType::const_iterator> result{};
@@ -71,12 +89,13 @@ bool PathResolver::validateNameForResolve(const std::filesystem::path &namePatte
 std::filesystem::path PathResolver::resolvePath(const std::filesystem::path &newDir,
                                                 const std::filesystem::path &oldName,
                                                 const std::filesystem::path &namePattern,
-                                                const std::filesystem::path &lastResolvedName) const {
+                                                const std::filesystem::path &lastResolvedName,
+                                                size_t counterStart) const {
     PathStringType result = namePattern.generic_string<PathCharType>();
     const std::filesystem::path extension = oldName.extension();
 
     applyVariableSubstitutions(result, oldName, extension, lastResolvedName);
-    applyCounterSubstitution(result, newDir);
+    applyCounterSubstitution(result, newDir, counterStart);
 
     if (result.empty()) {
         return result;
@@ -94,7 +113,7 @@ void PathResolver::applyVariableSubstitutions(PathStringType &name,
     StringHelper<PathCharType>::replace(name, CSTRING("${extension}"), StringHelper<PathCharType>::removeLeadingDot(oldNameExtension));
 }
 
-void PathResolver::applyCounterSubstitution(PathStringType &name, const std::filesystem::path &newDir) const {
+void PathResolver::applyCounterSubstitution(PathStringType &name, const std::filesystem::path &newDir, size_t counterStart) const {
     // If no counter is present, then we're done
     const size_t digits = std::count(name.begin(), name.end(), '#');
     if (digits == 0) {
@@ -111,10 +130,10 @@ void PathResolver::applyCounterSubstitution(PathStringType &name, const std::fil
         return name == p.stem().generic_string<PathCharType>();
     };
 
-    // Substitute counter equal to 0 to our name
-    size_t counter = 0u;
-    const auto counterStart = name.begin() + name.find('#');
-    setCounter(counterStart, counter, digits);
+    // Substitute first counter value in place of hashes
+    size_t counter = counterStart;
+    const auto counterAddress = name.begin() + name.find('#');
+    setCounter(counterAddress, counter, digits);
 
     // If we don't find a conflicting file, we can just take this name
     auto existingFile = std::find_if(filesInNewDir.begin(), filesInNewDir.end(), isNameTaken);
@@ -122,13 +141,13 @@ void PathResolver::applyCounterSubstitution(PathStringType &name, const std::fil
         return;
     }
 
-    // Check rest of names. The list is sorted, so we don't have to check anything before existingFile.
+    // We have a conflict. Check rest of names. The list is sorted, so we don't have to check anything before existingFile.
     existingFile++;
-    setCounter(counterStart, ++counter, digits);
+    setCounter(counterAddress, ++counter, digits);
     for (; existingFile != filesInNewDir.end(); existingFile++) {
         // If it's taken, go to the next one
         if (isNameTaken(*existingFile)) {
-            setCounter(counterStart, ++counter, digits);
+            setCounter(counterAddress, ++counter, digits);
         }
     }
 

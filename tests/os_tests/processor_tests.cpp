@@ -385,6 +385,58 @@ TEST_F(ProcessorTest, givenConfigWithMatchersAndDestinationDirectoryDoesNotExist
     EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "b" / "file000"));
 }
 
+TEST_F(ProcessorTest, givenConfigWithMatchersAndFileCopyActionTriggeredAndCounterStartIsUsedWhenProcessorIsRunningThenCopyFile) {
+    ProcessorConfig config = createProcessorConfigWithOneMatcher();
+    config.matchers()->matchers[0].actions = {createCopyAction("file_###", 10)};
+    Processor processor{config, eventQueue, filesystem};
+
+    pushFileCreationEventAndCreateFile(srcPath / "a");
+    pushFileCreationEventAndCreateFile(srcPath / "b");
+    pushInterruptEvent();
+    processor.run();
+
+    EXPECT_TRUE(TestFilesHelper::fileExists(srcPath / "a"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_010"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_011"));
+    EXPECT_FALSE(TestFilesHelper::fileExists(dstPath / "file_012"));
+}
+
+TEST_F(ProcessorTest, givenConfigWithMatchersAndGapInCounterWhenCounterStartIsUsedThenFillTheGaps) {
+    ProcessorConfig config = createProcessorConfigWithOneMatcher();
+    config.matchers()->matchers[0].actions = {createCopyAction("file_###", 19)};
+    Processor processor{config, eventQueue, filesystem};
+
+    TestFilesHelper::createFile(dstPath / "file_000");
+    TestFilesHelper::createFile(dstPath / "file_001");
+    TestFilesHelper::createFile(dstPath / "file_020");
+    TestFilesHelper::createFile(dstPath / "file_021");
+    TestFilesHelper::createFile(dstPath / "file_022");
+    TestFilesHelper::createFile(dstPath / "file_024");
+
+    pushFileCreationEventAndCreateFile(srcPath / "a.1");
+    pushFileCreationEventAndCreateFile(srcPath / "a.2");
+    pushFileCreationEventAndCreateFile(srcPath / "a.3");
+    pushFileCreationEventAndCreateFile(srcPath / "a.4");
+    pushFileCreationEventAndCreateFile(srcPath / "a.5");
+    pushInterruptEvent();
+    processor.run();
+
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_000"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_001"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_019.1"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_020"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_021"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_022"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_023.2"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_024"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_025.3"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_026.4"));
+    EXPECT_TRUE(TestFilesHelper::fileExists(dstPath / "file_027.5"));
+
+    EXPECT_EQ(5u, TestFilesHelper::countFilesInDirectory(srcPath));
+    EXPECT_EQ(11u, TestFilesHelper::countFilesInDirectory(dstPath));
+}
+
 TEST_F(ProcessorTest, givenConfigWithMatchersAndEmptyDirectoryCreationEventDoesWhenProcessorIsRunningThenIgnoreIt) {
     ProcessorConfig config = createProcessorConfigWithOneMatcher();
     config.matchers()->matchers[0].actions = {createMoveAction("${name}", dstPath)};

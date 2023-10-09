@@ -227,6 +227,70 @@ TEST_F(ProcessorConfigValidatorTest, givenUncontiguousHashesInNamePatternWhenVal
     EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
 }
 
+TEST_F(ProcessorConfigValidatorTest, givenCountersUsedAndCounterStartSpecifiedWhenValidatingConfigWithMatchersThenReturnSuccess) {
+    MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
+
+    ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
+    config.matchers()->matchers[0].watchedExtensions = {"png", "jpg", "mp4", ""};
+    config.matchers()->matchers[0].actions = {
+        createCopyAction(dummyPath2, "dst"),
+        createCopyAction(dummyPath2, "dst_##", 1),
+    };
+    EXPECT_TRUE(ProcessorConfigValidator::validateConfig(config));
+}
+
+TEST_F(ProcessorConfigValidatorTest, givenCountersNotUsedAndCounterStartSpecifiedWhenValidatingConfigWithMatchersThenReturnError) {
+    MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
+
+    EXPECT_CALL(logger, log(LogLevel::Error, "counterStart cannot be specified when counter are not used."));
+
+    ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
+    config.matchers()->matchers[0].watchedExtensions = {"png", "jpg", "mp4", ""};
+    config.matchers()->matchers[0].actions = {
+        createCopyAction(dummyPath2, "dst"),
+        createCopyAction(dummyPath2, "dst", 1),
+    };
+    EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
+}
+
+TEST_F(ProcessorConfigValidatorTest, givenCountersUsedAndCounterStartTooBigWhenValidatingConfigWithMatchersThenReturnError) {
+    MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
+
+    EXPECT_CALL(logger, log(LogLevel::Error, "counterStart 100 is too large for \"dst_##\". Max is 99."));
+    EXPECT_CALL(logger, log(LogLevel::Error, "counterStart 101 is too large for \"dst_##\". Max is 99."));
+
+    {
+        ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
+        config.matchers()->matchers[0].watchedExtensions = {"png", "jpg", "mp4", ""};
+        config.matchers()->matchers[0].actions = {
+            createCopyAction(dummyPath2, "dst"),
+            createCopyAction(dummyPath2, "dst_##", 99),
+        };
+        EXPECT_TRUE(ProcessorConfigValidator::validateConfig(config));
+    }
+    {
+        ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
+        config.matchers()->matchers[0].watchedExtensions = {"png", "jpg", "mp4", ""};
+        config.matchers()->matchers[0].actions = {
+            createCopyAction(dummyPath2, "dst"),
+            createCopyAction(dummyPath2, "dst_##", 100),
+        };
+        EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
+    }
+    {
+        ProcessorConfig config = createProcessorConfigWithOneMatcher(dummyPath1);
+        config.matchers()->matchers[0].watchedExtensions = {"png", "jpg", "mp4", ""};
+        config.matchers()->matchers[0].actions = {
+            createCopyAction(dummyPath2, "dst"),
+            createCopyAction(dummyPath2, "dst_##", 101),
+        };
+        EXPECT_FALSE(ProcessorConfigValidator::validateConfig(config));
+    }
+}
+
 TEST_F(ProcessorConfigValidatorTest, givenValidConfigWhenValidatingConfigWithActionsThenReturnSuccess) {
     MockLogger logger{};
     auto loggerSetup = logger.raiiSetup();

@@ -206,6 +206,7 @@ TEST(ProcessConfigReaderPositiveTest, givenCopyActionWhenReadingConfigWithMatche
     auto data = std::get<ProcessorAction::MoveOrCopy>(config.matchers()->matchers[0].actions[0].data);
     EXPECT_EQ("D:/Desktop/Dst1", data.destinationDir);
     EXPECT_EQ("#.${ext}", data.destinationName);
+    EXPECT_EQ(0, data.counterStart);
 }
 
 TEST(ProcessConfigReaderPositiveTest, givenMoveActionWhenReadingConfigWithMatchersThenParseCorrectly) {
@@ -338,6 +339,7 @@ TEST(ProcessConfigReaderPositiveTest, givenComplexConfigWhenReadingConfigWithMat
             EXPECT_EQ(ProcessorAction::Type::Copy, action.type);
             EXPECT_EQ("D:/Desktop/Dst1", actionData.destinationDir);
             EXPECT_EQ("#.${ext}", actionData.destinationName);
+            EXPECT_EQ(0, actionData.counterStart);
         }
         {
             const auto &action = matcher.actions[1];
@@ -345,6 +347,7 @@ TEST(ProcessConfigReaderPositiveTest, givenComplexConfigWhenReadingConfigWithMat
             EXPECT_EQ(ProcessorAction::Type::Move, action.type);
             EXPECT_EQ("D:/Desktop/Dst2", actionData.destinationDir);
             EXPECT_EQ("##.${ext}", actionData.destinationName);
+            EXPECT_EQ(0, actionData.counterStart);
         }
     }
 
@@ -395,6 +398,7 @@ TEST(ProcessConfigReaderPositiveTest, givenCopyActionWhenReadingConfigWithAction
     auto data = std::get<ProcessorAction::MoveOrCopy>(action.data);
     EXPECT_EQ("D:/Desktop/Dst1", data.destinationDir);
     EXPECT_EQ("#.${ext}", data.destinationName);
+    EXPECT_EQ(0, data.counterStart);
 }
 
 TEST(ProcessConfigReaderPositiveTest, givenMultipleActionsWhenReadingConfigWithActionsThenParseCorrectly) {
@@ -431,6 +435,7 @@ TEST(ProcessConfigReaderPositiveTest, givenMultipleActionsWhenReadingConfigWithA
         auto data = std::get<ProcessorAction::MoveOrCopy>(action.data);
         EXPECT_EQ("D:/Desktop/Dst1", data.destinationDir);
         EXPECT_EQ("#.${ext}", data.destinationName);
+        EXPECT_EQ(0, data.counterStart);
     }
     {
         ProcessorAction &action = config.actions()->actions[1];
@@ -438,6 +443,7 @@ TEST(ProcessConfigReaderPositiveTest, givenMultipleActionsWhenReadingConfigWithA
         auto data = std::get<ProcessorAction::MoveOrCopy>(action.data);
         EXPECT_EQ("D:/Desktop/Dst2", data.destinationDir);
         EXPECT_EQ("##.${ext}", data.destinationName);
+        EXPECT_EQ(0, data.counterStart);
     }
     {
         ProcessorAction &action = config.actions()->actions[2];
@@ -448,5 +454,94 @@ TEST(ProcessConfigReaderPositiveTest, givenMultipleActionsWhenReadingConfigWithA
         ProcessorAction &action = config.actions()->actions[3];
         EXPECT_EQ(ProcessorAction::Type::Print, action.type);
         EXPECT_TRUE(std::holds_alternative<ProcessorAction::Print>(action.data));
+    }
+}
+
+TEST(ProcessConfigReaderPositiveTest, givenCopyActionWithCounterStartWhenReadingConfigWithActionsThenParseCorrectly) {
+    MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
+    EXPECT_CALL(logger, log).Times(0);
+
+    ProcessConfigReader reader{};
+    ProcessorConfig config{};
+    std::string json = R"(
+        [
+            {
+                "type": "copy",
+                "destinationDir": "D:/Desktop/Dst1",
+                "destinationName": "#.${ext}",
+                "counterStart": 12
+            }
+        ]
+    )";
+    ASSERT_TRUE(reader.read(config, json, ProcessorConfig::Type::Actions));
+    ProcessorAction &action = config.actions()->actions[0];
+    EXPECT_EQ(ProcessorAction::Type::Copy, action.type);
+    auto data = std::get<ProcessorAction::MoveOrCopy>(action.data);
+    EXPECT_EQ("D:/Desktop/Dst1", data.destinationDir);
+    EXPECT_EQ("#.${ext}", data.destinationName);
+    EXPECT_EQ(12, data.counterStart);
+}
+
+TEST(ProcessConfigReaderPositiveTest, givenCopyActionWithExplicitZeroCounterStartWhenReadingConfigWithActionsThenParseCorrectly) {
+    MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
+    EXPECT_CALL(logger, log).Times(0);
+
+    ProcessConfigReader reader{};
+    ProcessorConfig config{};
+    std::string json = R"(
+        [
+            {
+                "type": "copy",
+                "destinationDir": "D:/Desktop/Dst1",
+                "destinationName": "#.${ext}",
+                "counterStart": 0
+            }
+        ]
+    )";
+    ASSERT_TRUE(reader.read(config, json, ProcessorConfig::Type::Actions));
+    ProcessorAction &action = config.actions()->actions[0];
+    EXPECT_EQ(ProcessorAction::Type::Copy, action.type);
+    auto data = std::get<ProcessorAction::MoveOrCopy>(action.data);
+    EXPECT_EQ("D:/Desktop/Dst1", data.destinationDir);
+    EXPECT_EQ("#.${ext}", data.destinationName);
+    EXPECT_EQ(0, data.counterStart);
+}
+
+TEST(ProcessConfigReaderPositiveTest, givenCopyActionWithCounterStartWithInvalidFormatWhenReadingConfigWithActionsThenReturnError) {
+    MockLogger logger{};
+    auto loggerSetup = logger.raiiSetup();
+    EXPECT_CALL(logger, log(LogLevel::Error, "Field \"counterStart\" must be an unsigned integer.")).Times(2);
+
+    {
+        ProcessConfigReader reader{};
+        ProcessorConfig config{};
+        std::string json = R"(
+        [
+            {
+                "type": "copy",
+                "destinationDir": "D:/Desktop/Dst1",
+                "destinationName": "#.${ext}",
+                "counterStart": "12"
+            }
+        ]
+    )";
+        ASSERT_FALSE(reader.read(config, json, ProcessorConfig::Type::Actions));
+    }
+    {
+        ProcessConfigReader reader{};
+        ProcessorConfig config{};
+        std::string json = R"(
+        [
+            {
+                "type": "copy",
+                "destinationDir": "D:/Desktop/Dst1",
+                "destinationName": "#.${ext}",
+                "counterStart": -1
+            }
+        ]
+    )";
+        ASSERT_FALSE(reader.read(config, json, ProcessorConfig::Type::Actions));
     }
 }

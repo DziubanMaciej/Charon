@@ -327,6 +327,43 @@ class SimpleTestCase(CharonAcceptanceTest):
         assert test_files.is_dir_with_n_files(src_dir2, 0)
         assert test_files.is_dir_with_n_files(dst_dir, file_count * 2)
 
+    def test_name_counters_with_start_counter(self):
+        # Prepare test data
+        src_dir = "Src"
+        dst_dir = "Dst"
+        test_files.create_directory(src_dir)
+        counter_start = 5008
+        file_count = 20
+        files = [f'{test_files.generate_name_for_file(i)}.png' for i in range(file_count)]
+
+        # Run charon
+        config = [
+            {
+                "watchedFolder": test_files.get_full_path_str(src_dir),
+                "actions": [
+                    {
+                        "type": "move",
+                        "destinationDir": test_files.get_full_path_str(dst_dir),
+                        "destinationName": "file_#####",
+                        "counterStart": counter_start,
+                    }
+                ]
+            }
+        ]
+        self.enable_charon(config)
+
+        # Perform file operations
+        for file in files:
+            test_files.create_file(f'{src_dir}/{file}', '')
+
+        # Check results
+        self.disable_charon(file_count)
+        for i in range(file_count):
+            base_name = f'{dst_dir}/file_{(counter_start+i):05d}'
+            assert test_files.validate_file(f'{base_name}.jpg', '') or test_files.validate_file(f'{base_name}.png', '')
+        assert test_files.is_dir_with_n_files(src_dir, 0)
+        assert test_files.is_dir_with_n_files(dst_dir, file_count)
+
     def test_move_and_backup(self):
         # Prepare test data
         src_dir = "Src1"
