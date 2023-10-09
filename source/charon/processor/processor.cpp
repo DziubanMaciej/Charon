@@ -117,7 +117,8 @@ void Processor::executeProcessorAction(const FileEvent &event, const ProcessorAc
 void Processor::executeProcessorActionMoveOrCopy(const FileEvent &event, const ProcessorAction &action,
                                                  ActionMatcherState &actionMatcherState, bool isMove) {
     const auto data = std::get<ProcessorAction::MoveOrCopy>(action.data);
-    const auto dstPath = pathResolver.resolvePath(data.destinationDir, event.path, data.destinationName, actionMatcherState.lastResolvedPath);
+    const auto dstPath = pathResolver.resolvePath(data.destinationDir, event.path, data.destinationName,
+                                                  actionMatcherState.lastResolvedPath, data.counterStart);
     actionMatcherState.lastResolvedPath = dstPath;
     if (dstPath.empty()) {
         log(LogLevel::Error) << "Processor could not resolve destination filename.";

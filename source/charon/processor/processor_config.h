@@ -18,6 +18,7 @@ struct ProcessorAction {
     struct MoveOrCopy {
         fs::path destinationDir;
         fs::path destinationName;
+        size_t counterStart;
     };
     struct Remove {};
     struct Print {};

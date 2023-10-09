@@ -65,6 +65,7 @@ bool ProcessorConfigValidator::validateAction(const ProcessorAction &action, boo
 
     if (action.type == ProcessorAction::Type::Move || action.type == ProcessorAction::Type::Copy) {
         const auto data = std::get<ProcessorAction::MoveOrCopy>(action.data);
+
         if (!validatePath(data.destinationDir, "Destination directory", false, true)) {
             return false;
         }
@@ -72,6 +73,9 @@ bool ProcessorConfigValidator::validateAction(const ProcessorAction &action, boo
             return false;
         }
         if (!PathResolver::validateNameForResolve(data.destinationName)) {
+            return false;
+        }
+        if (!PathResolver::validateCounterStartForResolve(data.destinationName, data.counterStart)) {
             return false;
         }
     }

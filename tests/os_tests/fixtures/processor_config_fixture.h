@@ -11,14 +11,15 @@ struct ProcessorConfigFixture {
         dstPath = TestFilesHelper::createDirectory("dst");
     }
 
-    ProcessorAction createCopyAction(const std::string &destinationName) {
-        return createCopyAction(destinationName, this->dstPath);
+    ProcessorAction createCopyAction(const std::string &destinationName, size_t counterStart = 0) {
+        return createCopyAction(destinationName, this->dstPath, counterStart);
     }
 
-    ProcessorAction createCopyAction(const std::string &destinationName, const std::filesystem::path &destinationDir) {
+    ProcessorAction createCopyAction(const std::string &destinationName, const std::filesystem::path &destinationDir, size_t counterStart = 0) {
         ProcessorAction::MoveOrCopy data{};
         data.destinationDir = destinationDir;
         data.destinationName = destinationName;
+        data.counterStart = counterStart;
         return ProcessorAction{ProcessorAction::Type::Copy, data};
     }
 

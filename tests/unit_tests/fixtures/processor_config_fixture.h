@@ -5,10 +5,11 @@
 #include <gtest/gtest.h>
 
 struct ProcessorConfigFixture {
-    ProcessorAction createCopyAction(const std::filesystem::path &destinationDir, const std::string &destinationName) {
+    ProcessorAction createCopyAction(const std::filesystem::path &destinationDir, const std::string &destinationName, size_t counterStart = 0) {
         ProcessorAction::MoveOrCopy data{};
         data.destinationDir = destinationDir;
         data.destinationName = destinationName;
+        data.counterStart = counterStart;
         return ProcessorAction{ProcessorAction::Type::Copy, data};
     }
 
