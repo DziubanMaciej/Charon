@@ -72,8 +72,12 @@ private:
             return arg;
         }
         if constexpr (std::is_same_v<ResultType, std::wstring>) {
-            std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
-            return converter.from_bytes(arg);
+            std::mbstate_t state{};
+            const char* src = arg.data();
+            size_t len = std::mbsrtowcs(nullptr, &src, 0, &state);
+            std::wstring wstr(len, L'\0');
+            std::mbsrtowcs(&wstr[0], &src, len, &state);
+            return wstr;
         }
         if constexpr (std::is_same_v<ResultType, std::filesystem::path>) {
             return std::filesystem::path(arg);
